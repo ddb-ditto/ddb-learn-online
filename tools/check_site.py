@@ -41,6 +41,13 @@ if not (DIST / "index.html").exists():
 _asset = re.search(r'href="(/[^"]*?)/_astro/', (DIST / "index.html").read_text(encoding="utf-8"))
 BASE = _asset.group(1) if _asset else ""
 
+EVAL_WANTED = """() => {
+  const d = JSON.parse(document.querySelector('#ex-w-e .ex-data').textContent);
+  const p = document.querySelector('#ex-w-e .exprompt').textContent;
+  const hit = d.items.find((i) => i.prompt === p);
+  return hit ? hit.answer : null;
+}"""
+
 fails: list[str] = []
 notes: list[str] = []
 
@@ -596,6 +603,31 @@ with sync_playwright() as pw:
                              "the score would double-count")
             if wd.get_by_text("Check").is_visible():
                 fails.append("an answered question still offers Check")
+        # The highlight on a wrong answer points at a small difference. Given an
+        # answer nowhere near it there is no small difference, and marking
+        # everything-but-the-incidental-letter chops the correct version into
+        # blocks with holes in it. Reported from a screenshot: someone typed
+        # "jasjsd", the diff found the one `a` in it, and the answer came back as
+        # [Je m']a[ppelle Sam.]
+        wanted_js = EVAL_WANTED
+        for typed, what in (("jasjsd", "gibberish"), ("", "nothing at all")):
+            page.goto(f"{ROOT}/french/year-7/packs/tricky-spellings/")
+            we = page.locator("#ex-w-e")
+            if we.count() == 0:
+                fails.append("no spot-the-mistake drill to check the highlighting with")
+                break
+            wanted = page.evaluate(wanted_js)
+            we.locator(".exinput").fill(typed)
+            we.get_by_text("Check").click()
+            marked = we.locator("mark").all_inner_texts()
+            said = " ".join(we.locator(".exresult").inner_text().split())
+            notes.append(f"answered with {what}: highlighted {marked or 'nothing'}")
+            if marked:
+                fails.append(f"typing {what} highlights {marked} — with nothing close "
+                             f"to point at, the answer should be shown plain")
+            if wanted and wanted not in said:
+                fails.append(f"the correct answer is not shown in full after {what}")
+
 
         # A pack's cards are worked out from its word list, so they cannot drift
         # from it — but they do have to arrive.

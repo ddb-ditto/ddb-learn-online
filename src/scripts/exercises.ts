@@ -14,7 +14,7 @@
  * takes an answer first and then marks it, or has a button he has to press to
  * turn the card over — never both at once.
  */
-import { diff, isCorrect, pick, shuffled, type Run } from "./marking";
+import { NEAR_ENOUGH, diff, isCorrect, pick, shuffled, similarity } from "./marking";
 
 type Part = "speaking" | "reading" | "writing";
 
@@ -362,9 +362,25 @@ function runChoice(ex: ChoiceEx, root: HTMLElement): void {
 
 /* --------------------------------------------------------------------- type */
 
-/** Draw a wrong answer as the right one, with what he missed picked out. */
-const renderDiff = (runs: Run[]): string =>
-  runs.map((r) => (r.same ? tight(r.text) : `<mark>${tight(r.text)}</mark>`)).join("");
+/**
+ * The right answer, with what was missed picked out — but only when picking it
+ * out means something.
+ *
+ * A highlight says "look here". If the answer was nowhere near, there is no
+ * "here" to look at and the markup only makes the correct version harder to
+ * read, so it is printed plain. The same goes for an answer that differs only
+ * by something he typed *extra*: nothing is missing from the correct version,
+ * so there is nothing to mark, and a run of markup with no holes in it would
+ * just be a red box round the whole line.
+ */
+function answerWith(typed: string, expected: string): string {
+  const runs = diff(typed, expected);
+  const worth = similarity(typed, expected) >= NEAR_ENOUGH
+    && runs.some((r) => !r.same)
+    && runs.some((r) => r.same);
+  if (!worth) return tight(expected);
+  return runs.map((r) => (r.same ? tight(r.text) : `<mark>${tight(r.text)}</mark>`)).join("");
+}
 
 /**
  * Type the French. One at a time, marked strictly, and a wrong answer shows
@@ -416,7 +432,7 @@ function runType(ex: TypeEx, root: HTMLElement): void {
       input.classList.add(right(i) ? "right" : "wrong");
       result.innerHTML = right(i)
         ? "Correct."
-        : `<span class="exlabel">The answer is</span> <span class="fr">${renderDiff(diff(said, it.answer))}</span>`;
+        : `<span class="exlabel">The answer is</span> <span class="fr">${answerWith(said, it.answer)}</span>`;
     }
     if (allDone()) {
       result.innerHTML += `<span class="exfinal">Finished — ${verdict(score(), items.length)}</span>`;

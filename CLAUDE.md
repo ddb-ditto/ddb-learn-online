@@ -218,6 +218,14 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   memory and forget.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
   from the pack's word list. Add a word to a pack and its card appears.
+- **A wrong answer is highlighted only when the highlight points at
+  something.** The character diff is for a missing accent or a dropped hyphen.
+  Given an answer nowhere near the right one it finds whatever letters happen
+  to coincide and marks up everything else, so the correct version comes back
+  in fragments with holes in it — which reads as a bug, and was reported as
+  one. `similarity()` in `marking.ts` gates it: under a half, print the answer
+  plain. Measured on the real pack data, genuine near misses score 0.71 and
+  above and nonsense scores under 0.15.
 - **"Just what I need" takes prose, never material.** `ReadingMode.astro` is
   a switch, remembered across the French section, that hides the notes written
   for the parent and folds the ones written for the learner down to their

@@ -79,20 +79,19 @@ export function cardsFor(p: Pack): Card[] {
     }
   }
 
-  if (p.corrections) {
-    // A misspelling on the front, and spotting it is the skill — the writing
-    // test's last task is exactly this. The card is phrased about the word,
-    // never about who got it wrong: a deck that keeps telling a child what he
-    // got wrong is a deck he stops opening.
-    for (const c of p.corrections) {
-      cards.push({
-        d: "Spot the slip",
-        t: "rule",
-        f: `What is wrong with <em>${c.wrong[0]}</em>?`,
-        m: tight(c.right),
-      });
-    }
-  }
+  // `corrections` deliberately makes no cards.
+  //
+  // It used to: a misspelling on the front, the right spelling on the back.
+  // But a flashcard is seen over and over, and the Leitner box shows the ones
+  // that keep going wrong *more* often — so the deck's effect was to put the
+  // misspelling in front of him repeatedly, which is the opposite of what a
+  // spelling pack is for. Seeing a wrong spelling makes it fractionally more
+  // familiar, and familiarity is what a speller reaches for.
+  //
+  // Recognising a wrong spelling is still worth practising, because the
+  // writing test's last task is exactly that. It happens in the "Spot the
+  // mistake" exercise, once, where getting it wrong costs nothing and the
+  // correct version is shown immediately afterwards.
 
   return cards;
 }

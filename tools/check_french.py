@@ -387,6 +387,39 @@ def about_the_learner(packs: dict, exercises: dict) -> list[str]:
     return bad
 
 
+def misspellings_stay_in_the_exercise(packs: dict, exercises: dict) -> list[str]:
+    """A wrong spelling appears once, in the drill, and nowhere else.
+
+    Seeing a misspelling makes it fractionally more familiar, and familiarity
+    is what somebody reaches for when they are unsure. Recognising one is still
+    worth practising — the writing test's last task is exactly that — so it
+    happens in "Spot the mistake", where it is answered and corrected on the
+    spot, rather than printed on a page to be read past or put on a flashcard
+    that the box then shows again and again.
+    """
+    wrong = {normalise(w) for p in packs.values()
+             for c in p.get("corrections", []) for w in c["wrong"]}
+    if not wrong:
+        return []
+
+    # Two drills ask a wrong form as the question, which is the opposite of
+    # passive exposure: he is given it to fix, and sees the right version a
+    # second later. w-e is spot-the-mistake; w-d strips the punctuation off on
+    # purpose, so "ca va" there is the task rather than a misspelling on show.
+    allowed = {"w-e", "w-d"}
+    bad = []
+    for name, e in sorted(exercises.items()):
+        if name in allowed:
+            continue
+        for it in e.get("items", []):
+            for field in ("prompt", "answer", "q"):
+                value = it.get(field)
+                if isinstance(value, str) and normalise(value) in wrong:
+                    bad.append(f"exercises/{name}: {value!r} is a misspelling, and "
+                               f"those belong only in the spot-the-mistake drill")
+    return bad
+
+
 def main() -> int:
     if not PACKS.is_dir():
         print("no src/data/french — nothing to check")
@@ -403,6 +436,7 @@ def main() -> int:
     bad += exercise_links(packs, tests, exercises)
     bad += answers_are_taught(packs, exercises, allowed)
     bad += about_the_learner(packs, exercises)
+    bad += misspellings_stay_in_the_exercise(packs, exercises)
 
     loose = undrilled(packs, exercises)
     if loose:

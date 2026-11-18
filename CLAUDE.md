@@ -273,10 +273,29 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 
 ## The logo
 
-`public/logo.png` is the mark. It reads "GCSE Italian", so it belongs to the
-Italian course: it appears on `/italian/` and nowhere else. Not on the front
-door, where it would brand a French page Italian; not above a lesson, where it
-competes with the material rather than introducing it.
+There are two marks, and each belongs to one page.
+
+`public/logo-site.png` is the DDB wordmark. It is the site's, so it goes on the
+front door. `public/logo.png` is the GCSE Italian roundel, which says so on its
+face, so it stays on `/italian/`. Neither goes above a lesson, where it would
+compete with the material rather than introduce it. `Base.astro` takes
+`logo="site"` or `logo="italian"`; anything else gets none.
+
+The artwork both are cut from lives in `brand/`, outside `public/` because it
+is a source rather than something the site serves. `tools/make_icons.py`
+regenerates everything from it and needs Pillow.
+
+Neither mark survives being shrunk to a favicon, so 32px and 16px are a drawn
+D in the brand's yellow on its navy — one shape, the right first letter, and no
+dependency on a font. Build it from masks: the first attempt painted the bowl
+over the stem and squared the left edge off afterwards, which erased the stem
+and produced something that read as a C.
+
+**The manifest is generated**, at `src/pages/manifest.webmanifest.ts`. As a
+static file in `public/` it hard-coded the old repository name in `start_url`,
+`scope` and every icon path, so the rename broke the installed app and nothing
+said a word — no build error, no console message. Anything carrying the base
+path has to be generated.
 `tools/make_icons.py` derives every icon from it and needs Pillow.
 
 It is a circular mark with a ring, three lines of text and a drawing inside it.

@@ -404,6 +404,40 @@ about fifty words off a page — real, and not a transformation. If the pages
 still read as too long, the next lever is the order of the page rather than
 more hiding, and that is worth measuring before building.
 
+## The wrong spelling appears once, where it is being asked about
+
+Pack 10 showed each misspelling struck through beside the right one. That was
+the brief's own design and the argument for it is real: the writing test's last
+task is spotting a wrong spelling, so recognising one is examined.
+
+Against it: seeing a misspelling makes it fractionally more familiar, and
+familiarity is what somebody reaches for when they are unsure. The evidence is
+mixed rather than settled, but it points one way and the column was the most
+passive form of the exposure — read past, every visit, learning nothing.
+
+So the page shows only the spelling that counts. Recognising a wrong one
+happens in **Spot the mistake**, where it is a question with an answer and the
+right version appears a second later, and in the punctuation drill, where a
+stripped-down prompt is the task rather than something on display.
+
+The flashcards went too, which was not asked for but follows. A card is seen
+over and over, and the Leitner box shows the ones that keep going wrong *more*
+often — so a deck of misspellings would have put them in front of him most
+where he was weakest. Pack 10 now has no cards; its drilling is the exercises.
+
+`check_french.py` holds the line: a wrong spelling may appear in those two
+drills and nowhere else.
+
+## Two marks, one site
+
+The site has its own logo now — the DDB wordmark — and it goes on the front
+door, which is the only page belonging to the whole site rather than to one
+subject. The GCSE Italian roundel stays on the Italian contents page, because
+it says "GCSE Italian" on its face and that is still true there.
+
+Keeping both was not indecision. One brands a site that teaches two things; the
+other brands one of them.
+
 ## Still open
 
 - Custom domain, or the `ddb-ditto.github.io/<repo-name>/` path? No `CNAME` file yet.

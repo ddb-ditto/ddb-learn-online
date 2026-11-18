@@ -147,10 +147,42 @@ with sync_playwright() as pw:
         if wide() > 390:
             fails.append(f"the Italian contents scroll sideways at 390px ({wide()}px)")
 
-        # The mark introduces the Italian course, and says so on its face — it
-        # reads "GCSE Italian". So it lives on the Italian contents page: on the
-        # front door it would brand a French page Italian, and above a lesson it
-        # would compete with the material.
+        # Two marks, each on the one page it belongs to. The DDB wordmark is
+        # the site's, so it goes on the front door; the GCSE Italian roundel
+        # says so on its face, so it stays on the Italian contents page. Above
+        # a lesson either would compete with the material.
+        page.goto(f"{ROOT}/")
+        site_mark = page.locator(".logomark.is-site")
+        if site_mark.count() != 1:
+            fails.append(f"the front door has {site_mark.count()} site logos, expected 1")
+        else:
+            box = site_mark.bounding_box()
+            notes.append(f"site logo: {round(box['width'])}x{round(box['height'])}px, "
+                         f"alt {site_mark.get_attribute('alt')!r}")
+            if box["width"] < 120:
+                fails.append(f"the site logo renders at {round(box['width'])}px wide")
+            if "italian" in (site_mark.get_attribute("alt") or "").lower():
+                fails.append("the site logo's alt text still names one subject")
+
+        # The manifest used to be a static file carrying the old repository
+        # name, so a rename broke the installed app and nothing said a word.
+        manifest = page.request.get(
+            f"http://127.0.0.1:{httpd.server_address[1]}{BASE}/manifest.webmanifest")
+        if manifest.status != 200:
+            fails.append(f"the manifest is {manifest.status}")
+        else:
+            data = json.loads(manifest.text())
+            notes.append(f"manifest start_url: {data['start_url']!r}")
+            for field in ("start_url", "scope"):
+                if not data[field].startswith(BASE):
+                    fails.append(f"the manifest's {field} is {data[field]!r}, "
+                                 f"not under {BASE}")
+            for ico in data["icons"]:
+                got = page.request.get(
+                    f"http://127.0.0.1:{httpd.server_address[1]}{ico['src']}")
+                if got.status != 200:
+                    fails.append(f"the manifest names {ico['src']}, which is {got.status}")
+
         page.goto(f"{ROOT}/italian/")
         mark = page.locator(".logomark")
         if mark.count() != 1:
@@ -762,11 +794,14 @@ with sync_playwright() as pw:
 
         # The logo belongs to one page.
         for path, why in (("/units/1/sessions/2/", "a lesson page"),
-                          ("/", "the front door"),
-                          ("/french/year-7/", "a French page")):
+                          ("/french/year-7/", "a French page"),
+                          ("/french/year-7/packs/greetings/", "a French pack")):
             page.goto(f"{ROOT}{path}")
             if page.locator(".logomark").count():
-                fails.append(f"the Italian logo is on {why}")
+                fails.append(f"a logo is on {why}, where it competes with the material")
+        page.goto(f"{ROOT}/")
+        if page.locator(".logomark.is-italian").count():
+            fails.append("the Italian mark is on the front door, branding the site one subject")
 
     except Exception as crash:
         # The deepest frame is inside Playwright and says nothing useful. The

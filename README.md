@@ -60,6 +60,7 @@ src/
   lib/           a pack's flashcards, worked out from the pack's word list
   scripts/       the flashcard app and the exercise runner, bundled once
   styles/        the house stylesheet, loaded once
+brand/           the logo artwork the icons are cut from, not served
 tools/
   check_all.py       all of the below, reporting what could not run
   check_text.py      local paths, calendar years, encoding — run by CI
@@ -67,7 +68,7 @@ tools/
   check_vocab.py     every taught word is on the examined list
   vocab.py           reads the specification's vocabulary appendix
   check_site.py      open the built site in a browser and use it
-  make_icons.py      icons, from public/logo.png — needs Pillow
+  make_icons.py      icons, from brand/ — needs Pillow
 ```
 
 Content is data. A session is an `.mdx` file with frontmatter; its schema is in

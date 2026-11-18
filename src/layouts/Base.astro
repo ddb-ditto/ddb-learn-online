@@ -11,12 +11,25 @@ interface Props {
   heading?: string;
   standfirst?: string;
   description?: string;
-  /** The mark, on the way in. Only the contents page passes it: above a
-   *  lesson it competes with the material rather than introducing it. */
-  logo?: boolean;
+  /**
+   * Which mark to show, on the way in. Above a lesson either would compete
+   * with the material rather than introduce it, so only two pages pass one.
+   *
+   * "site" is the DDB wordmark and belongs to the whole site, so it goes on
+   * the front door. "italian" is the GCSE Italian mark, which says so on its
+   * face, and belongs to that course's contents page.
+   */
+  logo?: "site" | "italian";
 }
 
-const { title, eyebrow, heading, standfirst, description, logo = false } = Astro.props;
+const { title, eyebrow, heading, standfirst, description, logo } = Astro.props;
+
+const MARKS = {
+  site: { src: "logo-site.png", w: 600, h: 404, alt: "ddb-learn-online" },
+  italian: { src: "logo.png", w: 150, h: 153,
+             alt: "GCSE Italian — learn, practise, succeed" },
+} as const;
+const mark = logo ? MARKS[logo] : null;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /**
@@ -37,7 +50,9 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
   <link rel="icon" sizes="16x16" href={`${base}/favicon-16.png`} type="image/png" />
   <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
   <link rel="manifest" href={`${base}/manifest.webmanifest`} />
-  <meta name="theme-color" content="#7a2e1e" />
+  {/* The brand navy: this colours the browser chrome, which is the
+      site's frame rather than the Italian course's. */}
+  <meta name="theme-color" content="#021229" />
   <meta name="build" content={build} />
   <meta name="mobile-web-app-capable" content="yes" />
 </head>
@@ -46,9 +61,9 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
 {heading && (
   <header class="masthead">
     <div class="masthead-inner">
-      {logo && (
-        <img class="logomark" src={`${base}/logo.png`} width="150" height="153"
-             alt="GCSE Italian — learn, practise, succeed" />
+      {mark && (
+        <img class:list={["logomark", `is-${logo}`]} src={`${base}/${mark.src}`}
+             width={mark.w} height={mark.h} alt={mark.alt} />
       )}
       {eyebrow && <p class="eyebrow">{eyebrow}</p>}
       <h1>{heading}</h1>

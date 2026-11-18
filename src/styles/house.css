@@ -1069,3 +1069,21 @@ details.note.aside > p:last-child { margin-bottom: 0; }
   details.note.aside > summary::after { content: ""; }
   details.note.aside > p { display: block !important; }
 }
+
+/* The site's own wordmark is wide, not a roundel, so it is sized by width. */
+.logomark.is-site { width: min(300px, 70vw); height: auto; }
+
+/* The spellings that catch people out. Only the correct form is shown: seeing
+   a misspelling makes it fractionally more familiar, and familiarity is what
+   a speller reaches for. Recognising a wrong one is practised in the exercise
+   below, where it costs nothing to get it wrong. */
+.spellings {
+  list-style: none; padding: 0;
+  display: grid; gap: 0.2rem 1.2rem;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  margin: 0.6rem 0 1.5rem; max-width: 42rem;
+}
+.spellings li {
+  font-style: italic; font-size: 1rem;
+  padding: 0.32rem 0; border-bottom: 1px solid var(--rule);
+}

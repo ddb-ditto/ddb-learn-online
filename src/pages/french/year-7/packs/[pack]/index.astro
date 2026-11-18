@@ -143,19 +143,14 @@ const cardCount = cardCountFor(p);
   {p.corrections && (
     <>
       <Section kicker="Easy to get wrong">The spelling that counts</Section>
-      <table class="words fixes">
-        <thead><tr><th>Not this</th><th>This</th></tr></thead>
-        <tbody>
-          {p.corrections.map((c) => (
-            <tr>
-              <td class="wrong">{c.wrong.map((w, i) => (
-                <><s>{w}</s>{i < c.wrong.length - 1 && <span class="sep"> · </span>}</>
-              ))}</td>
-              <td class="right term" lang="fr">{tight(c.right)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <p>Read these, do not copy them out wrong first. Spotting a misspelling is
+      practised in <em>Spot the mistake</em> below, where getting it wrong costs
+      nothing.</p>
+      <ol class="spellings">
+        {p.corrections.map((c) => (
+          <li lang="fr">{tight(c.right)}</li>
+        ))}
+      </ol>
     </>
   )}
 

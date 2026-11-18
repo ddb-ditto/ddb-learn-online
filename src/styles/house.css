@@ -1037,3 +1037,35 @@ footer a { color: var(--ink-faint); }
 /* The flag beside a country. Decorative to a screen reader — the country's
    name is right next to it and says the same thing. */
 .countries .flag { margin-right: 0.5rem; font-size: 1.05em; }
+
+/* ---------- "Just what I need" ------------------------------------------ */
+
+/* A note for the parent is not the learner's to read past. In plain mode it
+   goes; the switch brings it back. */
+:root[data-plain] .note.forparent { display: none; }
+
+/* A learner's note folds to its heading rather than disappearing: it is still
+   his, and still one tap away. */
+details.note.aside { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+details.note.aside > summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+details.note.aside > summary::-webkit-details-marker { display: none; }
+details.note.aside > summary::after {
+  content: "+"; margin-left: auto;
+  font-family: var(--sans); font-size: 0.95rem; color: var(--ink-faint);
+}
+details.note.aside[open] > summary::after { content: "–"; }
+details.note.aside > summary .lead { margin-bottom: 0; }
+details.note.aside[open] > summary { margin-bottom: 0.5rem; }
+details.note.aside > p:last-child { margin-bottom: 0; }
+
+@media print {
+  /* On paper there is no switch to undo, so everything prints — including the
+     body of a note that is folded shut on screen, which a browser would
+     otherwise leave out. */
+  :root[data-plain] .note.forparent { display: block; }
+  details.note.aside > summary::after { content: ""; }
+  details.note.aside > p { display: block !important; }
+}

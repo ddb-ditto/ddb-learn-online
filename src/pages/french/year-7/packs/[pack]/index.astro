@@ -15,6 +15,7 @@ import Exercise from "../../../../../components/Exercise.astro";
 import Note from "../../../../../components/Note.astro";
 import Rule from "../../../../../components/Rule.astro";
 import PageNav from "../../../../../components/PageNav.astro";
+import ReadingMode from "../../../../../components/ReadingMode.astro";
 import TestBadges from "../../../../../components/TestBadges.astro";
 import WordTable from "../../../../../components/WordTable.astro";
 import { cardCountFor } from "../../../../../lib/packcards";
@@ -58,6 +59,8 @@ const cardCount = cardCountFor(p);
   <TestBadges parts={p.tests} notes={p.testNotes} base={base} />
 
   <p class="packtime">About {p.minutes} minutes</p>
+
+  <ReadingMode />
 
   {p.rules?.map((r) => (
     <Rule lead={r.lead}><p set:html={r.body} /></Rule>
@@ -173,7 +176,10 @@ const cardCount = cardCountFor(p);
         <p set:html={n.body} />
       </div>
     ) : (
-      <Note lead={n.lead}><p set:html={n.body} /></Note>
+      <details class="note aside" open>
+        <summary><span class="lead" set:html={n.lead} /></summary>
+        <p set:html={n.body} />
+      </details>
     )
   ))}
 

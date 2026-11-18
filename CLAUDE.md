@@ -218,6 +218,14 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   memory and forget.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
   from the pack's word list. Add a word to a pack and its card appears.
+- **"Just what I need" takes prose, never material.** `ReadingMode.astro` is
+  a switch, remembered across the French section, that hides the notes written
+  for the parent and folds the ones written for the learner down to their
+  heading. It must never touch a word table, a rule, an exercise or an
+  exercise's instructions — those are what he came for, and an exercise intro
+  is how to play it, not commentary. `check_site.py` asserts that by
+  visibility, not by counting elements: `display: none` leaves them in the DOM.
+  It is off by default, because a parent opening a pack should see all of it.
 - **A pack never says what the learner got wrong.** It is read by the person
   it was written for, so a page saying "twelve things he has actually got
   wrong" tells him that about himself every time he opens it — and the words

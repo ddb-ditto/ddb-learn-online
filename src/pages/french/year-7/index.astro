@@ -13,7 +13,7 @@ import Section from "../../../components/Section.astro";
 import CardGrid from "../../../components/CardGrid.astro";
 import CardLink from "../../../components/CardLink.astro";
 import Countdown from "../../../components/Countdown.astro";
-import Note from "../../../components/Note.astro";
+import ReadingMode from "../../../components/ReadingMode.astro";
 
 const tests = (await getCollection("frenchTests")).sort((a, b) => a.data.order - b.data.order);
 const packs = (await getCollection("frenchPacks")).sort((a, b) => a.data.number - b.data.number);
@@ -33,6 +33,8 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
     { label: "Year 7 French" },
   ]} />
 
+  <ReadingMode />
+
   <Section kicker="The tests">What is coming</Section>
 
   <div class="testcards">
@@ -46,11 +48,12 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
     ))}
   </div>
 
-  <Note lead={"Where to start"}>
+  <details class="note aside" open>
+    <summary><span class="lead">Where to start</span></summary>
     <p>Open the test that is next and work down its list — the packs are in the order
     they are worth doing, not in number order. Pack&nbsp;7 first for speaking;
     Pack&nbsp;10 first for writing.</p>
-  </Note>
+  </details>
 
   <Section kicker="When a pack is done">Mix it up</Section>
   <p>Working through one pack at a time feels like it is going well, because every

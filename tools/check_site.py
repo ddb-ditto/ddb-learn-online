@@ -580,6 +580,74 @@ with sync_playwright() as pw:
             fails.append("the French cards build no print sheets")
 
             # ----------------------------------------------------------------------
+        # "Just what I need"
+        # ----------------------------------------------------------------------
+        #
+        # Three things have to hold: it starts off, it actually removes the
+        # commentary, and it never touches the material. The last is the one
+        # worth guarding — a switch that quietly hid the vocabulary would be a
+        # disaster that looked like a feature.
+        page.goto(f"{ROOT}/french/year-7/packs/speaking-answers/")
+        switch = page.locator("#plainmode")
+        if switch.count() == 0:
+            fails.append("no reading-mode switch on a pack page")
+        else:
+            if switch.is_checked():
+                fails.append("the reading-mode switch starts on; a parent should see everything")
+            if not page.locator(".note.forparent").is_visible():
+                fails.append("a note for the parent is hidden before the switch is used")
+            words = lambda: len(page.inner_text("main").split())
+            before, answers, drills = words(), page.locator(".qa li").count(), page.locator(".exercise").count()
+
+            switch.check()
+            after = words()
+            notes.append(f"reading mode: {before} words → {after} ({before - after} fewer)")
+            if page.locator(".note.forparent").is_visible():
+                fails.append("the parent's note survives the switch")
+            if after >= before:
+                fails.append(f"the switch removes nothing ({before} → {after} words)")
+            if page.locator(".qa li").count() != answers:
+                fails.append("the switch removed some of the answers — it must only take prose")
+            if page.locator(".exercise").count() != drills:
+                fails.append("the switch removed an exercise")
+            # Visibility, not presence. `display: none` leaves the element in
+            # the DOM, so counting it proves nothing — the same trap as the
+            # `hidden` attribute, met twice now.
+            for keep, what in ((".words", "a word table"),
+                               (".exintro", "an exercise's instructions"),
+                               (".qa", "the model answers")):
+                shown = page.locator(keep).count() and page.locator(keep).first.is_visible()
+                if page.locator(keep).count() and not shown:
+                    fails.append(f"the switch hides {what} — it must only take prose")
+
+            # It has to survive the walk to the next pack, or it is set per page.
+            page.goto(f"{ROOT}/french/year-7/packs/countries/")
+            if not page.locator("#plainmode").is_checked():
+                fails.append("the reading-mode choice is forgotten between pages")
+            if not page.evaluate("document.documentElement.hasAttribute('data-plain')"):
+                fails.append("reading mode is applied late — the notes would flash up first")
+            folded = page.locator("details.note.aside")
+            if folded.count() == 0:
+                fails.append("a learner's note cannot fold")
+            elif folded.first.evaluate("e => e.open"):
+                fails.append("a learner's note stays open with the switch on")
+            elif not folded.first.locator("summary").is_visible():
+                fails.append("a folded note hides its heading too — it should be one tap from open")
+
+            # And wherever the switch is offered it must do something.
+            for path in ("/french/year-7/", "/french/year-7/tests/writing/"):
+                page.goto(f"{ROOT}{path}")
+                if page.locator("#plainmode").count() == 0:
+                    continue
+                if page.locator("details.note.aside, .note.forparent").count() == 0:
+                    fails.append(f"{path} offers the switch with nothing for it to act on")
+
+            page.goto(f"{ROOT}/french/year-7/packs/countries/")
+            page.locator("#plainmode").uncheck()
+            if not page.locator("details.note.aside").first.evaluate("e => e.open"):
+                fails.append("switching off does not unfold the notes again")
+
+        # ----------------------------------------------------------------------
         # The Leitner box
         # ----------------------------------------------------------------------
         #

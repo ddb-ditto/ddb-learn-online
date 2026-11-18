@@ -377,6 +377,33 @@ The code comments went the same way. The repository is public and the child is
 real; "mistakes from his own book" sitting in a checker is the same disclosure
 with fewer readers.
 
+## The commentary is switched off, not written out
+
+A pack carries three kinds of writing: the words, the rule that holds them
+together, and the asides explaining why the rule is the way it is. Measured
+across the ten packs, that third kind is about 400 of 1,100 words — a third of
+the prose, and on the fifth time through it is in the way.
+
+The fix is a switch rather than a rewrite, because the same sentence is useful
+the first time and noise the fifth, and because the parent and the child want
+different pages. Notes for the parent disappear; notes for the learner fold to
+their heading and stay one tap from open; the rules, the words and the practice
+are untouched. Off by default, so the first person to open a pack sees all of
+it.
+
+**What it deliberately does not hide.** Each exercise opens with a line like
+"Tap the tiles in the right order. Tap one you have placed to take it back."
+Those read like prose and are nothing of the kind — they are how to work the
+thing. Folding them would have made the page shorter and the exercises harder,
+which is the opposite of the point. Measuring them was what settled it: every
+intro is eight to twenty-five words and most are instructions.
+
+It is honest about its size. A pack page runs 220 to 330 words with the switch
+on, of which the majority is the vocabulary he came to learn. The switch takes
+about fifty words off a page — real, and not a transformation. If the pages
+still read as too long, the next lever is the order of the page rather than
+more hiding, and that is worth measuring before building.
+
 ## Still open
 
 - Custom domain, or the `ddb-ditto.github.io/<repo-name>/` path? No `CNAME` file yet.

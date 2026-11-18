@@ -5,8 +5,8 @@
 
 The Italian course has the specification to check against: a published list of
 every examined word, so `check_vocab.py` can say whether a card teaches
-something real. There is no such document here. The source is his exercise
-book, and once it has been typed into `src/data/french/` nothing outside the
+something real. There is no such document here. The source is the class's own
+work, and once it has been typed into `src/data/french/` nothing outside the
 repository can confirm it.
 
 So these checks are internal-consistency checks, and they are worth more than
@@ -59,7 +59,7 @@ def strip_markup(s: str) -> str:
 # ---------------------------------------------------------------- typography
 
 # Words that are spelled with an accent and are easy to type without one.
-# Each is a mistake from his own book or one step away from it.
+# Each is a spelling the pack teaches, or one step away from it.
 ACCENTED = {
     "tres": "très", "ca": "ça", "age": "âge", "ecosse": "Écosse",
     "espagne": None, "soeur": "sœur", "annee": "année", "visite": "visité",
@@ -334,6 +334,59 @@ def undrilled(packs: dict, exercises: dict) -> list[str]:
     return loose
 
 
+# Words that make a sentence about the learner rather than about French.
+ABOUT_HIM = re.compile(r"\b(he|him|his)\b", re.I)
+# Where "he" is doing honest work: French has gendered pronouns to teach, and
+# a fact about Louis Pasteur is a fact about Louis Pasteur.
+NOT_ABOUT_HIM = re.compile(
+    r"\b(he|she) is called\b|\bhe / she\b|\(she: elle\)|"
+    r"\bgave his name\b|\bwould he like\b|\bhe lives in\b|\bhe is… years\b|"
+    r"\bbrought it with him\b", re.I)
+
+
+def about_the_learner(packs: dict, exercises: dict) -> list[str]:
+    """Nothing a child reads should be about what that child got wrong.
+
+    A revision pack is opened by the person it was written for. A page that
+    says "twelve things he has actually got wrong" tells him something about
+    himself every time he opens it, which is both unkind and a reason to stop
+    opening it — and the words are worth drilling whoever first misspelled
+    them. So the learner-facing text talks about French, not about him.
+
+    Notes explicitly marked for the parent are exempt: those are addressed to
+    somebody else and say so on the page.
+    """
+    bad = []
+    for name, p in sorted(packs.items()):
+        fields: list[tuple[str, str]] = [
+            ("standfirst", p["standfirst"]), ("summary", p["summary"])]
+        for note in p.get("notes", []):
+            if note.get("audience") == "parent":
+                continue
+            fields += [("note lead", note["lead"]), ("note body", note["body"])]
+        for rule in p.get("rules", []):
+            fields += [("rule lead", rule["lead"]), ("rule body", rule["body"])]
+        for part, note in (p.get("testNotes") or {}).items():
+            fields.append((f"testNote {part}", note))
+
+        for where, text in fields:
+            plain = NOT_ABOUT_HIM.sub("", strip_markup(text))
+            hit = ABOUT_HIM.search(plain)
+            if hit:
+                bad.append(f"packs/{name} {where}: {hit.group(0)!r} — a pack is read "
+                           f"by the learner, so it says what is hard about the French, "
+                           f"not what he got wrong: {text[:60]!r}")
+
+    for name, e in sorted(exercises.items()):
+        for where, text in (("title", e["title"]), ("intro", e.get("intro") or "")):
+            plain = NOT_ABOUT_HIM.sub("", strip_markup(text))
+            hit = ABOUT_HIM.search(plain)
+            if hit:
+                bad.append(f"exercises/{name} {where}: {hit.group(0)!r} — "
+                           f"about the learner rather than the French: {text[:60]!r}")
+    return bad
+
+
 def main() -> int:
     if not PACKS.is_dir():
         print("no src/data/french — nothing to check")
@@ -349,6 +402,7 @@ def main() -> int:
     bad += mapping(packs, tests)
     bad += exercise_links(packs, tests, exercises)
     bad += answers_are_taught(packs, exercises, allowed)
+    bad += about_the_learner(packs, exercises)
 
     loose = undrilled(packs, exercises)
     if loose:

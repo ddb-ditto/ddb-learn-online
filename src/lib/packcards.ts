@@ -80,11 +80,13 @@ export function cardsFor(p: Pack): Card[] {
   }
 
   if (p.corrections) {
-    // His own mistake on the front. Recognising it as wrong is the skill, and
-    // the wrong spelling is the thing his eye has to learn to catch.
+    // A misspelling on the front, and spotting it is the skill — the writing
+    // test's last task is exactly this. The card is phrased about the word,
+    // never about who got it wrong: a deck that keeps telling a child what he
+    // got wrong is a deck he stops opening.
     for (const c of p.corrections) {
       cards.push({
-        d: "Wrong, then right",
+        d: "Spot the slip",
         t: "rule",
         f: `What is wrong with <em>${c.wrong[0]}</em>?`,
         m: tight(c.right),

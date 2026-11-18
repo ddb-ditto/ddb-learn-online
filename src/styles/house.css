@@ -769,12 +769,14 @@ footer a { color: var(--ink-faint); }
 
 /* ---------- the shapes a pack comes in ---------------------------------- */
 
-.countries thead th {
+.countries thead th,
+.fixes thead th {
   font-family: var(--sans); font-size: 0.7rem; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--ink-faint); text-align: left;
   padding: 0 0.7rem 0.4rem 0; border-bottom: 1px solid var(--rule); font-weight: 600;
 }
 .countries .in { color: var(--accent); font-style: italic; }
+.fixes thead th:first-child { width: 48%; }
 .countries .masc .term:first-child::after,
 .countries .fem .term:first-child::after {
   font-family: var(--sans); font-size: 0.64rem; font-style: normal;

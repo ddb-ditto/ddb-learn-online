@@ -368,8 +368,8 @@ const renderDiff = (runs: Run[]): string =>
 
 /**
  * Type the French. One at a time, marked strictly, and a wrong answer shows
- * the correct version rather than only saying "no" — he has already proved he
- * cannot see the difference unaided.
+ * the correct version rather than only saying "no": somebody who could see the
+ * difference unaided would not have typed it that way.
  */
 function runType(ex: TypeEx, root: HTMLElement): void {
   const items = pick(ex.shuffle ? shuffled(ex.items) : ex.items.slice(), ex.ask);

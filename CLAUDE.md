@@ -203,7 +203,7 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 
 - **There is no specification to check against.** The Italian course has
   Pearson's published vocabulary list, so `check_vocab.py` can say whether a
-  card teaches something real. Here the source is his exercise book, and once
+  card teaches something real. Here the source is the class's own work, and once
   it has been typed in nothing outside the repository can confirm it. So
   `check_french.py` checks the files against *each other* — that a test lists
   the packs that claim it and no others, that every answer he is marked against
@@ -218,6 +218,14 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   memory and forget.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
   from the pack's word list. Add a word to a pack and its card appears.
+- **A pack never says what the learner got wrong.** It is read by the person
+  it was written for, so a page saying "twelve things he has actually got
+  wrong" tells him that about himself every time he opens it — and the words
+  are worth drilling whoever first misspelled them. Say what is hard about the
+  French. `check_french.py` fails on `he`, `him` or `his` in any learner-facing
+  pack text, with the honest uses (French gendered pronouns, Louis Pasteur)
+  exempted. The same goes for comments: this repository is public and the
+  child is real.
 - **Every proper noun is declared** in `src/data/french/names.json`, with a
   reason. The check fails on any that is not. It is an allowlist on purpose:
   a list of forbidden names would have to contain the real one.

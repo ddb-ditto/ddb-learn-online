@@ -11,7 +11,7 @@
     "writing"
   ],
   "testNotes": {
-    "speaking": "for saying his age"
+    "speaking": "for ages"
   },
   "numbers": [
     [
@@ -142,14 +142,14 @@
   "rules": [
     {
       "lead": "Hyphens are part of the spelling",
-      "body": "<em>vingt-et-un</em>, <em>trente-et-un</em>, <em>dix-sept</em>, <em>dix-huit</em>, <em>dix-neuf</em>, <em>vingt-quatre</em> — all hyphenated, because that is how his class booklet writes them. <em>J'ai dix huit ans</em> is a spelling mistake.",
+      "body": "<em>vingt-et-un</em>, <em>trente-et-un</em>, <em>dix-sept</em>, <em>dix-huit</em>, <em>dix-neuf</em>, <em>vingt-quatre</em> — all hyphenated, because that is how the class booklet writes them. <em>J'ai dix huit ans</em> is a spelling mistake.",
       "audience": "learner"
     }
   ],
   "notes": [
     {
       "lead": "Why it stops at 31",
-      "body": "Thirty-one covers every age he needs and every day of the month. Numbers to 100 are in his book but not on the revision list, so they are left out rather than added to what has to be learned this fortnight.",
+      "body": "Thirty-one covers every age that comes up and every day of the month. Numbers to 100 are in the class booklet but not on the revision list, so they are left out rather than added to what has to be learned this fortnight.",
       "audience": "parent"
     }
   ],

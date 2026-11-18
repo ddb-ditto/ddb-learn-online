@@ -349,6 +349,34 @@ these are already in his head, so the countries carry one and nothing else does.
 Adding pictures to the rest would have been decoration answering an audit rather
 than teaching anybody anything.
 
+## A pack says what is hard, not who got it wrong
+
+Pack 10 shipped as "His own mistakes, next to what they should have been" —
+twelve lines, each one something a twelve-year-old had actually written down
+wrongly, assembled into a page with his name all over it in everything but the
+literal word.
+
+It came from a good instinct. Practising the errors somebody actually makes
+beats practising a generic list, and the content was right. The framing was
+not. A revision pack is opened by the person it was written for, often alone,
+and one that opens by telling him what he gets wrong says that to him every
+single time — which is both unkind and a reason to stop opening it.
+
+The words did not change. The page now says what is hard about the French: an
+accent missing, a hyphen gone, two letters the wrong way round. Which is also
+simply more useful, because it names the kind of slip rather than the incident.
+
+`check_french.py` enforces it, because this is the sort of thing that creeps
+back in one well-meant sentence at a time. It fails on he, him or his anywhere
+a learner reads, with the honest uses — French has gendered pronouns to teach,
+and Louis Pasteur gave his name to pasteurisation — listed as exceptions. Notes
+explicitly marked for the parent are exempt, because the page says on its face
+who those are for.
+
+The code comments went the same way. The repository is public and the child is
+real; "mistakes from his own book" sitting in a checker is the same disclosure
+with fewer readers.
+
 ## Still open
 
 - Custom domain, or the `ddb-ditto.github.io/<repo-name>/` path? No `CNAME` file yet.

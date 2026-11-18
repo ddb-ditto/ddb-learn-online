@@ -127,8 +127,11 @@ run and pass but the publish step fails with `Get Pages site failed` — there i
 nowhere to publish to. Letting the workflow enable Pages itself was tried and
 does not work: `GITHUB_TOKEN` is refused when it tries to create the site.
 
-The site is then at `https://ddb-ditto.github.io/italian-gcse/`, which is why
-`astro.config.mjs` sets `base: "/italian-gcse"`.
+The site is then at `https://ddb-ditto.github.io/<repo-name>/`. That path is
+the repository's name and nothing else, so **renaming the repository moves the
+site**. No code changes when it does — `astro.config.mjs` reads the name from
+`GITHUB_REPOSITORY` — but the workflow has to be re-run afterwards, because a
+rename does not rebuild the pages and they still point at the old path.
 
 ## Who can see it
 

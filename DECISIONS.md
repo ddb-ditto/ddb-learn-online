@@ -309,6 +309,6 @@ counter between the two does not slide about as he steps through.
 
 ## Still open
 
-- Custom domain, or `ddb-ditto.github.io/italian-gcse`? No `CNAME` file yet.
+- Custom domain, or the `ddb-ditto.github.io/<repo-name>/` path? No `CNAME` file yet.
 - Whether the record sheet should also carry a listening or speaking column once
   Stage 1 reaches the units that need it. Not until there is something to tick.

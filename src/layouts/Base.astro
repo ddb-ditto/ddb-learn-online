@@ -4,6 +4,7 @@
  * once, so a page costs its own markup and nothing else.
  */
 import "../styles/house.css";
+import ThemeSwitch from "../components/ThemeSwitch.astro";
 
 interface Props {
   title: string;
@@ -53,6 +54,26 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
   {/* The brand navy: this colours the browser chrome, which is the
       site's frame rather than the Italian course's. */}
   <meta name="theme-color" content="#021229" />
+
+  {/*
+    Applies a saved light/dark choice before the first paint.
+
+    It has to be here, inline and blocking, rather than in the bundle: run it
+    a moment later and a page someone has set to dark arrives white and then
+    turns, which is worse than not offering the choice. Nothing is set when
+    the choice is "match my device" — the stylesheet's media query handles
+    that, and so a browser with no JavaScript still follows the device.
+  */}
+  <script is:inline>
+    (function () {
+      try {
+        var saved = window.localStorage.getItem("theme");
+        if (saved === "light" || saved === "dark") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (e) { /* no storage: fall through to the device's setting */ }
+    })();
+  </script>
   <meta name="build" content={build} />
   <meta name="mobile-web-app-capable" content="yes" />
 </head>
@@ -77,6 +98,7 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
 <main>
   <slot />
   <slot name="footer" />
+  <ThemeSwitch />
 </main>
 
 </body>

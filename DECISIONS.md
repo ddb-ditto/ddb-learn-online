@@ -438,6 +438,30 @@ it says "GCSE Italian" on its face and that is still true there.
 Keeping both was not indecision. One brands a site that teaches two things; the
 other brands one of them.
 
+## Three colour settings, not two
+
+The site followed the device and offered nothing, so reading it in daylight
+meant changing the whole phone. There is a switch at the foot of every page
+now: Light, Dark, or Match my device.
+
+Three states rather than two, and matching the device is the default. A plain
+light/dark toggle has no way back to following the device once it has been
+touched, and a child who taps it on a whim should be able to undo that without
+knowing what they changed.
+
+Matching the device means *no* attribute on the page, not a third stored value,
+so a browser with no JavaScript still gets the media query and still follows
+the device. The choice is applied by an inline script in the head rather than
+from the bundle: a moment later and a page set to dark arrives white and turns,
+which is worse than not offering the choice at all.
+
+The cost is that the dark tokens are now written twice, because CSS cannot
+share one declaration between a media query and a selector. Two copies drift,
+so they are compared by behaviour rather than trusted: the site is loaded on a
+dark device with no override and on a light device with the switch forced to
+dark, and all seventeen tokens have to match. That caught the drift when it was
+tried deliberately.
+
 ## Still open
 
 - Custom domain, or the `ddb-ditto.github.io/<repo-name>/` path? No `CNAME` file yet.

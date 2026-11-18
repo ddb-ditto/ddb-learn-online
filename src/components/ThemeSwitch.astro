@@ -1,0 +1,64 @@
+---
+/**
+ * Light, dark, or whatever the device says.
+ *
+ * The site followed `prefers-color-scheme` and nothing else, so the only way
+ * to read it in daylight was to change the whole phone — which is a lot to ask
+ * of somebody who just wants to see the flashcards.
+ *
+ * Three states rather than two, and "Match my device" is the default. A plain
+ * light/dark toggle has no way back to following the device once it has been
+ * touched, and a child who taps it on a whim should be able to undo that
+ * without knowing what they changed.
+ *
+ * The attribute is set in the document head, before anything paints — see
+ * `Base.astro`. Setting it from here would mean a dark page flashing white on
+ * the way in, which is the exact complaint this exists to answer.
+ */
+---
+<div class="themeswitch noprint">
+  <label for="theme">Colours</label>
+  <select id="theme">
+    <option value="auto">Match my device</option>
+    <option value="light">Light</option>
+    <option value="dark">Dark</option>
+  </select>
+</div>
+
+<script is:inline>
+  (function () {
+    var KEY = "theme";
+    var box = document.getElementById("theme");
+    if (!box) return;
+
+    var saved = "auto";
+    try { saved = window.localStorage.getItem(KEY) || "auto"; } catch (e) { /* no storage */ }
+    box.value = saved === "light" || saved === "dark" ? saved : "auto";
+
+    box.addEventListener("change", function () {
+      var choice = this.value;
+      // "auto" is the absence of an override, not a third value to store on
+      // the element — the stylesheet's media query is what handles it.
+      if (choice === "auto") document.documentElement.removeAttribute("data-theme");
+      else document.documentElement.setAttribute("data-theme", choice);
+      try { window.localStorage.setItem(KEY, choice); } catch (e) {
+        /* the choice holds for this page and is forgotten; nothing breaks */
+      }
+    });
+  })();
+</script>
+
+<style>
+  .themeswitch {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--sans); font-size: 0.78rem; color: var(--ink-faint);
+    margin: 2.5rem 0 1.2rem;
+    padding-top: 1rem; border-top: 1px solid var(--rule);
+  }
+  .themeswitch select {
+    font: inherit; color: var(--ink);
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 0.3rem 0.4rem; cursor: pointer;
+  }
+  .themeswitch select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+</style>

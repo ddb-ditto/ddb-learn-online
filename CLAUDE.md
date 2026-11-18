@@ -334,6 +334,18 @@ the border, which stops at the ring and so leaves the cream inside it intact.
   grey button, which is why an assertion that only asked "is anything painted?"
   passed against the bug. Assert the actual value — the computed background
   against `--accent` — and prove it fails before calling it done.
+- **The dark tokens exist twice, and the duplication is checked.** Once under
+  `@media (prefers-color-scheme: dark)` guarded by `:root:not([data-theme="light"])`,
+  which is what a browser with no JavaScript gets, and once under
+  `:root[data-theme="dark"]`, which is what the colour switch sets. CSS cannot
+  share one declaration between a media query and a selector, so the two
+  copies drift — `check_site.py` loads the site on a dark device with no
+  override and on a light device with the switch forced to dark, and fails if
+  any of the seventeen tokens differ. Add a token and add it to both blocks
+  and to that list.
+- **The saved theme is applied inline in `<head>`.** From the bundle it would
+  run after the first paint, so a page set to dark arrives white and then
+  turns. "Match my device" means no attribute at all, not a third value.
 - **Text on a solid accent block uses `--on-accent`, never `#fff`.** The light
   theme's accent is a dark red and the dark theme's is a light salmon; white
   serves the first and fails the second at 2.7:1. `check_site.py` measures it

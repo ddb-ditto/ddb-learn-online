@@ -44,8 +44,21 @@
  */
 [hidden] { display: none !important; }
 
+/**
+ * Dark, two ways.
+ *
+ * The media query is what a browser with no JavaScript gets, and it steps
+ * aside the moment somebody has chosen light by hand. The attribute block is
+ * what the switch sets, and it has to repeat the values because CSS cannot
+ * share one declaration between a media query and a selector.
+ *
+ * That repetition is a drift risk, so it is checked by behaviour rather than
+ * trusted: `check_site.py` loads the site once in a browser that prefers dark
+ * with no override, and once in a browser that prefers light with the switch
+ * forced to dark, and fails if any token differs between them.
+ */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --accent:      #e08a72;
     --accent-soft: #2e2320;
     --accent-line: #4a3630;
@@ -61,6 +74,23 @@
     --answer-line: #3a463a;
     --on-accent:   #171615;
   }
+}
+
+:root[data-theme="dark"] {
+    --accent:      #e08a72;
+    --accent-soft: #2e2320;
+    --accent-line: #4a3630;
+    --ink:         #ece7e4;
+    --ink-soft:    #b3aaa5;
+    --ink-faint:   #8a807b;
+    --paper:       #171615;
+    --card:        #201e1d;
+    --rule:        #35312f;
+    --note-bg:     #232120;
+    --note-line:   #423d39;
+    --answer-bg:   #1e231e;
+    --answer-line: #3a463a;
+    --on-accent:   #171615;
 }
 
 * { box-sizing: border-box; }
@@ -271,7 +301,10 @@ strong { font-weight: 600; }
   color: #4a6b4a;
   margin-bottom: 0.35rem;
 }
-@media (prefers-color-scheme: dark) { .answers .lead { color: #8fb98f; } }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .answers .lead { color: #8fb98f; }
+}
+:root[data-theme="dark"] .answers .lead { color: #8fb98f; }
 
 /* ---------- ordered steps ----------------------------------------------- */
 
@@ -675,6 +708,7 @@ footer a { color: var(--ink-faint); }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --pen: #9dc0da; --pen-bg: #1b2229; --pen-line: #33475a; }
 }
+:root[data-theme="dark"] { --pen: #9dc0da; --pen-bg: #1b2229; --pen-line: #33475a; }
 
 .notebook {
   background: var(--pen-bg);

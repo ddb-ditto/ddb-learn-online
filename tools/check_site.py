@@ -744,6 +744,73 @@ with sync_playwright() as pw:
             fails.append(f"the writing test opens with {first!r}, not the tricky spellings")
 
         # ----------------------------------------------------------------------
+        # Light, dark, or the device
+        # ----------------------------------------------------------------------
+        #
+        # The dark tokens are written twice — once under the media query, for a
+        # browser with no JavaScript, and once under [data-theme="dark"], for
+        # the switch — because CSS cannot share one declaration between a media
+        # query and a selector. Two copies drift, so they are compared by what
+        # the browser actually computes rather than by reading the stylesheet.
+        TOKENS = """() => {
+          const s = getComputedStyle(document.documentElement);
+          const names = ['--accent','--accent-soft','--accent-line','--ink',
+            '--ink-soft','--ink-faint','--paper','--card','--rule','--note-bg',
+            '--note-line','--answer-bg','--answer-line','--on-accent','--pen',
+            '--pen-bg','--pen-line'];
+          return Object.fromEntries(names.map((n) => [n, s.getPropertyValue(n).trim()]));
+        }"""
+        THEMED = f"{ROOT}/units/1/sessions/1/"        # uses the notebook tokens too
+
+        dark_device = b.new_page(color_scheme="dark")
+        dark_device.goto(THEMED)
+        by_device = dark_device.evaluate(TOKENS)
+        dark_device.close()
+
+        light_device = b.new_page(color_scheme="light")
+        light_device.goto(THEMED)
+        if light_device.locator("#theme").count() == 0:
+            fails.append("no colour switch on a lesson page")
+            light_device.close()
+        else:
+            light_device.select_option("#theme", "dark")
+            by_switch = light_device.evaluate(TOKENS)
+            drifted = {k: (by_device[k], by_switch[k])
+                       for k in by_device if by_device[k] != by_switch[k]}
+            notes.append(f"theme tokens compared: {len(by_device)}, drifted: {len(drifted)}")
+            for name, (device, switch) in drifted.items():
+                fails.append(f"{name} is {device} on a dark device but {switch} when "
+                             f"the switch forces dark — the two dark blocks have drifted")
+            light_device.close()
+
+            # Light has to win on a dark device, or the switch is one-way.
+            forced = b.new_page(color_scheme="dark")
+            forced.goto(THEMED)
+            forced.select_option("#theme", "light")
+            paper = forced.evaluate(TOKENS)["--paper"].lower()
+            notes.append(f"light forced on a dark device: --paper {paper}")
+            if paper != "#fbf9f7":
+                fails.append(f"forcing light on a dark device leaves --paper {paper}")
+
+            # Remembered, and applied before anything paints: set by the inline
+            # script in the head, so the attribute is already there on load.
+            forced.reload()
+            if forced.evaluate("document.documentElement.getAttribute('data-theme')") != "light":
+                fails.append("the colour choice is not applied on the next load")
+            if forced.locator("#theme").input_value() != "light":
+                fails.append("the colour switch does not show the saved choice")
+            if forced.evaluate(TOKENS)["--paper"].lower() != "#fbf9f7":
+                fails.append("the saved light choice does not survive a reload")
+
+            # And there is a way back to following the device.
+            forced.select_option("#theme", "auto")
+            if forced.evaluate("document.documentElement.hasAttribute('data-theme')"):
+                fails.append("'Match my device' leaves an override in place")
+            if forced.evaluate(TOKENS)["--paper"].lower() != "#171615":
+                fails.append("'Match my device' does not hand back to a dark device")
+            forced.close()
+
+        # ----------------------------------------------------------------------
         # Text on a solid accent block, in both themes
         # ----------------------------------------------------------------------
         #

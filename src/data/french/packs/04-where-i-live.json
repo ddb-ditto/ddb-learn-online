@@ -4,6 +4,7 @@
   "title": "Where I live",
   "standfirst": "One question, one answer, and the three little words that decide it.",
   "summary": "à for a town, en for a feminine country, au for a masculine one. The rule the whole topic turns on.",
+  "minutes": 20,
   "tests": [
     "speaking",
     "reading",
@@ -40,15 +41,18 @@
   "rules": [
     {
       "lead": "The rule, and it is the whole topic",
-      "body": "<strong>à</strong> + a town. <strong>en</strong> + a feminine country (<em>la</em> or <em>l'</em>). <strong>au</strong> + a masculine country (<em>le</em>). Get the country's gender from Pack 5 and the word follows."
+      "body": "<strong>à</strong> + a town. <strong>en</strong> + a feminine country (<em>la</em> or <em>l'</em>). <strong>au</strong> + a masculine country (<em>le</em>). Get the country's gender from Pack 5 and the word follows.",
+      "audience": "learner"
     },
     {
       "lead": "The silent h",
-      "body": "The <em>h</em> in <em>habite</em> is not said — <em>j'habite</em> is “jah-beet”. It is still written, and the writing test marks spelling."
+      "body": "The <em>h</em> in <em>habite</em> is not said — <em>j'habite</em> is “jah-beet”. It is still written, and the writing test marks spelling.",
+      "audience": "learner"
     },
     {
       "lead": "Question and answer are different words",
-      "body": "<em>Tu habites où ?</em> is the question. <em>J'habite…</em> is the answer. Mixing them up is the commonest slip in this topic."
+      "body": "<em>Tu habites où ?</em> is the question. <em>J'habite…</em> is the answer. Mixing them up is the commonest slip in this topic.",
+      "audience": "learner"
     }
   ],
   "exercises": [

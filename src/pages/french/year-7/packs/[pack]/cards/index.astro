@@ -36,7 +36,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     { label: "Flashcards" },
   ]} />
 
-  <Flashcards cards={cards} noReverse={noReverseFor(p)} />
+  <Flashcards cards={cards} noReverse={noReverseFor(p)} practise scope={`fr7-${p.slug}`} />
 
   <footer class="noprint" slot="footer">
     <span>Year 7 French · pack {p.number} · {p.title}</span>

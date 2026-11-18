@@ -4,6 +4,7 @@
   "title": "Countries",
   "standfirst": "Seventeen countries, each with the word for <em>in</em> that goes with it.",
   "summary": "The country's gender decides whether it is au or en, so the two are learned together.",
+  "minutes": 25,
   "tests": [
     "speaking",
     "reading",
@@ -14,115 +15,134 @@
       "fr": "le Pays de Galles",
       "en": "Wales",
       "in": "au Pays de Galles",
-      "gender": "m"
+      "gender": "m",
+      "flag": "🏴󠁧󠁢󠁷󠁬󠁳󠁿"
     },
     {
       "fr": "le Canada",
       "en": "Canada",
       "in": "au Canada",
-      "gender": "m"
+      "gender": "m",
+      "flag": "🇨🇦"
     },
     {
       "fr": "le Portugal",
       "en": "Portugal",
       "in": "au Portugal",
-      "gender": "m"
+      "gender": "m",
+      "flag": "🇵🇹"
     },
     {
       "fr": "le Luxembourg",
       "en": "Luxembourg",
       "in": "au Luxembourg",
-      "gender": "m"
+      "gender": "m",
+      "flag": "🇱🇺"
     },
     {
       "fr": "le Japon",
       "en": "Japan",
       "in": "au Japon",
-      "gender": "m"
+      "gender": "m",
+      "flag": "🇯🇵"
     },
     {
       "fr": "la France",
       "en": "France",
       "in": "en France",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇫🇷"
     },
     {
       "fr": "la Belgique",
       "en": "Belgium",
       "in": "en Belgique",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇧🇪"
     },
     {
       "fr": "la Suisse",
       "en": "Switzerland",
       "in": "en Suisse",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇨🇭"
     },
     {
       "fr": "la Grande-Bretagne",
       "en": "Great Britain",
       "in": "en Grande-Bretagne",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇬🇧"
     },
     {
       "fr": "la Tunisie",
       "en": "Tunisia",
       "in": "en Tunisie",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇹🇳"
     },
     {
       "fr": "l'Angleterre",
       "en": "England",
       "in": "en Angleterre",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🏴󠁧󠁢󠁥󠁮󠁧󠁿"
     },
     {
       "fr": "l'Écosse",
       "en": "Scotland",
       "in": "en Écosse",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🏴󠁧󠁢󠁳󠁣󠁴󠁿"
     },
     {
       "fr": "l'Irlande",
       "en": "Ireland",
       "in": "en Irlande",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇮🇪"
     },
     {
       "fr": "l'Espagne",
       "en": "Spain",
       "in": "en Espagne",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇪🇸"
     },
     {
       "fr": "l'Italie",
       "en": "Italy",
       "in": "en Italie",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇮🇹"
     },
     {
       "fr": "l'Allemagne",
       "en": "Germany",
       "in": "en Allemagne",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇩🇪"
     },
     {
       "fr": "l'Autriche",
       "en": "Austria",
       "in": "en Autriche",
-      "gender": "f"
+      "gender": "f",
+      "flag": "🇦🇹"
     }
   ],
   "rules": [
     {
       "lead": "Five masculine, twelve feminine",
-      "body": "The five <em>le</em> countries take <strong>au</strong>. Everything else on this list takes <strong>en</strong> — and an <em>l'</em> country is feminine, so it is <em>en</em> too."
+      "body": "The five <em>le</em> countries take <strong>au</strong>. Everything else on this list takes <strong>en</strong> — and an <em>l'</em> country is feminine, so it is <em>en</em> too.",
+      "audience": "learner"
     }
   ],
   "notes": [
     {
       "lead": "Learn the pair, never the country alone",
-      "body": "<em>le Japon</em> on its own is half a fact. The card that matters is <em>Japan → au Japon</em>, because that is what the test asks for."
+      "body": "<em>le Japon</em> on its own is half a fact. The card that matters is <em>Japan → au Japon</em>, because that is what the test asks for.",
+      "audience": "learner"
     }
   ],
   "exercises": [

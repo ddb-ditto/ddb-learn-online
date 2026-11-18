@@ -1,0 +1,81 @@
+---
+/**
+ * Everything, mixed.
+ *
+ * Each pack drills its own words and nothing sends him back to Pack 1 once he
+ * is on Pack 6 — so a word met in week one is never seen again unless a test
+ * page happens to ask for it. This page is the cumulative half: one deck built
+ * from every pack, shuffled together rather than worked through in order.
+ *
+ * Mixing is the point, not a convenience. Practising one topic at a time feels
+ * fluent and holds worse than practising several jumbled, because sorting out
+ * which rule applies is itself the thing the test asks for.
+ */
+import { getCollection } from "astro:content";
+import Base from "../../../../layouts/Base.astro";
+import Breadcrumbs from "../../../../components/Breadcrumbs.astro";
+import Flashcards from "../../../../components/Flashcards.astro";
+import Exercise from "../../../../components/Exercise.astro";
+import Note from "../../../../components/Note.astro";
+import Section from "../../../../components/Section.astro";
+import { cardsFor } from "../../../../lib/packcards";
+
+const packs = (await getCollection("frenchPacks")).sort(
+  (a, b) => a.data.number - b.data.number,
+);
+
+/**
+ * Every pack's cards under one deck name, so the app cannot separate them
+ * again — a deck per pack here would just rebuild the blocks this page exists
+ * to break up. The cards keep their pack in the text so he still knows where
+ * a word came from.
+ */
+const cards = packs.flatMap((pack) =>
+  cardsFor(pack.data).map((c) => ({ ...c, d: "Everything so far" })),
+);
+
+const exercises = await getCollection("frenchExercises");
+const mixed = ["w-a", "r-a"]
+  .map((id) => exercises.find((e) => e.data.id === id))
+  .filter((e) => e !== undefined);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+<Base
+  title="Mixed practice — Year 7 French"
+  eyebrow="Year 7 French"
+  heading="Everything, mixed"
+  standfirst="Every pack's words in one shuffled deck — which is harder than one pack at a time, and that is the point."
+  description="Cumulative French revision: every pack's vocabulary mixed together, plus the spelling and meaning drills."
+>
+  <Breadcrumbs slot="nav" trail={[
+    { label: "Home", href: `${base}/` },
+    { label: "Year 7 French", href: `${base}/french/year-7/` },
+    { label: "Mixed practice" },
+  ]} />
+
+  <Note lead={"Why this feels harder"}>
+    <p>Working through one pack at a time feels like it is going well, because every
+    answer comes from the same place. Mixed up, you have to work out <em>which</em>
+    rule applies before you can use it — which is slower, feels worse, and is what the
+    test actually asks for. Do a pack first, then come here.</p>
+  </Note>
+
+  <Section kicker="All ten packs">{`${cards.length} cards, shuffled`}</Section>
+  <p>The ones you keep missing come round more often. Nothing is saved anywhere but
+  this browser, and <strong>Start the boxes again</strong> wipes it.</p>
+
+  <Flashcards cards={cards} practise scope="fr7-everything" />
+
+  <Section kicker="Then">Write them out</Section>
+  {mixed.map((e) => <Exercise exercise={e} />)}
+
+  <footer class="noprint" slot="footer">
+    <span>Year 7 French · mixed practice</span>
+    <span><a href={`${base}/french/year-7/`}>← Year 7 French</a></span>
+  </footer>
+</Base>
+
+<script>
+  import "../../../../scripts/exercises";
+</script>

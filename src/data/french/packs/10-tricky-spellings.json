@@ -4,6 +4,7 @@
   "title": "Tricky spellings",
   "standfirst": "His own mistakes, next to what they should have been.",
   "summary": "Twelve things he has actually got wrong, which makes them the twelve most worth drilling.",
+  "minutes": 20,
   "tests": [
     "writing"
   ],
@@ -113,13 +114,15 @@
   "rules": [
     {
       "lead": "Why this pack is first for the writing test",
-      "body": "Every line here is something he has already written down wrongly once. A mistake that has been made is far likelier to be made again than one that has not, so this is where the time goes first."
+      "body": "Every line here is something he has already written down wrongly once. A mistake that has been made is far likelier to be made again than one that has not, so this is where the time goes first.",
+      "audience": "learner"
     }
   ],
   "notes": [
     {
       "lead": "The four kinds of mistake",
-      "body": "Letters in the wrong order (<em>trieze</em>, <em>quatle</em>), a missing accent (<em>tres</em>, <em>ca va</em>), a missing hyphen (<em>dix huit</em>), and words in the wrong order (<em>Quel as-tu âge</em>). Knowing which kind it is makes it easier to catch."
+      "body": "Letters in the wrong order (<em>trieze</em>, <em>quatle</em>), a missing accent (<em>tres</em>, <em>ca va</em>), a missing hyphen (<em>dix huit</em>), and words in the wrong order (<em>Quel as-tu âge</em>). Knowing which kind it is makes it easier to catch.",
+      "audience": "learner"
     }
   ],
   "exercises": [

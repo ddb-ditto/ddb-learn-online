@@ -4,6 +4,7 @@
   "title": "Numbers 1–31",
   "standfirst": "One to thirty-one — enough for any age and any date.",
   "summary": "The numbers as the class booklet writes them, hyphens included.",
+  "minutes": 20,
   "tests": [
     "speaking",
     "reading",
@@ -141,13 +142,15 @@
   "rules": [
     {
       "lead": "Hyphens are part of the spelling",
-      "body": "<em>vingt-et-un</em>, <em>trente-et-un</em>, <em>dix-sept</em>, <em>dix-huit</em>, <em>dix-neuf</em>, <em>vingt-quatre</em> — all hyphenated, because that is how his class booklet writes them. <em>J'ai dix huit ans</em> is a spelling mistake."
+      "body": "<em>vingt-et-un</em>, <em>trente-et-un</em>, <em>dix-sept</em>, <em>dix-huit</em>, <em>dix-neuf</em>, <em>vingt-quatre</em> — all hyphenated, because that is how his class booklet writes them. <em>J'ai dix huit ans</em> is a spelling mistake.",
+      "audience": "learner"
     }
   ],
   "notes": [
     {
       "lead": "Why it stops at 31",
-      "body": "Thirty-one covers every age he needs and every day of the month. Numbers to 100 are in his book but not on the revision list, so they are left out rather than added to what has to be learned this fortnight."
+      "body": "Thirty-one covers every age he needs and every day of the month. Numbers to 100 are in his book but not on the revision list, so they are left out rather than added to what has to be learned this fortnight.",
+      "audience": "parent"
     }
   ],
   "exercises": [

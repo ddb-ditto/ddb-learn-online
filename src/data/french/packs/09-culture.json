@@ -4,6 +4,7 @@
   "title": "French culture",
   "standfirst": "The facts behind the culture quiz — starting with <em>la bise</em>.",
   "summary": "Sixteen facts from his notes, and a quiz that shuffles them.",
+  "minutes": 15,
   "tests": [
     "reading"
   ],
@@ -29,11 +30,13 @@
   "notes": [
     {
       "lead": "La bise is the one to be sure of",
-      "body": "The teacher named it specifically. Everything else on this page is worth knowing; that one was pointed at."
+      "body": "The teacher named it specifically. Everything else on this page is worth knowing; that one was pointed at.",
+      "audience": "learner"
     },
     {
       "lead": "One correction to his notes",
-      "body": "His notes say the Mona Lisa was painted in France. Leonardo began it in Italy and brought it with him, so the safe fact — and the one a quiz asks — is that it hangs in the Louvre."
+      "body": "His notes say the Mona Lisa was painted in France. Leonardo began it in Italy and brought it with him, so the safe fact — and the one a quiz asks — is that it hangs in the Louvre.",
+      "audience": "parent"
     }
   ],
   "exercises": [

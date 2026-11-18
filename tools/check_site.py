@@ -398,12 +398,16 @@ with sync_playwright() as pw:
 
         page.goto(f"{ROOT}/french/year-7/")
         tests = page.locator(".testcard").count()
-        packs = page.locator(".cardlink").count()
+        # The pack grid, not every link on the page — the hub also offers the
+        # mixed deck, and counting all of them made that look like an 11th pack.
+        packs = page.locator("#packs .cardlink").count()
         notes.append(f"french hub: {tests} test card(s), {packs} pack card(s)")
         if tests != 2:
             fails.append(f"the French hub shows {tests} tests, expected 2")
         if packs != 10:
             fails.append(f"the French hub shows {packs} packs, expected 10")
+        if page.locator("a[href$='/mix/']").count() == 0:
+            fails.append("the French hub does not offer the mixed deck")
         if wide() > 390:
             fails.append(f"the French hub scrolls sideways at 390px ({wide()}px)")
         stamps = page.locator(".countdown time").count()
@@ -575,7 +579,64 @@ with sync_playwright() as pw:
         if page.locator("#printsheets .sheet").count() == 0:
             fails.append("the French cards build no print sheets")
 
-        # A test page lists its packs in its own order, not in number order.
+            # ----------------------------------------------------------------------
+        # The Leitner box
+        # ----------------------------------------------------------------------
+        #
+        # Spacing is the point of it, so what matters is that a card can be marked,
+        # that the marking survives a reload, and that only box numbers are stored
+        # — not a score. And that the Italian decks did not quietly grow buttons.
+        page.goto(f"{ROOT}/french/year-7/packs/greetings/cards/")
+        if page.locator("#marks").count() == 0:
+            fails.append("the French cards have no Leitner box")
+        else:
+            # `hidden` has to mean hidden. The browser's own [hidden] rule is the
+            # weakest there is, so `.marks { display: flex }` beat it and the two
+            # buttons sat under a card that had not been turned over — with the
+            # element's hidden property true the whole time, so nothing in the DOM
+            # looked wrong. Checked with a computed style, not the attribute.
+            shown = page.locator("#marks").evaluate("e => getComputedStyle(e).display")
+            notes.append(f"marks before the card is turned: display {shown}")
+            if shown != "none":
+                fails.append(f"the mark buttons show under an unturned card (display {shown})")
+
+            page.locator("#card").click()
+            if not page.locator("#marks").is_visible():
+                fails.append("the mark buttons do not appear once the card is face up")
+
+            start = page.locator("#stillto").inner_text()
+            page.locator("#knew").click()
+            moved = page.locator("#stillto").inner_text()
+            notes.append(f"box tally: {start!r} → {moved!r}")
+            if start == moved:
+                fails.append("marking a card right does not move it up a box")
+            if page.locator("#marks").is_visible():
+                fails.append("the mark buttons stay up after marking")
+
+            page.reload()
+            if page.locator("#stillto").inner_text() != moved:
+                fails.append("the boxes do not survive a reload")
+
+            stored = page.evaluate("""() => {
+              const keys = Object.keys(localStorage).filter((k) => k.startsWith('leitner:'));
+              const values = keys.flatMap((k) => Object.values(JSON.parse(localStorage.getItem(k))));
+              return { keys, values: [...new Set(values)] };
+            }""")
+            notes.append(f"stored: {stored['keys']} holding {sorted(stored['values'])}")
+            if any(v not in (1, 2, 3) for v in stored["values"]):
+                fails.append(f"something other than a box number is stored: {stored['values']}")
+            if any("/" in k for k in stored["keys"]):
+                fails.append(f"the boxes are keyed on a URL, so moving the site loses them: {stored['keys']}")
+
+            page.locator("#forget").click()
+            if page.locator("#stillto").inner_text() == moved:
+                fails.append("starting the boxes again does not clear them")
+
+        page.goto(f"{ROOT}/units/2/sessions/1/cards/")
+        if page.locator("#marks").count():
+            fails.append("an Italian deck has self-marking buttons — the teacher is in the room")
+
+    # A test page lists its packs in its own order, not in number order.
         page.goto(f"{ROOT}/french/year-7/tests/writing/")
         first = page.locator(".cardlink .t").first.inner_text()
         notes.append(f"writing test, first pack: {first!r}")

@@ -57,6 +57,8 @@ const cardCount = cardCountFor(p);
 
   <TestBadges parts={p.tests} notes={p.testNotes} base={base} />
 
+  <p class="packtime">About {p.minutes} minutes</p>
+
   {p.rules?.map((r) => (
     <Rule lead={r.lead}><p set:html={r.body} /></Rule>
   ))}
@@ -79,7 +81,7 @@ const cardCount = cardCountFor(p);
         <tbody>
           {p.countries.map((c) => (
             <tr class={c.gender === "m" ? "masc" : "fem"}>
-              <td class="term" lang="fr">{c.fr}</td>
+              <td class="term" lang="fr">{c.flag && <span class="flag" aria-hidden="true">{c.flag}</span>}{c.fr}</td>
               <td class="gloss">{c.en}</td>
               <td class="term in" lang="fr">{c.in}</td>
             </tr>
@@ -163,7 +165,15 @@ const cardCount = cardCountFor(p);
   )}
 
   {p.notes?.map((n) => (
-    <Note lead={n.lead}><p set:html={n.body} /></Note>
+    n.audience === "parent" ? (
+      <div class="note forparent">
+        <span class="who">For whoever is helping</span>
+        <span class="lead" set:html={n.lead} />
+        <p set:html={n.body} />
+      </div>
+    ) : (
+      <Note lead={n.lead}><p set:html={n.body} /></Note>
+    )
   ))}
 
   {practice.length > 0 && (

@@ -227,6 +227,13 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   do not, and an item already answered comes back read-only — re-answering it
   would double-count the score underneath. All four shipped with a Next and no
   Back.
+- **The French cards have a Leitner box; the Italian ones do not.** Three
+  boxes, in `leitner.ts`, turned on per page with `practise` on `Flashcards`.
+  It stores **only which box each card is in** — never a score, a count, a
+  date or anything that leaves the device — keyed on the pack's slug rather
+  than the URL so moving the site does not lose it, and written to be lost
+  safely: an empty box is just a deck starting at the beginning. The Italian
+  decks stay as they were, because the teacher is in the room there.
 - **Marking is strict on accents, capitals and hyphens**, and forgiving of a
   curly apostrophe and the space before `?` and `!`. Those two are keyboards,
   not French. `src/scripts/marking.ts` is the only place that decides this, and
@@ -280,6 +287,11 @@ the border, which stops at the ring and so leaves the cream inside it intact.
   prints the tags.
 - **MDX is JSX.** Void tags self-close, a list item must be on one line, and a
   bare `<` in prose is read as a tag.
+- **`[hidden]` is the weakest rule in CSS.** Any class that sets `display`
+  beats the browser's own `[hidden] { display: none }`, so an element whose
+  `hidden` property is perfectly true sits there on screen — and the DOM looks
+  right, which is why it survives review. `house.css` now forces it globally.
+  Assert the computed `display`, not the attribute.
 - **`:global()` is Astro `<style>` syntax, not CSS.** `src/styles/house.css` is
   imported as a plain global stylesheet, so a rule written
   `.exercise :global(.exbtn)` there is invalid and the browser drops the whole

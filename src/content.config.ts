@@ -113,8 +113,26 @@ const reference = defineCollection({
 /** Which of the three school tests a pack feeds. */
 const part = z.enum(["speaking", "reading", "writing"]);
 
-/** A lead and a body, as the Note and Warn components take them. */
-const aside = z.object({ lead: z.string(), body: z.string() });
+/**
+ * A lead and a body, as the Note and Warn components take them, plus who it
+ * is talking to.
+ *
+ * The Italian course does not need this: every word of it is addressed to
+ * whoever is teaching, and the child never opens it. A revision pack is used
+ * by a twelve-year-old on his own, and four of the ten carried a note written
+ * about him in the third person — "if his class answers differ, use his" —
+ * with nothing to say it was not meant for him. So the audience is declared
+ * and the page shows it.
+ *
+ * This is deliberately not the Note component's `child` flag, which means
+ * something else: an aside to the teacher about handling one child
+ * differently.
+ */
+const aside = z.object({
+  lead: z.string(),
+  body: z.string(),
+  audience: z.enum(["learner", "parent"]).default("learner"),
+});
 
 const frenchPacks = defineCollection({
   loader: glob({ pattern: "**/*.json", base: "./src/data/french/packs" }),
@@ -126,6 +144,13 @@ const frenchPacks = defineCollection({
     standfirst: z.string(),
     /** How it reads on a card in the hub and on a test page. */
     summary: z.string(),
+    /**
+     * One sitting, in minutes. The Italian sessions have carried this from the
+     * start and the packs shipped without it — which left a child with no idea
+     * whether he was starting a five-minute job or a forty-minute one, and
+     * nothing to stop a pack quietly growing past what one sitting holds.
+     */
+    minutes: z.number().int().min(5).max(40),
     tests: z.array(part).min(1),
     /**
      * Why a pack is only partly needed, e.g. numbers for the speaking test.
@@ -153,6 +178,22 @@ const frenchPacks = defineCollection({
     })).optional(),
     countries: z.array(z.object({
       fr: z.string(), en: z.string(), in: z.string(), gender: z.enum(["m", "f"]),
+      /**
+       * The country's flag, as a character.
+       *
+       * The only picture anywhere in these packs, because it is the only place
+       * a picture does real work: a flag is a second, independent route to the
+       * same fact, and most of these are already in his head. Nothing else
+       * here is a concrete noun — greetings, numbers and verb phrases do not
+       * illustrate, and decorating them would be decoration.
+       *
+       * Wales, England and Scotland are tag sequences rather than ordinary
+       * flag emoji. They draw correctly in current browsers — checked by
+       * rendering each one and comparing the pixels with the plain black flag
+       * — but older Android and some Windows builds fall back to that black
+       * flag. That is a shrug, not a break: the country's name is next to it.
+       */
+      flag: z.string().optional(),
     })).optional(),
     numbers: z.array(z.tuple([z.number().int(), z.string()])).optional(),
     alphabet: z.array(z.tuple([z.string(), z.string()])).optional(),

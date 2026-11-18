@@ -52,16 +52,29 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
     Pack&nbsp;10 first for writing.</p>
   </Note>
 
+  <Section kicker="When a pack is done">Mix it up</Section>
+  <p>Working through one pack at a time feels like it is going well, because every
+  answer comes from the same place. Mixing them is harder and holds better.</p>
+
+  <CardGrid>
+    <CardLink
+      title="Everything, mixed"
+      href={`${base}/french/year-7/mix/`}
+      note="All ten packs"
+    >Every pack's words in one shuffled deck, with the ones you keep missing coming
+    round more often.</CardLink>
+  </CardGrid>
+
   <Section kicker="Ten packs">Everything to revise</Section>
   <p>Each pack is a short page: the words, the rule that holds them together, flashcards
   that print as fold-over cards, and practice that marks itself.</p>
 
-  <CardGrid>
+  <CardGrid id="packs">
     {packs.map((p) => (
       <CardLink
         title={`${p.data.number}. ${p.data.title}`}
         href={`${base}/french/year-7/packs/${p.data.slug}/`}
-        note={p.data.tests.map((t) => NAME[t]).join(" · ")}
+        note={`${p.data.minutes} min · ${p.data.tests.map((t) => NAME[t]).join(" · ")}`}
       >{p.data.summary}</CardLink>
     ))}
   </CardGrid>

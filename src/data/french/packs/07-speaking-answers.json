@@ -4,6 +4,7 @@
   "title": "My speaking answers",
   "standfirst": "The five questions and the five answers, learned until they come out without thinking.",
   "summary": "Each answer is a full sentence with something extra in it, because that is what scores two.",
+  "minutes": 20,
   "tests": [
     "speaking"
   ],
@@ -84,13 +85,15 @@
   "rules": [
     {
       "lead": "What turns one mark into two",
-      "body": "A full sentence rather than a word. A connective — <em>et</em>, <em>parce que</em>. Something about somebody else. A question back: <em>Et toi ?</em> And the sounds said right."
+      "body": "A full sentence rather than a word. A connective — <em>et</em>, <em>parce que</em>. Something about somebody else. A question back: <em>Et toi ?</em> And the sounds said right.",
+      "audience": "learner"
     }
   ],
   "notes": [
     {
       "lead": "If the class answers are different, use his",
-      "body": "These are a worked version built from the five questions. If what he prepared in class differs, his are the ones to learn — the test is answering from memory, and two sets of words is worse than one."
+      "body": "These are a worked version built from the five questions. If what he prepared in class differs, his are the ones to learn — the test is answering from memory, and two sets of words is worse than one.",
+      "audience": "parent"
     }
   ],
   "exercises": [

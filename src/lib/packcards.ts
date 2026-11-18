@@ -39,7 +39,12 @@ export function cardsFor(p: Pack): Card[] {
     // a single card that showed both would let him read the answer off the
     // front.
     for (const c of p.countries) {
-      cards.push({ d: "The country", t: "word", f: c.fr, m: c.en });
+      // The flag goes on the back, with the English. On the front it would
+      // answer the question before it had been asked.
+      cards.push({
+        d: "The country", t: "word", f: c.fr,
+        m: c.flag ? `${c.flag}  ${c.en}` : c.en,
+      });
     }
     for (const c of p.countries) {
       cards.push({ d: "Saying “in”", t: "rule", f: `in ${c.en}`, m: c.in });

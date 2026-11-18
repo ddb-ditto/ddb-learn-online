@@ -7,8 +7,28 @@
  */
 import type { Card } from "../scripts/flashcards";
 
-interface Props { cards: Card[]; noReverse?: string[]; }
-const { cards, noReverse = [] } = Astro.props;
+interface Props {
+  cards: Card[];
+  noReverse?: string[];
+  /**
+   * Turn on the Leitner box: two buttons under a turned-over card, and an
+   * order that brings the hard ones round more often.
+   *
+   * Off by default, because the Italian decks are drilled with the teacher in
+   * the room and a nine-year-old grading themselves is not data. The French
+   * packs are revised alone, where the choice is between imperfect
+   * self-marking and no spacing at all.
+   */
+  practise?: boolean;
+  /**
+   * A stable name for this deck's boxes. It comes from the content — the
+   * pack's slug — rather than from the URL, because the site's path carries
+   * the repository's name and a rename would otherwise throw away everything
+   * the boxes had learned.
+   */
+  scope?: string;
+}
+const { cards, noReverse = [], practise = false, scope } = Astro.props;
 ---
 
 <div class="app noprint">
@@ -31,8 +51,23 @@ const { cards, noReverse = [] } = Astro.props;
     </button>
   </div>
 
+  {practise && (
+    <>
+      <div class="marks" id="marks" hidden>
+        <button id="missed" class="mark no" type="button">Not yet</button>
+        <button id="knew" class="mark yes" type="button">Got it</button>
+      </div>
+      <p class="stillto" id="stillto"></p>
+      <p class="nomemory" id="nomemory" hidden>
+        This browser will not remember which cards were hard — a private window,
+        or site data switched off. The cards still work; they just start fresh
+        every time.
+      </p>
+    </>
+  )}
+
   <div class="meta">
-    <span></span>
+    <span>{practise && <button id="forget">Start the boxes again</button>}</span>
     <span>
       <span id="reversewrap" hidden>
         <label><input type="checkbox" id="reverse" /> English first</label>
@@ -50,6 +85,8 @@ const { cards, noReverse = [] } = Astro.props;
 
 <script type="application/json" id="cards-data" set:html={JSON.stringify(cards)} is:inline />
 <script type="application/json" id="no-reverse" set:html={JSON.stringify(noReverse)} is:inline />
+<script type="application/json" id="practise" set:html={JSON.stringify(practise)} is:inline />
+<script type="application/json" id="deck-scope" set:html={JSON.stringify(scope ?? "")} is:inline />
 <script>
   import "../scripts/flashcards";
 </script>
@@ -149,6 +186,28 @@ const { cards, noReverse = [] } = Astro.props;
     cursor: pointer; text-decoration: underline; padding: 0;
   }
   .meta label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+
+
+  /* ---------- the Leitner box ------------------------------------------ */
+
+  .marks { display: flex; gap: 0.6rem; margin: 0.9rem 0 0.2rem; }
+  .marks button {
+    flex: 1 1 0; font-family: var(--sans); font-size: 0.92rem;
+    padding: 0.7rem 0.9rem; border-radius: 5px; cursor: pointer;
+    border: 1px solid var(--rule); background: var(--card); color: var(--ink);
+  }
+  .marks .yes { border-color: #3f7d3f; color: #3f7d3f; }
+  .marks .yes:hover { background: #3f7d3f; color: #fff; }
+  .marks .no { border-color: var(--accent); color: var(--accent); }
+  .marks .no:hover { background: var(--accent); color: var(--on-accent); }
+
+  .stillto, .nomemory {
+    font-family: var(--sans); font-size: 0.78rem; color: var(--ink-faint);
+    text-align: center; margin: 0.7rem 0 0;
+  }
+  .nomemory { max-width: 30rem; margin-inline: auto; line-height: 1.5; }
+
+  @media print { .marks, .stillto, .nomemory { display: none; } }
 
   /* =========================================================================
      Print — 8 fold-over cards per A4

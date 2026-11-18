@@ -219,7 +219,7 @@ Two rules, for two different things, each written down. The alternative — a
 single rule loose enough to admit both — would have let a calendar year back
 into the Italian course, which is the thing worth preventing.
 
-## Nothing is stored, in the French section either
+## Nothing is stored, in the French section either — except which cards are hard
 
 The brief allowed browser storage for ticks and scores "if the site already
 uses it". It does not: progress is recorded on paper and nothing on this site
@@ -229,6 +229,24 @@ tab closes.
 That is not a limitation worked around. A score that silently resets is worse
 than no score, and the person who needs to know how the revision went is the one
 testing him.
+
+**Amended, after an audit of the site against how children actually learn.**
+That paragraph was right about scores and wrong to take spaced repetition down
+with it. Spacing is the best-evidenced thing anybody knows about learning
+vocabulary, and the decks had none: every visit reset, so the word known for a
+fortnight came up as often as the one that catches him every time.
+
+The flashcards now keep a Leitner box, and the distinction is the one the
+original decision was reaching for. **Which box a card is in is a fact about the
+word. A score is a fact about the child.** The first is stored — a word and a
+number from one to three, in his browser, keyed on the pack so moving the site
+cannot lose it. The second still is not: no score, no count, no dates, no
+streak, nothing that leaves the device. The exercises still forget everything
+when the tab closes.
+
+The Italian decks are unchanged. They are drilled with the teacher in the room,
+where self-marking is not needed and a nine-year-old grading themselves is still
+not data.
 
 ## French flashcards are derived, not written
 
@@ -306,6 +324,30 @@ the same reasoning as recording progress on paper.
 
 A button that is not available keeps its space rather than disappearing, so the
 counter between the two does not slide about as he steps through.
+
+## Mixing is offered separately, not imposed
+
+Each pack drills its own words, and the flashcards run a deck at a time in
+teaching order — which is right for meeting material and wrong for revising it.
+Practising one topic at a time feels fluent and holds worse, because the test
+asks you to work out which rule applies before you can use it.
+
+Rather than shuffle the packs together and take the ordered run away, there is a
+separate mixed deck drawing on all ten, reached from the hub and recommended
+after a pack rather than instead of one. The page says plainly that it will feel
+harder, because it will, and a child who is not told that concludes he has gone
+backwards.
+
+## One picture, where a picture does work
+
+The site has no illustrations and this did not change that. An audit said dual
+coding was missing; looking at what the packs actually teach, almost none of it
+is picturable — greetings, numbers, verb phrases and rules do not illustrate.
+
+Countries do. A flag is a second, independent route to the same fact and most of
+these are already in his head, so the countries carry one and nothing else does.
+Adding pictures to the rest would have been decoration answering an audit rather
+than teaching anybody anything.
 
 ## Still open
 

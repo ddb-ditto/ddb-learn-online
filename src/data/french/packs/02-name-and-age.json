@@ -4,6 +4,7 @@
   "title": "Name and age",
   "standfirst": "Asking and answering the two questions every conversation starts with.",
   "summary": "Je m'appelle, j'ai douze ans, and the spelling trap in the middle of both.",
+  "minutes": 20,
   "tests": [
     "speaking",
     "reading",
@@ -45,7 +46,8 @@
   "rules": [
     {
       "lead": "The one that costs marks",
-      "body": "<em>je m'appelle</em> — double p, no s on the end. <em>tu t'appelles</em> — with the s. Same word, two spellings, and the writing test marks spelling."
+      "body": "<em>je m'appelle</em> — double p, no s on the end. <em>tu t'appelles</em> — with the s. Same word, two spellings, and the writing test marks spelling.",
+      "audience": "learner"
     }
   ],
   "alphabet": [
@@ -129,7 +131,8 @@
   "notes": [
     {
       "lead": "Why the alphabet is here",
-      "body": "<em>Comment ça s'écrit ?</em> means “how do you spell that?”, and answering it means saying the letters in French. These are the sounds from his book."
+      "body": "<em>Comment ça s'écrit ?</em> means “how do you spell that?”, and answering it means saying the letters in French. These are the sounds from his book.",
+      "audience": "parent"
     }
   ],
   "exercises": [

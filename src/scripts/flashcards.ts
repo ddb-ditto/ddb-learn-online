@@ -9,9 +9,17 @@
  *   - Deck buttons switch, they do not filter. One deck at a time, and
  *     switching resets to its first card.
  *   - Arrows wrap at both ends, and the left and right keys do the same.
- *   - There are no self-marking "got it" buttons. The teacher is in the room,
- *     and a nine-year-old grading themselves is not data.
+ *   - The Italian decks have no self-marking "got it" buttons. The teacher is
+ *     in the room, and a nine-year-old grading themselves is not data.
+ *   - The French decks do, because the position is different: a twelve-year-old
+ *     revising for a test next week is usually alone, and "did I just produce
+ *     *très* or not?" is a verifiable yes or no against the back of the card,
+ *     not the kind of self-assessment children are bad at. Without some signal
+ *     there can be no spacing at all, and spacing is worth more here than the
+ *     purity of refusing it. It is off unless a page asks for it.
  */
+
+import { Leitner, storageWorks } from "./leitner";
 
 export interface Card {
   /** Deck name. Decks appear in the order they first occur. */
@@ -28,14 +36,19 @@ export interface Card {
 
 const data = document.getElementById("cards-data");
 const off = document.getElementById("no-reverse");
+const practise = document.getElementById("practise");
+const scope = document.getElementById("deck-scope");
 if (data?.textContent) {
   start(
     JSON.parse(data.textContent) as Card[],
     off?.textContent ? (JSON.parse(off.textContent) as string[]) : [],
+    practise?.textContent === "true",
+    scope?.textContent ? (JSON.parse(scope.textContent) as string) : "",
   );
 }
 
-function start(CARDS: Card[], NO_REVERSE: string[]): void {
+function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
+               SCOPE: string): void {
   const DECKS: string[] = [];
   for (const c of CARDS) if (!DECKS.includes(c.d)) DECKS.push(c.d);
 
@@ -53,6 +66,11 @@ function start(CARDS: Card[], NO_REVERSE: string[]): void {
   let idx = 0;
   let showingBack = false;
   let reverse = false;
+
+  // One box per deck, named by the content rather than the URL so that moving
+  // the site does not throw away what the boxes know.
+  const boxes = PRACTISE ? new Leitner(SCOPE || location.pathname) : null;
+  const remembers = PRACTISE && storageWorks();
 
   /**
    * Whether "English first" means anything for a deck.
@@ -94,6 +112,7 @@ function start(CARDS: Card[], NO_REVERSE: string[]): void {
   function selectDeck(d: string): void {
     deck = d;
     cards = CARDS.filter((c) => c.d === deck);
+    if (boxes) cards = boxes.order(cards, (c) => c.f);
     idx = 0;
     showingBack = false;
     canReverse = reversible(deck);
@@ -135,6 +154,20 @@ function start(CARDS: Card[], NO_REVERSE: string[]): void {
     elDeckTag.textContent = card.d;
     elPosition.innerHTML = `${idx + 1} <span class="of">/ ${cards.length}</span>`;
 
+    if (boxes) {
+      const marks = document.getElementById("marks");
+      if (marks) marks.hidden = !showingBack;
+      const left = document.getElementById("stillto");
+      if (left) {
+        const tally = boxes.tally(cards.map((c) => c.f));
+        // A count of the words, not of him: how much of this deck is still
+        // coming round often. It goes down as the deck is learned.
+        left.textContent = tally[1] === 0
+          ? "Every card in this deck is settled."
+          : `${tally[1]} of ${cards.length} still coming round often`;
+      }
+    }
+
     // English first only applies to word cards. A rule card asks a question,
     // so reversing it would show the answer and ask for the question.
     const flipped = reverse && canReverse && card.t === "word";
@@ -148,7 +181,9 @@ function start(CARDS: Card[], NO_REVERSE: string[]): void {
       return;
     }
 
-    elHint.textContent = "Arrows for the next card";
+    elHint.textContent = boxes
+      ? "Did you get it?"
+      : "Arrows for the next card";
     if (flipped) {
       elFace.innerHTML = `<div class="answer"><p class="term">${esc(card.f)}</p>${say}</div>`;
     } else if (card.t === "rule") {
@@ -156,6 +191,27 @@ function start(CARDS: Card[], NO_REVERSE: string[]): void {
     } else {
       elFace.innerHTML = `<div class="answer">${say}<p class="meaning">${esc(card.m)}</p></div>`;
     }
+  }
+
+  /**
+   * Mark the card he is looking at, then move on.
+   *
+   * Only reachable once the card is face up — grading a card you have not
+   * turned over is not retrieval practice, it is clicking.
+   */
+  function mark(knew: boolean): void {
+    const card = cards[idx];
+    if (!boxes || !card || !showingBack) return;
+    if (knew) boxes.up(card.f);
+    else boxes.down(card.f);
+    // Re-order on every mark, so a card just sent back to box one can return
+    // within the same sitting rather than waiting for a reload.
+    const here = card.f;
+    cards = boxes.order(cards, (c) => c.f);
+    const was = cards.findIndex((c) => c.f === here);
+    idx = (was + 1) % cards.length;
+    showingBack = false;
+    render();
   }
 
   const flip = () => {
@@ -180,6 +236,17 @@ function start(CARDS: Card[], NO_REVERSE: string[]): void {
   el("next").addEventListener("click", () => step(1));
   el("prev").addEventListener("click", () => step(-1));
   el("shuffle").addEventListener("click", shuffle);
+
+  if (boxes) {
+    document.getElementById("knew")?.addEventListener("click", () => mark(true));
+    document.getElementById("missed")?.addEventListener("click", () => mark(false));
+    document.getElementById("forget")?.addEventListener("click", () => {
+      boxes.forget();
+      selectDeck(deck);
+    });
+    const warn = document.getElementById("nomemory");
+    if (warn) warn.hidden = remembers;
+  }
   el("printit").addEventListener("click", () => window.print());
   el<HTMLInputElement>("reverse").addEventListener("change", function () {
     reverse = this.checked;

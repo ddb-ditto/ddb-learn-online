@@ -1,4 +1,6 @@
 ---
 /** The grid of links on a contents page. */
+interface Props { id?: string; }
+const { id } = Astro.props;
 ---
-<div class="cards"><slot /></div>
+<div class="cards" id={id}><slot /></div>

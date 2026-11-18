@@ -33,6 +33,17 @@
   --measure: 34rem;
 }
 
+/**
+ * `hidden` means hidden, whatever else a rule says.
+ *
+ * The browser's own `[hidden] { display: none }` is the weakest rule there is,
+ * so any class that sets `display` beats it. The flashcards' "Got it / Not
+ * yet" buttons set `display: flex` and so sat on screen under a card that had
+ * not been turned over yet — the element's `hidden` property was true the
+ * whole time, which is why nothing looked wrong in the DOM.
+ */
+[hidden] { display: none !important; }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --accent:      #e08a72;
@@ -1001,3 +1012,26 @@ footer a { color: var(--ink-faint); }
    counter between the two does not slide about, and `visibility` takes it out
    of the tab order as well as off the screen. */
 .exercise .exbtn.gone { visibility: hidden; }
+
+/* ---------- a pack's length, and who a note is for ---------------------- */
+
+.packtime {
+  font-family: var(--sans); font-size: 0.74rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-faint);
+  margin: 0 0 1.4rem;
+}
+
+/* A note written about the learner rather than to him. The packs are used
+   alone, so one that says "if his class answers differ" has to say on its
+   face that it is not addressed to the reader. */
+.note.forparent { border-left-style: dashed; }
+.note.forparent .who {
+  display: block;
+  font-family: var(--sans); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 0.45rem;
+}
+
+/* The flag beside a country. Decorative to a screen reader — the country's
+   name is right next to it and says the same thing. */
+.countries .flag { margin-right: 0.5rem; font-size: 1.05em; }

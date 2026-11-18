@@ -289,6 +289,24 @@ So the base is derived from `GITHUB_REPOSITORY` and `check_site.py` reads it
 back out of the build. Renaming the repository is now the whole operation, and
 nothing in the code needs editing when it happens.
 
+## Going back is allowed; answering twice is not
+
+Every exercise that shows one item at a time shipped with a Next and no Back.
+On the speaking practice that was plainly wrong — nothing there is marked, the
+whole point is saying a question again until it comes out cleanly, and there
+was no way to return to one.
+
+Back exists everywhere now, but it does not mean the same thing in both kinds.
+The speaking practice wraps at both ends, like the flashcards, because there is
+no score to protect. The marked exercises stop at the first and last, and an
+item already answered comes back read-only: what he typed, how it was marked,
+and no way to answer it again. Letting him re-answer would make the count at
+the end meaningless, and a count that cannot be trusted is worse than none —
+the same reasoning as recording progress on paper.
+
+A button that is not available keeps its space rather than disappearing, so the
+counter between the two does not slide about as he steps through.
+
 ## Still open
 
 - Custom domain, or `ddb-ditto.github.io/italian-gcse`? No `CNAME` file yet.

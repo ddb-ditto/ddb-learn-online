@@ -221,6 +221,12 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 - **Every proper noun is declared** in `src/data/french/names.json`, with a
   reason. The check fails on any that is not. It is an allowlist on purpose:
   a list of forbidden names would have to contain the real one.
+- **Every one-at-a-time exercise steps both ways.** `stepper()` in
+  `exercises.ts` builds the bar, so the four kinds agree. The unmarked kind
+  (speaking practice) wraps at both ends like the flashcards; the marked ones
+  do not, and an item already answered comes back read-only — re-answering it
+  would double-count the score underneath. All four shipped with a Next and no
+  Back.
 - **Marking is strict on accents, capitals and hyphens**, and forgiving of a
   curly apostrophe and the space before `?` and `!`. Those two are keyboards,
   not French. `src/scripts/marking.ts` is the only place that decides this, and
@@ -306,6 +312,12 @@ passing check look identical otherwise. `check_site.py` needs a build and a
 browser; the two vocabulary checks need `tools/spec.txt`. CI has neither the
 specification nor a browser, so it runs `check_text.py` alone and the rest are
 yours to run before you push.
+
+`check_site.py` catches a crash and reports it as a finding rather than dying
+on it. A step that throws — a selector timing out because the thing it drives
+is gone — used to end the run and take every finding made before it with it.
+If you add a step that drives something, guard it the way the Back-button
+checks do: a missing control is a finding, not an exception.
 
 `check_site.py` is not decoration. Every failure this project has shipped was
 silent — nothing threw, the page just looked wrong — so it asserts computed

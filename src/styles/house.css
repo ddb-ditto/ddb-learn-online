@@ -996,3 +996,8 @@ footer a { color: var(--ink-faint); }
 }
 
 @media print { .doors { display: none; } }
+
+/* A stepper button that is not available now. It keeps its space so the
+   counter between the two does not slide about, and `visibility` takes it out
+   of the tab order as well as off the screen. */
+.exercise .exbtn.gone { visibility: hidden; }

@@ -63,6 +63,57 @@ const button = (label: string, cls = "exbtn"): HTMLButtonElement => {
 const verdict = (got: number, total: number): string =>
   `${got} out of ${total}` + (got === total ? " — all of them." : "");
 
+/**
+ * The bar under a one-at-a-time exercise: back, where you are, forward.
+ *
+ * Every kind that shows one item at a time had a Next and no Back, which left
+ * no way to look again at the one you just did — on the speaking practice,
+ * where nothing is marked and the whole point is repeating a question until it
+ * comes out cleanly, that was simply wrong.
+ *
+ * The unmarked kinds wrap at both ends, like the flashcards. The marked ones
+ * do not: wrapping past the last answer into the first would invite answering
+ * everything twice, and the count underneath would stop meaning anything.
+ */
+function stepper(
+  total: () => number,
+  at: () => number,
+  go: (to: number) => void,
+  { wrap = false }: { wrap?: boolean } = {},
+): { nav: HTMLElement; next: HTMLButtonElement; refresh: (canGoOn: boolean) => void } {
+  const nav = el("div", "exnav");
+  const prev = button("← Back", "exbtn quiet");
+  const pos = el("span", "expos");
+  const next = button("Next →");
+
+  prev.addEventListener("click", () => {
+    const n = at() - 1;
+    go(n < 0 ? (wrap ? total() - 1 : 0) : n);
+  });
+  next.addEventListener("click", () => {
+    const n = at() + 1;
+    go(n >= total() ? (wrap ? 0 : total() - 1) : n);
+  });
+
+  // A button that is not available keeps its space rather than collapsing:
+  // removing it slid the counter across the bar every time the first or last
+  // item came up, which reads as the page twitching. `visibility` also takes
+  // it out of the tab order, so it cannot be reached while it is off.
+  const avail = (b: HTMLButtonElement, yes: boolean) => {
+    b.classList.toggle("gone", !yes);
+    b.disabled = !yes;
+  };
+
+  const refresh = (canGoOn: boolean) => {
+    pos.textContent = `${at() + 1} of ${total()}`;
+    avail(prev, wrap || at() > 0);
+    avail(next, canGoOn && (wrap || at() < total() - 1));
+  };
+
+  nav.append(prev, pos, next);
+  return { nav, next, refresh };
+}
+
 /* ----------------------------------------------------------------- speaking */
 
 /**
@@ -80,9 +131,9 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
   const reveal = button("Show the model answer");
   const answer = el("div", "exanswer");
   answer.hidden = true;
-  const nav = el("div", "exnav");
-  const pos = el("span", "expos");
-  const next = button("Next →");
+
+  const step = stepper(() => items.length, () => i, (to) => { i = to; show(); },
+                       { wrap: true });
 
   const show = () => {
     const it = items[i]!;
@@ -92,7 +143,7 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     if (it.en) say(answer, "p", "en", it.en);
     answer.hidden = true;
     reveal.hidden = false;
-    pos.textContent = `${i + 1} of ${items.length}`;
+    step.refresh(true);
   };
 
   reveal.addEventListener("click", () => {
@@ -114,16 +165,18 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     speak.hidden = true;
   }
 
-  next.addEventListener("click", () => {
-    i = (i + 1) % items.length;
-    show();
+  // Nothing here takes typing, so the arrow keys are free to do what they do
+  // in the flashcard app.
+  root.tabIndex = -1;
+  root.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { i = (i + 1) % items.length; show(); }
+    if (e.key === "ArrowLeft") { i = (i - 1 + items.length) % items.length; show(); }
   });
 
   const row = el("div", "exrow");
   row.append(speak, reveal);
   stage.append(row, answer);
-  nav.append(pos, next);
-  root.append(stage, nav);
+  root.append(stage, step.nav);
   show();
 }
 
@@ -255,54 +308,55 @@ function runTrueFalse(ex: TrueFalseEx, root: HTMLElement): void {
 
 /* ------------------------------------------------------------------- choice */
 
-/** A quiz. Tapping an option is the commitment, so it marks there and then. */
+/**
+ * A quiz. Tapping an option is the commitment, so it marks there and then.
+ *
+ * What he picked is remembered, so going back shows the question as he left
+ * it — the right answer still highlighted — rather than offering it again. An
+ * answered question cannot be answered twice, which is what keeps the count
+ * at the end honest.
+ */
 function runChoice(ex: ChoiceEx, root: HTMLElement): void {
   const items = pick(ex.shuffle ? shuffled(ex.items) : ex.items.slice(), ex.ask);
+  const chose: (number | undefined)[] = [];
   let i = 0;
-  let got = 0;
-  let answered = false;
 
   const q = el("p", "exq");
   const options = el("div", "exoptions");
   const result = el("p", "exresult");
-  const nav = el("div", "exnav");
-  const pos = el("span", "expos");
-  const next = button("Next →");
-  next.hidden = true;
+  const step = stepper(() => items.length, () => i, (to) => { i = to; show(); });
+
+  const score = () =>
+    chose.reduce<number>((n, pickedAt, at) => n + (pickedAt === items[at]!.answer ? 1 : 0), 0);
+  const allDone = () => items.every((_, at) => chose[at] !== undefined);
 
   const show = () => {
     const it = items[i]!;
-    answered = false;
+    const picked = chose[i];
     q.innerHTML = tight(it.q);
     options.innerHTML = "";
-    result.textContent = "";
-    next.hidden = true;
+
     it.options.forEach((label, n) => {
       const b = button(tight(label), "exbtn option");
-      b.addEventListener("click", () => {
-        if (answered) return;
-        answered = true;
-        const right = n === it.answer;
-        if (right) got++;
-        b.classList.add(right ? "right" : "wrong");
-        if (!right) {
-          (options.children[it.answer] as HTMLElement).classList.add("right");
-        }
-        next.hidden = i === items.length - 1;
-        if (i === items.length - 1) result.textContent = `Finished — ${verdict(got, items.length)}`;
-      });
+      if (picked !== undefined) {
+        // Already answered: show how it went, and take no more clicks.
+        if (n === it.answer) b.classList.add("right");
+        if (n === picked && picked !== it.answer) b.classList.add("wrong");
+        b.disabled = true;
+      } else {
+        b.addEventListener("click", () => {
+          chose[i] = n;
+          show();
+        });
+      }
       options.appendChild(b);
     });
-    pos.textContent = `${i + 1} of ${items.length}`;
+
+    result.textContent = allDone() ? `Finished — ${verdict(score(), items.length)}` : "";
+    step.refresh(picked !== undefined);
   };
 
-  next.addEventListener("click", () => {
-    i++;
-    show();
-  });
-
-  nav.append(pos, next);
-  root.append(q, options, result, nav);
+  root.append(q, options, result, step.nav);
   show();
 }
 
@@ -319,9 +373,9 @@ const renderDiff = (runs: Run[]): string =>
  */
 function runType(ex: TypeEx, root: HTMLElement): void {
   const items = pick(ex.shuffle ? shuffled(ex.items) : ex.items.slice(), ex.ask);
+  /** What he typed for each one, once marked. Going back shows it again. */
+  const typed: (string | undefined)[] = [];
   let i = 0;
-  let got = 0;
-  let marked = false;
 
   const prompt = el("p", "exprompt");
   const input = el("input", "exinput");
@@ -334,48 +388,49 @@ function runType(ex: TypeEx, root: HTMLElement): void {
   input.setAttribute("aria-label", "Your answer in French");
 
   const check = button("Check");
-  const next = button("Next →");
-  next.hidden = true;
   const result = el("p", "exresult");
-  const nav = el("div", "exnav");
-  const pos = el("span", "expos");
+  const step = stepper(() => items.length, () => i,
+                       (to) => { i = to; show(typed[to] === undefined); });
+
+  const right = (at: number) =>
+    typed[at] !== undefined && isCorrect(typed[at]!, items[at]!.answer);
+  const score = () => items.reduce<number>((n, _, at) => n + (right(at) ? 1 : 0), 0);
+  const allDone = () => items.every((_, at) => typed[at] !== undefined);
 
   // Focus moves to the input when he asks for the next question, never on
   // load: a pack page carries several exercises, and the last one to boot
   // would otherwise take the focus and scroll the page past the vocabulary
-  // the page exists to show.
+  // the page exists to show. Nor when stepping back to one already answered,
+  // where there is nothing to type.
   const show = (focus = true) => {
     const it = items[i]!;
-    marked = false;
+    const said = typed[i];
     prompt.innerHTML = tight(it.prompt);
-    input.value = "";
+    input.value = said ?? "";
     input.className = "exinput";
-    input.disabled = false;
+    input.disabled = said !== undefined;
+    check.hidden = said !== undefined;
     result.innerHTML = "";
-    check.hidden = false;
-    next.hidden = true;
-    pos.textContent = `${i + 1} of ${items.length}`;
-    if (focus) input.focus();
+
+    if (said !== undefined) {
+      input.classList.add(right(i) ? "right" : "wrong");
+      result.innerHTML = right(i)
+        ? "Correct."
+        : `<span class="exlabel">The answer is</span> <span class="fr">${renderDiff(diff(said, it.answer))}</span>`;
+    }
+    if (allDone()) {
+      result.innerHTML += `<span class="exfinal">Finished — ${verdict(score(), items.length)}</span>`;
+    }
+
+    step.refresh(said !== undefined);
+    if (focus && said === undefined) input.focus();
   };
 
   const mark = () => {
-    if (marked) return;
-    marked = true;
-    const it = items[i]!;
-    const right = isCorrect(input.value, it.answer);
-    if (right) got++;
-    input.classList.add(right ? "right" : "wrong");
-    input.disabled = true;
-    check.hidden = true;
-    result.innerHTML = right
-      ? "Correct."
-      : `<span class="exlabel">The answer is</span> <span class="fr">${renderDiff(diff(input.value, it.answer))}</span>`;
-    if (i === items.length - 1) {
-      result.innerHTML += `<span class="exfinal">Finished — ${verdict(got, items.length)}</span>`;
-    } else {
-      next.hidden = false;
-      next.focus({ preventScroll: true });
-    }
+    if (typed[i] !== undefined) return;       // already answered; not twice
+    typed[i] = input.value;
+    show(false);
+    if (!step.next.hidden) step.next.focus({ preventScroll: true });
   };
 
   check.addEventListener("click", mark);
@@ -385,15 +440,10 @@ function runType(ex: TypeEx, root: HTMLElement): void {
       mark();
     }
   });
-  next.addEventListener("click", () => {
-    i++;
-    show();
-  });
 
   const row = el("div", "exrow");
-  row.append(check, next);
-  nav.appendChild(pos);
-  root.append(prompt, input, row, result, nav);
+  row.append(check);
+  root.append(prompt, input, row, result, step.nav);
   show(false);
 }
 
@@ -402,28 +452,43 @@ function runType(ex: TypeEx, root: HTMLElement): void {
 /** Tiles into a line. Tapping a placed tile takes it back. */
 function runOrder(ex: OrderEx, root: HTMLElement): void {
   const items = ex.shuffle ? shuffled(ex.items) : ex.items.slice();
+  /** The order he settled on, once checked. Going back shows it again. */
+  const settled: (string[] | undefined)[] = [];
   let i = 0;
-  let got = 0;
+  let placed: string[] = [];
 
   const line = el("div", "exline");
   const pool = el("div", "expool");
   const check = button("Check");
-  const next = button("Next →");
-  next.hidden = true;
   const result = el("p", "exresult");
-  const nav = el("div", "exnav");
-  const pos = el("span", "expos");
-  let placed: string[] = [];
+  const step = stepper(() => items.length, () => i, (to) => { i = to; show(); });
+
+  // The tiles carry no punctuation beyond what is written on them, so the
+  // sentence they make is compared with the commas and full stops removed —
+  // the task is the word order, and W-D is where punctuation is marked.
+  const bare = (t: string) => t.replace(/[.,]/g, "").replace(/\s+/g, " ").trim();
+  const right = (at: number) =>
+    settled[at] !== undefined &&
+    isCorrect(bare(settled[at]!.join(" ")), bare(items[at]!.answer));
+  const score = () => items.reduce<number>((n, _, at) => n + (right(at) ? 1 : 0), 0);
+  const allDone = () => items.every((_, at) => settled[at] !== undefined);
 
   const draw = () => {
     const it = items[i]!;
+    const done = settled[i] !== undefined;
+
     line.innerHTML = "";
     placed.forEach((word, n) => {
       const t = button(tight(word), "extile placed");
-      t.addEventListener("click", () => {
-        placed.splice(n, 1);
-        draw();
-      });
+      if (done) {
+        t.classList.add(right(i) ? "right" : "wrong");
+        t.disabled = true;
+      } else {
+        t.addEventListener("click", () => {
+          placed.splice(n, 1);
+          draw();
+        });
+      }
       line.appendChild(t);
     });
     if (placed.length === 0) line.appendChild(el("span", "exempty", "Tap the words in order"));
@@ -436,55 +501,55 @@ function runOrder(ex: OrderEx, root: HTMLElement): void {
     }
     for (const word of left) {
       const t = button(tight(word), "extile");
-      t.addEventListener("click", () => {
-        placed.push(word);
-        draw();
-      });
+      if (done) t.disabled = true;
+      else {
+        t.addEventListener("click", () => {
+          placed.push(word);
+          draw();
+        });
+      }
       pool.appendChild(t);
     }
     check.disabled = left.length > 0;
   };
 
+  /** Which items have had their tiles shuffled. See below. */
+  const shuffledOnce = new Set<number>();
+
   const show = () => {
-    placed = [];
     const it = items[i]!;
-    it.tiles = shuffled(it.tiles);
-    result.innerHTML = "";
-    check.hidden = false;
-    next.hidden = true;
-    pos.textContent = `${i + 1} of ${items.length}`;
+    const done = settled[i];
+    // The tiles are shuffled once, the first time this item is reached. A
+    // reshuffle on the way back would make a sentence he has already put in
+    // order look like a different question.
+    placed = done ? done.slice() : [];
+    if (done === undefined && !shuffledOnce.has(i)) {
+      it.tiles = shuffled(it.tiles);
+      shuffledOnce.add(i);
+    }
+
+    result.innerHTML = done
+      ? (right(i)
+          ? `Correct. <span class="fr">${tight(it.answer)}</span>`
+          : `<span class="exlabel">Not quite. It is</span> <span class="fr">${tight(it.answer)}</span>`)
+      : "";
+    if (allDone()) {
+      result.innerHTML += `<span class="exfinal">Finished — ${verdict(score(), items.length)}</span>`;
+    }
+    check.hidden = done !== undefined;
+    step.refresh(done !== undefined);
     draw();
   };
 
   check.addEventListener("click", () => {
-    const it = items[i]!;
-    // The tiles carry no punctuation beyond what is written on them, so the
-    // sentence they make is compared with the commas and full stops removed —
-    // the task is the word order, and W-D is where punctuation is marked.
-    const bare = (s: string) => s.replace(/[.,]/g, "").replace(/\s+/g, " ").trim();
-    const right = isCorrect(bare(placed.join(" ")), bare(it.answer));
-    if (right) got++;
-    check.hidden = true;
-    result.innerHTML = right
-      ? `Correct. <span class="fr">${tight(it.answer)}</span>`
-      : `<span class="exlabel">Not quite. It is</span> <span class="fr">${tight(it.answer)}</span>`;
-    line.querySelectorAll<HTMLElement>(".placed").forEach((t) => t.classList.add(right ? "right" : "wrong"));
-    if (i === items.length - 1) {
-      result.innerHTML += `<span class="exfinal">Finished — ${verdict(got, items.length)}</span>`;
-    } else {
-      next.hidden = false;
-    }
-  });
-
-  next.addEventListener("click", () => {
-    i++;
+    if (settled[i] !== undefined) return;     // already checked; not twice
+    settled[i] = placed.slice();
     show();
   });
 
   const row = el("div", "exrow");
-  row.append(check, next);
-  nav.appendChild(pos);
-  root.append(line, pool, row, result, nav);
+  row.append(check);
+  root.append(line, pool, row, result, step.nav);
   show();
 }
 

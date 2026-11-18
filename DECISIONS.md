@@ -265,6 +265,30 @@ his keyboard would be noise drowning the signal.
 A wrong answer shows the correct version with the difference picked out, rather
 than only saying no. He has just proved he cannot see the difference unaided.
 
+## The front page is a choice, not a contents list
+
+Two people use this site for two unrelated things. Stacking both on one page
+made each of them scroll past the other, and made the site look like an Italian
+course with a French appendix rather than two things that happen to share a
+layout.
+
+So `/` is two doors and nothing else, and what used to be on it moved to
+`/italian/` unchanged. The counts on each door are read from the content, so a
+door never advertises something that is not behind it, and the French door
+carries the next test's countdown because that is the thing most likely to be
+why somebody opened the site at all.
+
+## The URL follows the repository's name
+
+A GitHub project page is served from a path named after the repository, so the
+two cannot disagree — and if the base path is written down in the config, a
+rename silently breaks every stylesheet and script on the site. It does not fail
+the build. The pages come back unstyled.
+
+So the base is derived from `GITHUB_REPOSITORY` and `check_site.py` reads it
+back out of the build. Renaming the repository is now the whole operation, and
+nothing in the code needs editing when it happens.
+
 ## Still open
 
 - Custom domain, or `ddb-ditto.github.io/italian-gcse`? No `CNAME` file yet.

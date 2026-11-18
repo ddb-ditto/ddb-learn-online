@@ -76,7 +76,7 @@ const { cards, noReverse = [] } = Astro.props;
   }
   .decks :global(.chip:hover) { border-color: var(--accent); color: var(--accent); }
   .decks :global(.chip[aria-pressed="true"]) {
-    background: var(--accent); border-color: var(--accent); color: #fff;
+    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
   }
   .decks :global(.chip .n) { opacity: 0.65; font-size: 0.76rem; margin-left: 0.35rem; }
 

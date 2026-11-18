@@ -44,7 +44,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   description="Printable tick sheets for recording progress through a home-taught Edexcel GCSE Italian course: one per child per unit, sessions and can-do checks."
 >
   <Breadcrumbs slot="nav" trail={[
-    { label: "Contents", href: `${base}/` },
+    { label: "Home", href: `${base}/` },
+    { label: "Italian", href: `${base}/italian/` },
     { label: "Progress" },
   ]} />
 
@@ -97,7 +98,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   )}
 
   <PageNav
-    prev={{ kicker: "Back to", label: "Contents", href: `${base}/` }}
+    prev={{ kicker: "Back to", label: "Italian contents", href: `${base}/italian/` }}
     next={sheets[0] && {
       kicker: `Unit ${String(sheets[0].number).padStart(2, "0")}`,
       label: sheets[0].title,

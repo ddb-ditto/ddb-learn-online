@@ -48,7 +48,8 @@ const at = (s: number) => `${base}/units/${u}/sessions/${s}/`;
   description={session.data.summary}
 >
   <Breadcrumbs slot="nav" trail={[
-    { label: "Contents", href: `${base}/` },
+    { label: "Home", href: `${base}/` },
+    { label: "Italian", href: `${base}/italian/` },
     { label: `Unit ${String(u).padStart(2, "0")}`, href: `${base}/units/${u}/` },
     { label: `Session ${n}` },
   ]} />

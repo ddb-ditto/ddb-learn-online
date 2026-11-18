@@ -10,20 +10,25 @@ recording what has actually been done.
 packs — the words, the rule behind them, flashcards, and practice that marks
 itself — and a page per test saying which packs to revise and in what order.
 
-They share the layout, the stylesheet, the flashcard app and the checks, and
-nothing else. The Italian course is a designed sequence with no dates in it; the
+The front page is a choice between the two; each has its own contents page
+underneath. They share the layout, the stylesheet, the flashcard app and the
+checks, and nothing else. The Italian course is a designed sequence with no dates in it; the
 French section is revision for a test on a named Wednesday. That difference is
 why they are shaped differently rather than forced into one mould.
 
 It is a static [Astro](https://astro.build) site, published to GitHub Pages by
-GitHub Actions. There is no server, no database and no account: everything opens
+GitHub Actions. A project page is served from a path named after the
+repository, so **the URL follows the repository's name**: `astro.config.mjs`
+reads it from `GITHUB_REPOSITORY` rather than hard-coding it, and renaming the
+repository moves the site with no code change. Re-run the workflow afterwards
+so the pages are rebuilt against the new path. `BASE_PATH` overrides it. There is no server, no database and no account: everything opens
 in a browser, and anyone given the URL can read all of it.
 
 ## Running it
 
 ```
 npm install
-npm run dev       # http://localhost:4321/italian-gcse/
+npm run dev       # http://localhost:4321/<repo-name>/
 npm run build     # into dist/
 npm run preview   # serve dist/ as it will be served
 ```
@@ -49,7 +54,9 @@ src/
       names.json every invented person and place used, and why
   components/    the blocks the lessons are written out of
   layouts/       the one layout
-  pages/         routes; the unit and session pages are generated from content
+  pages/         routes; the unit, session, pack and test pages are generated
+                 from content. `/` is the two-door front page, `/italian/` the
+                 Italian contents, `/french/year-7/` the French hub.
   lib/           a pack's flashcards, worked out from the pack's word list
   scripts/       the flashcard app and the exercise runner, bundled once
   styles/        the house stylesheet, loaded once

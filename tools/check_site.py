@@ -29,10 +29,16 @@ from playwright.sync_api import sync_playwright
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DIST = REPO / "dist"
-BASE = "/italian-gcse"
 
 if not (DIST / "index.html").exists():
     sys.exit("dist/ is not built — run `npm run build` first")
+
+# The base path is whatever the build used, read back out of the build rather
+# than written down twice. It follows the repository's name, so a rename moves
+# it — and a checker that insisted on the old one would fail everything and
+# say nothing useful about why.
+_asset = re.search(r'href="(/[^"]*?)/_astro/', (DIST / "index.html").read_text(encoding="utf-8"))
+BASE = _asset.group(1) if _asset else ""
 
 fails: list[str] = []
 notes: list[str] = []
@@ -105,22 +111,43 @@ with sync_playwright() as pw:
     def wide() -> int:
         return page.evaluate("document.body.scrollWidth")
 
-    # --- contents page -----------------------------------------------------
+    # --- the front door ----------------------------------------------------
+    # Two choices and nothing else. Both have to be here and both have to go
+    # somewhere: a door that 404s is worse than no door.
     page.goto(f"{ROOT}/")
-    notes.append(f"contents h1: {page.locator('h1').first.inner_text()!r}")
-    notes.append(f"contents cards: {page.locator('.cardlink').count()}")
+    notes.append(f"front page h1: {page.locator('h1').first.inner_text()!r}")
+    doors = page.locator(".doors .door")
+    notes.append(f"doors: {doors.count()} — {doors.all_inner_texts()!r}"[:120])
+    if doors.count() != 2:
+        fails.append(f"the front page offers {doors.count()} doors, expected 2")
+    for n in range(doors.count()):
+        href = doors.nth(n).get_attribute("href")
+        got = page.request.get(f"http://127.0.0.1:{httpd.server_address[1]}{href}")
+        if got.status != 200:
+            fails.append(f"door {n + 1} goes to {href}, which is {got.status}")
     if wide() > 390:
-        fails.append(f"contents page scrolls sideways at 390px ({wide()}px)")
+        fails.append(f"front page scrolls sideways at 390px ({wide()}px)")
     if page.locator("a[href*='.pdf']").count():
-        fails.append("PDF link on contents page")
-    if not page.locator("a[href$='/progress/']").count():
-        fails.append("no link to the progress page from contents")
+        fails.append("PDF link on the front page")
 
-    # The mark introduces the site once. Above a lesson it would compete with
-    # the material, so it belongs to the contents page and nowhere else.
+    # --- the Italian contents, where the front page used to be -------------
+    page.goto(f"{ROOT}/italian/")
+    notes.append(f"italian contents cards: {page.locator('.cardlink').count()}")
+    if page.locator(".cardlink").count() < 15:
+        fails.append("the Italian contents page lost its cards")
+    if not page.locator("a[href$='/progress/']").count():
+        fails.append("no link to the progress page from the Italian contents")
+    if wide() > 390:
+        fails.append(f"the Italian contents scroll sideways at 390px ({wide()}px)")
+
+    # The mark introduces the Italian course, and says so on its face — it
+    # reads "GCSE Italian". So it lives on the Italian contents page: on the
+    # front door it would brand a French page Italian, and above a lesson it
+    # would compete with the material.
+    page.goto(f"{ROOT}/italian/")
     mark = page.locator(".logomark")
     if mark.count() != 1:
-        fails.append(f"contents page has {mark.count()} logos, expected 1")
+        fails.append(f"the Italian contents page has {mark.count()} logos, expected 1")
     else:
         box = mark.bounding_box()
         notes.append(f"logo: {round(box['width'])}x{round(box['height'])}px")
@@ -164,18 +191,24 @@ with sync_playwright() as pw:
     # The pages are long, so a link that only exists in the footer is not
     # navigation: the trail has to still be on screen once you have scrolled.
     for path, expected in (
-        ("/units/1/", "Contents › Unit 01"),
-        ("/units/1/sessions/2/", "Contents › Unit 01 › Session 2"),
-        ("/units/1/sessions/2/cards/", "Contents › Unit 01 › Session 2 › Flashcards"),
-        ("/progress/", "Contents › Progress"),
-        ("/reference/teaching-plan/", "Contents › Teaching plan"),
+        ("/italian/", "Home › Italian"),
+        ("/units/1/", "Home › Italian › Unit 01"),
+        ("/units/1/sessions/2/", "Home › Italian › Unit 01 › Session 2"),
+        ("/units/1/sessions/2/cards/", "Home › Italian › Unit 01 › Session 2 › Flashcards"),
+        ("/progress/", "Home › Italian › Progress"),
+        ("/reference/teaching-plan/", "Home › Italian › Teaching plan"),
+        ("/french/year-7/", "Home › Year 7 French"),
+        ("/french/year-7/packs/countries/", "Home › Year 7 French › Pack 5"),
+        ("/french/year-7/packs/countries/cards/",
+         "Home › Year 7 French › Pack 5 › Flashcards"),
+        ("/french/year-7/tests/writing/", "Home › Year 7 French › Writing"),
     ):
         page.goto(f"{ROOT}{path}")
         crumbs = page.locator(".crumbs li")
         got = " › ".join(crumbs.all_inner_texts())
         if got != expected:
             fails.append(f"{path} trail is {got!r}, expected {expected!r}")
-    notes.append(f"breadcrumb trails checked on 5 pages, deepest: {got!r}")
+    notes.append(f"breadcrumb trails checked on 10 pages, last: {got!r}")
 
     page.goto(f"{ROOT}/units/1/sessions/2/")
     page.evaluate("window.scrollTo(0, 1400)")
@@ -485,10 +518,62 @@ with sync_playwright() as pw:
     if "Tricky" not in first:
         fails.append(f"the writing test opens with {first!r}, not the tricky spellings")
 
+    # ----------------------------------------------------------------------
+    # Text on a solid accent block, in both themes
+    # ----------------------------------------------------------------------
+    #
+    # The light theme's accent is a dark red and the dark theme's is a light
+    # salmon, so one colour of text cannot serve both. White on the salmon
+    # measured 2.7:1 — readable to someone who already knows what it says, and
+    # not to a twelve-year-old glancing at a phone. `--on-accent` flips it, and
+    # this is here so nobody flips it back by writing `color: #fff` again.
+    CONTRAST = """(sel) => {
+      const e = document.querySelector(sel);
+      if (!e) return null;
+      const s = getComputedStyle(e);
+      const lum = (c) => {
+        const [r, g, b] = c.match(/\\d+/g).map(Number).map((v) => {
+          v /= 255;
+          return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const a = lum(s.color), b = lum(s.backgroundColor);
+      const [hi, lo] = a > b ? [a, b] : [b, a];
+      return Math.round(((hi + 0.05) / (lo + 0.05)) * 10) / 10;
+    }"""
+
+    ON_ACCENT = (
+        ("/", ".door .flag", "the next-test flag on the front page"),
+        ("/french/year-7/packs/greetings/", ".exercise .exbtn", "an exercise button"),
+        ("/french/year-7/packs/countries/cards/", '.chip[aria-pressed="true"]',
+         "the selected deck chip"),
+        ("/reference/grammar-checklist/", ".badge.f", "a Foundation grammar badge"),
+    )
+    for scheme in ("light", "dark"):
+        themed = b.new_page(viewport={"width": 900, "height": 800}, color_scheme=scheme)
+        worst = None
+        for path, sel, what in ON_ACCENT:
+            themed.goto(f"{ROOT}{path}")
+            ratio = themed.evaluate(CONTRAST, sel)
+            if ratio is None:
+                fails.append(f"{what} is missing from {path}")
+                continue
+            if worst is None or ratio < worst[0]:
+                worst = (ratio, what)
+            if ratio < 4.5:
+                fails.append(f"{scheme} theme: {what} is {ratio}:1, below 4.5:1")
+        if worst:
+            notes.append(f"{scheme} theme, worst accent contrast: {worst[0]}:1 ({worst[1]})")
+        themed.close()
+
     # The logo belongs to one page.
-    page.goto(f"{ROOT}/units/1/sessions/2/")
-    if page.locator(".logomark").count():
-        fails.append("the logo is on a lesson page, not just the contents page")
+    for path, why in (("/units/1/sessions/2/", "a lesson page"),
+                      ("/", "the front door"),
+                      ("/french/year-7/", "a French page")):
+        page.goto(f"{ROOT}{path}")
+        if page.locator(".logomark").count():
+            fails.append(f"the Italian logo is on {why}")
 
     b.close()
 

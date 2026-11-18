@@ -60,7 +60,8 @@ const next = stage1.find((u) => u.number === n + 1);
   standfirst={unit.data.standfirst}
 >
   <Breadcrumbs slot="nav" trail={[
-    { label: "Contents", href: `${base}/` },
+    { label: "Home", href: `${base}/` },
+    { label: "Italian", href: `${base}/italian/` },
     { label: `Unit ${String(n).padStart(2, "0")}` },
   ]} />
 
@@ -94,7 +95,7 @@ const next = stage1.find((u) => u.number === n + 1);
   )}
 
   <PageNav
-    prev={{ kicker: "Back to", label: "Contents", href: `${base}/` }}
+    prev={{ kicker: "Back to", label: "Italian contents", href: `${base}/italian/` }}
     next={first && { kicker: "First session", label: first.title, href: first.href }}
   />
 

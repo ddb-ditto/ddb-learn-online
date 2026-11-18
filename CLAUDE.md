@@ -244,8 +244,10 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 
 ## The logo
 
-`public/logo.png` is the mark, and it appears on the contents page and nowhere
-else — above a lesson it competes with the material rather than introducing it.
+`public/logo.png` is the mark. It reads "GCSE Italian", so it belongs to the
+Italian course: it appears on `/italian/` and nowhere else. Not on the front
+door, where it would brand a French page Italian; not above a lesson, where it
+competes with the material rather than introducing it.
 `tools/make_icons.py` derives every icon from it and needs Pillow.
 
 It is a circular mark with a ring, three lines of text and a drawing inside it.
@@ -279,6 +281,10 @@ the border, which stops at the ring and so leaves the cream inside it intact.
   grey button, which is why an assertion that only asked "is anything painted?"
   passed against the bug. Assert the actual value — the computed background
   against `--accent` — and prove it fails before calling it done.
+- **Text on a solid accent block uses `--on-accent`, never `#fff`.** The light
+  theme's accent is a dark red and the dark theme's is a light salmon; white
+  serves the first and fails the second at 2.7:1. `check_site.py` measures it
+  in both themes and was proved against the bug.
 - **Always name the encoding.** `read_text()` and `write_text()` without
   `encoding="utf-8"` are how the decks came to say *cittÃ* and *â* instead of
   *città* and an em dash — text already in UTF-8, decoded as Latin-1 and
@@ -314,8 +320,15 @@ working feature is broken. It has already happened once.
 
 ## Publishing
 
-Push to `main`. The workflow checks, builds and deploys; the site is at
-`https://ddb-ditto.github.io/italian-gcse/`, which is why `astro.config.mjs`
-sets `base: "/italian-gcse"`. Ref deletions and general outbound HTTPS are
+Push to `main`. The workflow checks, builds and deploys.
+
+**The base path follows the repository's name and is never written down.** A
+GitHub project page is served from `/<repo>/`, so `astro.config.mjs` reads it
+from `GITHUB_REPOSITORY` (falling back to the checkout directory, overridable
+with `BASE_PATH`), and `check_site.py` reads it back out of the build. Hard-code
+it in either place and a rename leaves every stylesheet pointing at a path that
+no longer exists — the site comes back unstyled with nothing in the build log to
+say why. Renaming the repository is the only way to change the URL, and the
+workflow must be re-run afterwards so the pages are rebuilt. Ref deletions and general outbound HTTPS are
 blocked from the agent sandbox, so deleting a branch or opening the live URL is
 a job for whoever is at a real machine.

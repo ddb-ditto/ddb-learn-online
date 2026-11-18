@@ -30,7 +30,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   standfirst={`${cards.length} cards in ${decks} deck${decks === 1 ? "" : "s"}. Print this page for fold-over cards, 8 to a sheet.`}
 >
   <Breadcrumbs slot="nav" trail={[
-    { label: "Contents", href: `${base}/` },
+    { label: "Home", href: `${base}/` },
     { label: "Year 7 French", href: `${base}/french/year-7/` },
     { label: `Pack ${p.number}`, href: `${base}/french/year-7/packs/${p.slug}/` },
     { label: "Flashcards" },

@@ -1,82 +1,84 @@
 ---
-/** Contents. The way in for anyone given the link. */
+/**
+ * The front door, and nothing else.
+ *
+ * Two people use this site for two unrelated things, so the first page asks
+ * which one rather than stacking both and making each of them scroll past the
+ * other. Everything the Italian course had here moved to /italian/ unchanged.
+ *
+ * The counts are read from the content rather than written down, so a door
+ * never advertises something that is not behind it.
+ */
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-import Section from "../components/Section.astro";
-import CardGrid from "../components/CardGrid.astro";
-import CardLink from "../components/CardLink.astro";
-import stage1 from "../data/stage1.json";
 
-const reference = (await getCollection("reference")).sort(
-  (a, b) => a.data.order - b.data.order,
-);
 const units = await getCollection("units");
 const sessions = await getCollection("sessions");
-
-const frenchPacks = await getCollection("frenchPacks");
-const frenchTests = (await getCollection("frenchTests")).sort(
+const packs = await getCollection("frenchPacks");
+const tests = (await getCollection("frenchTests")).sort(
   (a, b) => a.data.order - b.data.order,
 );
 
-const built = new Map(units.map((u) => [u.data.number, u]));
-const countFor = (n: number) => sessions.filter((s) => s.data.unit === n).length;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/** Days until the next test that has not happened, or null once they are past. */
+const DAY = 24 * 60 * 60 * 1000;
+const midnight = (d: Date) =>
+  Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+const today = midnight(new Date());
+const next = tests
+  .map((t) => ({
+    title: t.data.title,
+    days: Math.round((midnight(new Date(`${t.data.date}T00:00:00Z`)) - today) / DAY),
+  }))
+  .filter((t) => t.days >= 0)
+  .sort((a, b) => a.days - b.days)[0];
+
+const soon =
+  next === undefined ? null :
+  next.days === 0 ? `${next.title} today` :
+  next.days === 1 ? `${next.title} tomorrow` :
+  `${next.title} in ${next.days} days`;
+
+const doors = [
+  {
+    href: `${base}/italian/`,
+    kicker: "Two-year course",
+    title: "Italian",
+    blurb: "GCSE Italian taught at home, unit by unit — lesson plans, flashcards and printable record sheets.",
+    count: `${units.length} unit${units.length === 1 ? "" : "s"} built · ${sessions.length} sessions`,
+    flag: null as string | null,
+  },
+  {
+    href: `${base}/french/year-7/`,
+    kicker: "School revision",
+    title: "Year 7 French",
+    blurb: "Revision for the class tests — the words, the rules, flashcards, and practice that marks itself.",
+    count: `${packs.length} packs · ${tests.length} tests`,
+    flag: soon,
+  },
+];
 ---
 <Base
-  logo
-  title="Contents"
+  title="Lessons and flashcards"
   eyebrow="Learning at home"
-  heading="Lessons and flashcards"
-  standfirst="A two-year Italian GCSE course, and a Year&nbsp;7 French revision section."
-  description="Lesson pages, flashcards and printable sheets: a two-year Pearson Edexcel GCSE Italian (1IN0) course taught at home, and Year 7 French revision."
+  heading="Which one?"
+  standfirst="Two courses, one site. Pick the one you are here for."
+  description="Lesson pages, flashcards and printable sheets: a two-year Pearson Edexcel GCSE Italian course taught at home, and Year 7 French revision."
 >
-
-  <Section kicker="Year 7 French">Revision for the class tests</Section>
-  <p>Ten short packs and a page for each test — the words, the rules, flashcards that
-  print, and practice that marks itself.</p>
-
-  <CardGrid>
-    <CardLink
-      title="Year 7 French"
-      href={`${base}/french/year-7/`}
-      note={`${frenchTests.length} tests · ${frenchPacks.length} packs`}
-    >Everything to revise for the speaking, reading and writing tests, with the next
-    test first.</CardLink>
-  </CardGrid>
-
-  <Section kicker="Italian GCSE">The two-year course</Section>
-  <CardGrid>
-    {reference.map((r) => (
-      <CardLink title={r.data.title} href={`${base}/reference/${r.id}/`} note={r.data.kind}>
-        {r.data.blurb}
-      </CardLink>
+  <nav class="doors" aria-label="Subjects">
+    {doors.map((d) => (
+      <a class="door" href={d.href}>
+        <span class="kicker">{d.kicker}</span>
+        <span class="title">{d.title}</span>
+        <span class="blurb">{d.blurb}</span>
+        <span class="foot">
+          <span class="count">{d.count}</span>
+          {d.flag && <span class="flag">{d.flag}</span>}
+        </span>
+      </a>
     ))}
-    <CardLink title="Progress" href={`${base}/progress/`} note="Record sheets">
-      A printable tick sheet per child per unit — the sessions worked through, and the
-      can-do checks that decide when to move on.
-    </CardLink>
-  </CardGrid>
-
-  <Section kicker="Unit by unit">Italian, unit by unit</Section>
-  <p>Each unit is a lesson plan and a matching set of flashcards. The flashcards are a study app on
-  screen — tap a card to turn it over — and printable fold-over cards if you print the page.</p>
-
-  <CardGrid>
-    {stage1.map((u) => {
-      const n = countFor(u.number);
-      return built.has(u.number) && n > 0 ? (
-        <CardLink
-          title={`Unit ${String(u.number).padStart(2, "0")}`}
-          href={`${base}/units/${u.number}/`}
-          note={`Start here · ${n} session${n === 1 ? "" : "s"}`}
-        >{u.title}</CardLink>
-      ) : (
-        <CardLink title={`Unit ${String(u.number).padStart(2, "0")}`} note="Not built yet" pending>
-          {u.title}
-        </CardLink>
-      );
-    })}
-  </CardGrid>
+  </nav>
 
   <footer slot="footer">
     <span>Pearson Edexcel GCSE Italian 1IN0 · Year 7 French</span>

@@ -24,6 +24,10 @@
   --note-line:   #cfc8bb;
   --answer-bg:   #eef2ee;
   --answer-line: #b9c9b9;
+  /* Text on a solid accent block. White on the light theme's dark red is
+     fine; on the dark theme's light salmon it is about 2.7:1, so there it
+     flips to the page's own near-black. */
+  --on-accent:   #ffffff;
   --serif:  "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --sans:   "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
   --measure: 34rem;
@@ -44,6 +48,7 @@
     --note-line:   #423d39;
     --answer-bg:   #1e231e;
     --answer-line: #3a463a;
+    --on-accent:   #171615;
   }
 }
 
@@ -363,7 +368,7 @@ footer a { color: var(--ink-faint); }
   white-space: nowrap;
   vertical-align: 0.08em;
 }
-.badge.f  { background: var(--accent); color: #fff; }
+.badge.f  { background: var(--accent); color: var(--on-accent); }
 .badge.h  { background: transparent; color: var(--accent); border-color: var(--accent); }
 .badge.r  { background: var(--note-bg); color: var(--ink-faint); border-color: var(--note-line); }
 .badge.fh { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-line); }
@@ -717,7 +722,7 @@ footer a { color: var(--ink-faint); }
   padding: 0.3em 0.6em; border-radius: 3px;
   background: var(--note-bg); color: var(--ink-soft); border: 1px solid var(--note-line);
 }
-.countdown.soon .left { background: var(--accent); color: #fff; border-color: var(--accent); }
+.countdown.soon .left { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .countdown.past time { color: var(--ink-faint); }
 .countdown.past .left { opacity: 0.75; }
 
@@ -827,7 +832,7 @@ footer a { color: var(--ink-faint); }
 .exercise .exbtn {
   font-family: var(--sans); font-size: 0.88rem;
   padding: 0.5rem 0.95rem; border-radius: 4px; cursor: pointer;
-  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent);
   line-height: 1.25;
 }
 .exercise .exbtn:hover { opacity: 0.88; }
@@ -918,7 +923,7 @@ footer a { color: var(--ink-faint); }
   display: block; margin-top: 0.5rem; font-weight: 600; color: var(--accent);
 }
 .exercise mark {
-  background: var(--accent); color: #fff; border-radius: 2px; padding: 0 0.1em;
+  background: var(--accent); color: var(--on-accent); border-radius: 2px; padding: 0 0.1em;
 }
 
 /* An exercise is no use on paper — its answers are hidden by design, and the
@@ -932,3 +937,62 @@ footer a { color: var(--ink-faint); }
   display: block; font-style: normal; font-size: 0.78rem;
   font-family: var(--sans); color: var(--ink-faint); white-space: normal;
 }
+
+/* =========================================================================
+   The front door
+   -------------------------------------------------------------------------
+   Two choices and nothing else, so they are large, equal, and legible on a
+   phone without scrolling. Not .cardlink: those are a grid of many, and these
+   are a decision between two.
+   ====================================================================== */
+
+.doors {
+  display: grid; gap: 1rem;
+  margin: 0.4rem 0 2rem;
+}
+@media (min-width: 38rem) { .doors { grid-template-columns: 1fr 1fr; gap: 1.2rem; } }
+
+.door {
+  display: flex; flex-direction: column;
+  text-decoration: none; color: inherit;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 1.4rem 1.4rem 1.2rem;
+  transition: border-color 0.12s ease;
+}
+.door:hover, .door:focus-visible { border-color: var(--accent); }
+.door:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.door .kicker {
+  font-family: var(--sans); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint);
+  margin-bottom: 0.5rem;
+}
+.door .title {
+  font-size: clamp(1.6rem, 5vw, 2rem); line-height: 1.1;
+  margin-bottom: 0.6rem;
+}
+.door .blurb {
+  color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5;
+  flex: 1 1 auto; margin-bottom: 1rem;
+}
+/* 3. The foot is one row: the count, then the arrow pushed to the end, with
+      a flag between them when there is one. It wrapped before, which left the
+      two doors different heights. */
+.door .foot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem 0.7rem;
+  font-family: var(--sans); font-size: 0.76rem; color: var(--ink-faint);
+  border-top: 1px solid var(--rule); padding-top: 0.8rem;
+}
+.door .count { white-space: nowrap; }
+.door .flag {
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; line-height: 1.25;
+  padding: 0.3em 0.55em; border-radius: 3px;
+  background: var(--accent); color: var(--on-accent);
+}
+.door .foot::after {
+  content: "→"; color: var(--accent); font-size: 1rem;
+  margin-left: auto;
+}
+
+@media print { .doors { display: none; } }

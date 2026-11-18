@@ -1,0 +1,24 @@
+{
+  "id": "r-d",
+  "kind": "reveal",
+  "part": "reading",
+  "title": "Answer in English",
+  "intro": "Read the French, answer the questions in your head, then check.",
+  "items": [
+    {
+      "prompt": "Coucou ! Je m'appelle Karim. J'ai vingt-et-un ans. J'habite au Maroc.",
+      "question": "How old is Karim? Which country?",
+      "answer": "21; Morocco"
+    },
+    {
+      "prompt": "Salut, je m'appelle Emma. J'habite en Écosse, à Édimbourg. Ça va bof.",
+      "question": "Which city? How is she?",
+      "answer": "Edinburgh; so-so"
+    },
+    {
+      "prompt": "Bonjour ! Je m'appelle Lucas. J'ai quatorze ans. Dans le futur, je voudrais habiter au Japon.",
+      "question": "How old? Where would he like to live?",
+      "answer": "14; Japan"
+    }
+  ]
+}

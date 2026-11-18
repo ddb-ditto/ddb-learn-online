@@ -203,6 +203,68 @@ So it stays where it is. Every session involving speaking to someone still marks
 which register it is using, from Unit 1 — the unit is where the distinction is
 taught, not where it starts being noticed.
 
+## The French section is dated; the Italian course is not
+
+The Italian course carries no calendar years, because it does not start in a
+particular September and a real year would be wrong for everyone who began in a
+different one. `check_text.py` enforces that over `src/`.
+
+A Year 7 French section cannot work that way. It is revision for two tests, on
+two named Wednesdays, and a countdown is the most useful thing on the page. So
+the rule is scoped rather than weakened: `src/pages/french` and the countdown
+component are exempt, the dates live in the test data where they can be edited
+without touching a template, and everything else is still held to the old rule.
+
+Two rules, for two different things, each written down. The alternative — a
+single rule loose enough to admit both — would have let a calendar year back
+into the Italian course, which is the thing worth preventing.
+
+## Nothing is stored, in the French section either
+
+The brief allowed browser storage for ticks and scores "if the site already
+uses it". It does not: progress is recorded on paper and nothing on this site
+counts anybody. So the exercises mark in memory and forget everything when the
+tab closes.
+
+That is not a limitation worked around. A score that silently resets is worse
+than no score, and the person who needs to know how the revision went is the one
+testing him.
+
+## French flashcards are derived, not written
+
+The Italian decks are hand-written files, because a card there teaches something
+the word list does not: how to say it, a rule, a trap. The French cards *are* the
+word list, so `src/lib/packcards.ts` builds them from the pack. Writing them out
+a second time would only create something that could disagree with the first —
+which is exactly the bug the deck-size check exists to catch.
+
+A consequence worth knowing: a pack with nothing to drill has no cards page, and
+its pack page offers no cards link. That is right rather than missing — reading
+skills and culture facts are not flashcard material.
+
+## Only declared names appear
+
+The brief that started this section was explicit: no real name, school, village,
+birthday or family member on the site. It matches the rule the Italian course
+already had, and it is held the same way — by an allowlist, not a denylist.
+
+`src/data/french/names.json` names every invented person and every real place
+used, with a reason for each, and `check_french.py` fails on any proper noun
+that is not in it. A list of forbidden words would have had to contain the real
+name, which is the thing being kept out of the repository.
+
+## Marking is strict about French and forgiving about keyboards
+
+The writing test marks spelling, so the typed exercises do too: accents,
+capitals and hyphens all count, and `tres` is wrong. Two things are forgiven,
+because both are about the keyboard rather than the language — a curly
+apostrophe where a straight one was written, and the space French puts before
+`?` and `!`. Phones and laptops disagree about both, and marking him down for
+his keyboard would be noise drowning the signal.
+
+A wrong answer shows the correct version with the difference picked out, rather
+than only saying no. He has just proved he cannot see the difference unaided.
+
 ## Still open
 
 - Custom domain, or `ddb-ditto.github.io/italian-gcse`? No `CNAME` file yet.

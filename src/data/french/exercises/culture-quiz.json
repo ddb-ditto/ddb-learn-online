@@ -1,0 +1,170 @@
+{
+  "id": "culture-quiz",
+  "kind": "choice",
+  "part": "reading",
+  "title": "Culture quiz",
+  "intro": "Sixteen questions, shuffled. The teacher said to be sure of the first one.",
+  "shuffle": true,
+  "items": [
+    {
+      "q": "How do French people often greet friends and family?",
+      "options": [
+        "La bise — kisses on the cheeks",
+        "A handshake",
+        "A bow",
+        "A wave"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What is the capital of France?",
+      "options": [
+        "Lyon",
+        "Marseille",
+        "Paris",
+        "Bordeaux"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What colours are on the French flag?",
+      "options": [
+        "Red, white and green",
+        "Blue, white and red",
+        "Blue, yellow and red",
+        "Black, red and yellow"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Roughly how many people live in France?",
+      "options": [
+        "About 19 million",
+        "About 39 million",
+        "About 69 million",
+        "About 99 million"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Which is the most visited country in the world?",
+      "options": [
+        "France",
+        "Spain",
+        "Italy",
+        "The United States"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What was the Eiffel Tower built for?",
+      "options": [
+        "A king's wedding",
+        "The World's Fair",
+        "The Olympic Games",
+        "A radio mast"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Which Paris museum holds the Mona Lisa?",
+      "options": [
+        "The Louvre",
+        "The Pompidou",
+        "The Orsay",
+        "The Rodin"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Renault and Peugeot make what?",
+      "options": [
+        "Cheese",
+        "Cars",
+        "Perfume",
+        "Bicycles"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Which cheese is French?",
+      "options": [
+        "Wensleydale",
+        "Brie",
+        "Red Leicester",
+        "Cheddar"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Which French scientist gave his name to pasteurised milk?",
+      "options": [
+        "Louis Pasteur",
+        "Marie Curie",
+        "Blaise Pascal",
+        "André Ampère"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Le Tour de France is which sport?",
+      "options": [
+        "Running",
+        "Sailing",
+        "Cycling",
+        "Motor racing"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Which mountains lie between France and Spain?",
+      "options": [
+        "The Alps",
+        "The Pyrenees",
+        "The Jura",
+        "The Vosges"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Which of these is a French footballer?",
+      "options": [
+        "Mbappé",
+        "Ronaldo",
+        "Kane",
+        "Messi"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "In how many countries is French an official language?",
+      "options": [
+        "9",
+        "19",
+        "29",
+        "39"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "How many baguettes does France make a year?",
+      "options": [
+        "Over 10 million",
+        "Over 100 million",
+        "Over 1 billion",
+        "Over 10 billion"
+      ],
+      "answer": 3
+    },
+    {
+      "q": "Which French island is in the Mediterranean?",
+      "options": [
+        "Corsica",
+        "Sicily",
+        "Jersey",
+        "Sardinia"
+      ],
+      "answer": 0
+    }
+  ]
+}

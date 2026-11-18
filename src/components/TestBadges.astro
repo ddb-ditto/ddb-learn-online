@@ -1,0 +1,26 @@
+---
+/**
+ * Which tests a pack is for, as links back to them.
+ *
+ * Three badges for three tests, but only two pages — speaking and reading are
+ * sat on the same day and share a page, so both badges point at it.
+ */
+interface Props {
+  parts: ("speaking" | "reading" | "writing")[];
+  notes?: { speaking?: string; reading?: string; writing?: string };
+  base: string;
+}
+const { parts, notes = {}, base } = Astro.props;
+
+const PAGE = { speaking: "speaking-reading", reading: "speaking-reading", writing: "writing" } as const;
+const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as const;
+const ORDER = ["speaking", "reading", "writing"] as const;
+---
+<p class="testbadges">
+  <span class="for">Revise this for</span>
+  {ORDER.filter((p) => parts.includes(p)).map((p) => (
+    <a class="badge f" href={`${base}/french/year-7/tests/${PAGE[p]}/`}>
+      {NAME[p]}{notes[p] && <span class="qual"> · {notes[p]}</span>}
+    </a>
+  ))}
+</p>

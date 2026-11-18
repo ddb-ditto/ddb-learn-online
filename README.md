@@ -1,8 +1,19 @@
-# Italian at home
+# Lessons and flashcards
 
-The website for a two-year Pearson Edexcel GCSE Italian (1IN0) course taught at
-home. A unit is a lesson plan, a set of flashcards per session, and a printable
-sheet for recording what has actually been done.
+Two things live here.
+
+**A two-year Pearson Edexcel GCSE Italian (1IN0) course** taught at home. A unit
+is a lesson plan, a set of flashcards per session, and a printable sheet for
+recording what has actually been done.
+
+**A Year 7 French revision section**, for two class tests at school. Ten short
+packs — the words, the rule behind them, flashcards, and practice that marks
+itself — and a page per test saying which packs to revise and in what order.
+
+They share the layout, the stylesheet, the flashcard app and the checks, and
+nothing else. The Italian course is a designed sequence with no dates in it; the
+French section is revision for a test on a named Wednesday. That difference is
+why they are shaped differently rather than forced into one mould.
 
 It is a static [Astro](https://astro.build) site, published to GitHub Pages by
 GitHub Actions. There is no server, no database and no account: everything opens
@@ -31,14 +42,21 @@ src/
     stage1.json  the fourteen units of Stage 1, built or not
     decks/       one file per session's deck, named for that session
     off-syllabus.json  words taught anyway, and why
+    french/
+      packs/     one file per revision pack: the words, the rules, the exercises
+      tests/     one file per test: its date, its format, the packs it needs
+      exercises/ one file per practice exercise, shaped by what it asks for
+      names.json every invented person and place used, and why
   components/    the blocks the lessons are written out of
   layouts/       the one layout
   pages/         routes; the unit and session pages are generated from content
-  scripts/       the flashcard app, bundled once
+  lib/           a pack's flashcards, worked out from the pack's word list
+  scripts/       the flashcard app and the exercise runner, bundled once
   styles/        the house stylesheet, loaded once
 tools/
   check_all.py       all of the below, reporting what could not run
   check_text.py      local paths, calendar years, encoding — run by CI
+  check_french.py    packs, tests and exercises agree with each other
   check_vocab.py     every taught word is on the examined list
   vocab.py           reads the specification's vocabulary appendix
   check_site.py      open the built site in a browser and use it
@@ -62,7 +80,23 @@ unit's record sheet — with no change to any template.
    reads the list itself; see `CLAUDE.md`.
 4. `npm run build`, then `python3 tools/check_site.py`.
 
-A new unit is the same, plus `src/content/units/unit-<nn>.mdx`. Its body is the
+### Adding to the French section
+
+A pack is `src/data/french/packs/<nn>-<slug>.json`; a practice exercise is
+`src/data/french/exercises/<id>.json`; a test is
+`src/data/french/tests/<slug>.json`. All three are checked by the schema in
+`src/content.config.ts`, and `tools/check_french.py` then checks them against
+each other — that a test lists the packs that claim it and no others, that
+every answer a pack is marked against is spelled the way the pack spells it,
+and that no proper noun appears that is not declared in `names.json`.
+
+Flashcards are not written. `src/lib/packcards.ts` derives them from the pack's
+own word list, so they cannot fall out of step with it; a pack with nothing to
+drill simply has no cards page.
+
+### A new unit
+
+A new unit is the same as a session, plus `src/content/units/unit-<nn>.mdx`. Its body is the
 introduction only: the can-do list, the one to insist on and what to do if it
 goes badly are frontmatter, because the template decides where those go so
 every unit's page reads the same way. Units listed in `stage1.json` with no

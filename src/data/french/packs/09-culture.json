@@ -1,0 +1,42 @@
+{
+  "number": 9,
+  "slug": "culture",
+  "title": "French culture",
+  "standfirst": "The facts behind the culture quiz — starting with <em>la bise</em>.",
+  "summary": "Sixteen facts from his notes, and a quiz that shuffles them.",
+  "tests": [
+    "reading"
+  ],
+  "facts": [
+    "French people greet each other with <em>la bise</em> — kisses on the cheeks.",
+    "The capital is Paris.",
+    "The flag is blue, white and red.",
+    "About 69 million people live in France.",
+    "France is the most visited country in the world.",
+    "The Eiffel Tower was built for the 1889 World's Fair in Paris.",
+    "The Mona Lisa hangs in the Louvre, in Paris.",
+    "Renault and Peugeot are French car makes.",
+    "Brie is a French cheese.",
+    "Louis Pasteur, who gave his name to pasteurised milk, was French.",
+    "Le Tour de France is a cycling race.",
+    "The Pyrenees are the mountains between France and Spain.",
+    "Zidane, Mbappé and Dembélé are French footballers.",
+    "French is an official language in 29 countries.",
+    "France makes over 10 billion baguettes a year.",
+    "France's neighbours are Belgium, Luxembourg, Germany, Switzerland, Italy and Spain — and Monaco and Andorra.",
+    "Corsica is a French island in the Mediterranean."
+  ],
+  "notes": [
+    {
+      "lead": "La bise is the one to be sure of",
+      "body": "The teacher named it specifically. Everything else on this page is worth knowing; that one was pointed at."
+    },
+    {
+      "lead": "One correction to his notes",
+      "body": "His notes say the Mona Lisa was painted in France. Leonardo began it in Italy and brought it with him, so the safe fact — and the one a quiz asks — is that it hangs in the Louvre."
+    }
+  ],
+  "exercises": [
+    "culture-quiz"
+  ]
+}

@@ -1,0 +1,22 @@
+[
+  { "name": "Sam",        "why": "The invented learner the model answers belong to. Nobody real appears on this site." },
+  { "name": "Lily",       "why": "Sam's invented sister, so an answer can mention somebody else — which is what scores the second mark." },
+  { "name": "Hugo",       "why": "Writes the gap-fill text in R-B. Invented." },
+  { "name": "Chloé",      "why": "Writes the true-or-false text in R-C. Invented, and spelled with the accent on purpose." },
+  { "name": "Tom",        "why": "Chloé's brother in R-C, so the text has a second age in it to confuse seize with six." },
+  { "name": "Karim",      "why": "One of the three short texts in R-D. Invented." },
+  { "name": "Emma",       "why": "One of the three short texts in R-D. Invented." },
+  { "name": "Lucas",      "why": "One of the three short texts in R-D. Invented." },
+  { "name": "Sophie",     "why": "Said goodbye to in W-D, where the task is the capital letter and the exclamation mark." },
+  { "name": "Bridgend",   "why": "The town in the model answers. A town of 50,000, named in his class work, and the only place the section says he lives." },
+  { "name": "Cardiff",    "why": "A second Welsh city, used in W-D so the punctuation task is not the same sentence as the model answer." },
+  { "name": "Lyon",       "why": "A French city, in the R-B gap-fill." },
+  { "name": "Bruxelles",  "why": "Brussels, in R-C — the city that makes 'she lives in France' false." },
+  { "name": "Édimbourg",  "why": "Edinburgh, in R-D. The French spelling is the point of the question." },
+  { "name": "Maroc",      "why": "Morocco, in R-D. Not on the countries list, which is deliberate: the task is reading an unfamiliar country name." },
+  { "name": "Paris",      "why": "In the culture pack and the unseen reading text." },
+  { "name": "Alpes",      "why": "The Alps, in the unseen reading text." },
+  { "name": "Azur",       "why": "The Côte d'Azur, in the unseen reading text." },
+  { "name": "Eiffel",     "why": "The tower, in the unseen reading text and the culture quiz." },
+  { "name": "Italie",     "why": "Italy — on the countries list, and where Sam would like to live." }
+]

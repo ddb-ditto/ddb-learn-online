@@ -1,9 +1,15 @@
 # Working on this repository
 
-A two-year Edexcel GCSE Italian (1IN0) course, published as a static Astro site
-through GitHub Pages. `README.md` says how to run and publish it; `DECISIONS.md`
-says why it is the way it is and is worth reading before arguing with it. This
-file is the part that is easy to get wrong.
+Two things, published as one static Astro site through GitHub Pages: a two-year
+Edexcel GCSE Italian (1IN0) course taught at home, and a Year 7 French revision
+section for school tests. `README.md` says how to run and publish it;
+`DECISIONS.md` says why it is the way it is and is worth reading before arguing
+with it. This file is the part that is easy to get wrong.
+
+**Most of this file is about the Italian course.** Where a rule is about one
+subject and not the other it says so — the examined-vocabulary rule and the
+specification rules below are Italian's, and the undated rule is Italian's too.
+The French section has its own section at the end.
 
 ## The shape of the work
 
@@ -189,6 +195,37 @@ finds, each one written here because it actually happened:
 7. **Measure every number.** "Six nouns in ten" was really seven, which made the
    rule sound weaker than it is. `tools/vocab.py` can count.
 
+## The Year 7 French section
+
+Revision for two school tests, which is a different job from a designed course
+and so a different shape: ten packs, two test pages, and no units or sessions.
+`src/data/french/` holds all of it and `tools/check_french.py` checks it.
+
+- **There is no specification to check against.** The Italian course has
+  Pearson's published vocabulary list, so `check_vocab.py` can say whether a
+  card teaches something real. Here the source is his exercise book, and once
+  it has been typed in nothing outside the repository can confirm it. So
+  `check_french.py` checks the files against *each other* — that a test lists
+  the packs that claim it and no others, that every answer he is marked against
+  is spelled the way some pack spells it, that known accents and hyphens are
+  present. That catches drift between files, which is how most of it would go
+  wrong. **It does not catch a word that was typed in wrongly from the start.**
+  Say so rather than implying the checks mean more than they do.
+- **Dates belong here and only here.** `src/pages/french` and
+  `Countdown.astro` are exempt from the no-calendar-years rule; everything else
+  in `src/` still is. Keep the dates in the test data, not in a template.
+- **Nothing is stored.** No localStorage, in either section. Exercises mark in
+  memory and forget.
+- **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
+  from the pack's word list. Add a word to a pack and its card appears.
+- **Every proper noun is declared** in `src/data/french/names.json`, with a
+  reason. The check fails on any that is not. It is an allowlist on purpose:
+  a list of forbidden names would have to contain the real one.
+- **Marking is strict on accents, capitals and hyphens**, and forgiving of a
+  curly apostrophe and the space before `?` and `!`. Those two are keyboards,
+  not French. `src/scripts/marking.ts` is the only place that decides this, and
+  `check_site.py` drives it both ways in a browser.
+
 ## House rules for content
 
 - **Nobody real appears.** Where a lesson needs a name it is invented and
@@ -235,6 +272,13 @@ the border, which stops at the ring and so leaves the cream inside it intact.
   prints the tags.
 - **MDX is JSX.** Void tags self-close, a list item must be on one line, and a
   bare `<` in prose is read as a tag.
+- **`:global()` is Astro `<style>` syntax, not CSS.** `src/styles/house.css` is
+  imported as a plain global stylesheet, so a rule written
+  `.exercise :global(.exbtn)` there is invalid and the browser drops the whole
+  rule. It does not look dropped: the element falls back to the browser's own
+  grey button, which is why an assertion that only asked "is anything painted?"
+  passed against the bug. Assert the actual value — the computed background
+  against `--accent` — and prove it fails before calling it done.
 - **Always name the encoding.** `read_text()` and `write_text()` without
   `encoding="utf-8"` are how the decks came to say *cittÃ* and *â* instead of
   *città* and an em dash — text already in UTF-8, decoded as Latin-1 and
@@ -247,7 +291,10 @@ npm run build
 python3 tools/check_all.py
 ```
 
-Then read the unit, against the list above. That runs all four and says which
+`check_all.py` runs five checks now; `check_french.py` needs nothing and so
+runs everywhere, CI included.
+
+Then read the unit, against the list above. That runs all five and says which
 of them did not run — a skipped check and a
 passing check look identical otherwise. `check_site.py` needs a build and a
 browser; the two vocabulary checks need `tools/spec.txt`. CI has neither the

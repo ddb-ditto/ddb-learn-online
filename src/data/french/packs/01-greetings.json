@@ -1,0 +1,105 @@
+{
+  "number": 1,
+  "slug": "greetings",
+  "title": "Greetings",
+  "standfirst": "Hello, goodbye, and every way of answering <em>Ça va ?</em>",
+  "summary": "The words that open and close every conversation, and the eight ways to say how you are.",
+  "tests": [
+    "speaking",
+    "reading",
+    "writing"
+  ],
+  "vocab": [
+    {
+      "fr": "Bonjour !",
+      "en": "Hello!"
+    },
+    {
+      "fr": "Salut !",
+      "en": "Hi!"
+    },
+    {
+      "fr": "Coucou !",
+      "en": "Hi! (very informal)"
+    },
+    {
+      "fr": "Au revoir !",
+      "en": "Goodbye!"
+    },
+    {
+      "fr": "Ça va ?",
+      "en": "How are you?"
+    },
+    {
+      "fr": "Oui, ça va très bien, merci.",
+      "en": "Yes, I'm very well, thank you."
+    },
+    {
+      "fr": "Ça va bien.",
+      "en": "I'm fine."
+    },
+    {
+      "fr": "Pas mal.",
+      "en": "Not bad."
+    },
+    {
+      "fr": "Bof.",
+      "en": "So-so."
+    },
+    {
+      "fr": "Comme ci, comme ça.",
+      "en": "So-so."
+    },
+    {
+      "fr": "Ça va mal.",
+      "en": "I'm not well."
+    },
+    {
+      "fr": "Et toi ?",
+      "en": "And you?"
+    },
+    {
+      "fr": "merci",
+      "en": "thank you"
+    },
+    {
+      "fr": "oui",
+      "en": "yes"
+    },
+    {
+      "fr": "non",
+      "en": "no"
+    },
+    {
+      "fr": "et",
+      "en": "and"
+    },
+    {
+      "fr": "très",
+      "en": "very"
+    },
+    {
+      "fr": "bien",
+      "en": "good / well"
+    },
+    {
+      "fr": "mal",
+      "en": "bad"
+    },
+    {
+      "fr": "toi",
+      "en": "you"
+    }
+  ],
+  "notes": [
+    {
+      "lead": "La bise",
+      "body": "French people often greet friends and family with <em>la bise</em>, kisses on the cheeks — usually two, though the number varies by region. It comes up in the culture quiz, and the teacher said to remember it."
+    }
+  ],
+  "exercises": [
+    "r-a",
+    "w-a",
+    "w-d"
+  ]
+}

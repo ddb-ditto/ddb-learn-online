@@ -1,0 +1,36 @@
+{
+  "id": "speaking-practice",
+  "kind": "prompt",
+  "part": "speaking",
+  "title": "Say it out loud",
+  "intro": "One question at a time, in a random order. Say your answer aloud <strong>before</strong> you reveal the model — reading it first is not practice.",
+  "shuffle": true,
+  "speakLang": "fr-FR",
+  "items": [
+    {
+      "prompt": "Comment tu t'appelles ?",
+      "answer": "Je m'appelle Sam. Ma sœur s'appelle Lily. Et toi ?",
+      "en": "My name is Sam. My sister is called Lily. And you?"
+    },
+    {
+      "prompt": "Ça va ?",
+      "answer": "Ça va très bien, merci. Et toi ?",
+      "en": "I'm very well, thank you. And you?"
+    },
+    {
+      "prompt": "Tu habites où ? Dans quel pays ?",
+      "answer": "J'habite à Bridgend, au Pays de Galles.",
+      "en": "I live in Bridgend, in Wales."
+    },
+    {
+      "prompt": "Où voudrais-tu habiter ?",
+      "answer": "Dans le futur, je voudrais habiter en Italie parce qu'il fait chaud.",
+      "en": "In the future I'd like to live in Italy because it's hot."
+    },
+    {
+      "prompt": "Quel âge as-tu ?",
+      "answer": "J'ai douze ans. Mon anniversaire, c'est le quinze mars.",
+      "en": "I'm 12. My birthday is 15 March."
+    }
+  ]
+}

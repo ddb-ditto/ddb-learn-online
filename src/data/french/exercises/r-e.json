@@ -1,0 +1,30 @@
+{
+  "id": "r-e",
+  "kind": "reveal",
+  "part": "reading",
+  "title": "A text you have not been taught",
+  "intro": "Most of these words have never been in a lesson. Use the ones that look like English, and let the rest go.",
+  "text": "La France est le pays le plus visité du monde. Chaque année, des millions de touristes visitent Paris, les Alpes et la Côte d'Azur. Le monument le plus populaire est la tour Eiffel. Elle est construite pour l'Exposition universelle de 1889. Les touristes adorent aussi la cuisine française : le croissant, la baguette et le fromage.",
+  "items": [
+    {
+      "question": "Find the French for <em>tourists</em>, <em>monument</em>, <em>popular</em>, <em>visited</em>.",
+      "answer": "touristes · monument · populaire · visité"
+    },
+    {
+      "question": "Which year is mentioned, and why?",
+      "answer": "1889 — the Eiffel Tower was built for the World's Fair that year."
+    },
+    {
+      "question": "Name three places tourists visit.",
+      "answer": "Paris, the Alps and the Côte d'Azur"
+    },
+    {
+      "question": "Name two French foods in the text.",
+      "answer": "Any two of: croissant, baguette, cheese"
+    },
+    {
+      "question": "What does <em>Chaque année</em> mean?",
+      "answer": "Every year"
+    }
+  ]
+}

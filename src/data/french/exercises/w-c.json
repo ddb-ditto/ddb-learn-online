@@ -1,0 +1,43 @@
+{
+  "id": "w-c",
+  "kind": "type",
+  "part": "writing",
+  "title": "Translate into French",
+  "intro": "Five at a time, picked at random — the same as the real test.",
+  "shuffle": true,
+  "ask": 5,
+  "items": [
+    {
+      "prompt": "Hello! My name is Sam.",
+      "answer": "Bonjour ! Je m'appelle Sam."
+    },
+    {
+      "prompt": "I am twelve years old.",
+      "answer": "J'ai douze ans."
+    },
+    {
+      "prompt": "I live in Bridgend, in Wales.",
+      "answer": "J'habite à Bridgend, au Pays de Galles."
+    },
+    {
+      "prompt": "In the future I would like to live in Spain.",
+      "answer": "Dans le futur, je voudrais habiter en Espagne."
+    },
+    {
+      "prompt": "How old are you?",
+      "answer": "Quel âge as-tu ?"
+    },
+    {
+      "prompt": "I am very well, thank you. And you?",
+      "answer": "Ça va très bien, merci. Et toi ?"
+    },
+    {
+      "prompt": "Where do you live?",
+      "answer": "Tu habites où ?"
+    },
+    {
+      "prompt": "I live in France.",
+      "answer": "J'habite en France."
+    }
+  ]
+}

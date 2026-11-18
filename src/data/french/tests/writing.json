@@ -1,0 +1,39 @@
+{
+  "slug": "writing",
+  "order": 2,
+  "title": "Writing",
+  "date": "2026-12-02",
+  "parts": [
+    "writing"
+  ],
+  "standfirst": "Spelling, word order, translation and punctuation — the one where accents count.",
+  "sections": [
+    {
+      "part": "writing",
+      "title": "Writing",
+      "format": [
+        "Spell the key words — <em>I live</em>, <em>my name is</em>, and the rest.",
+        "Put jumbled words back into order to make a sentence.",
+        "Translate five short sentences into French.",
+        "A punctuation task."
+      ],
+      "advice": "The teacher's advice: learn the <strong>spellings</strong> of all the key phrases, start early, and get someone to test you. Spelling will matter."
+    }
+  ],
+  "packOrder": [
+    "tricky-spellings",
+    "greetings",
+    "name-and-age",
+    "numbers",
+    "where-i-live",
+    "countries",
+    "would-like-to-live"
+  ],
+  "practice": [
+    "w-a",
+    "w-b",
+    "w-c",
+    "w-d",
+    "w-e"
+  ]
+}

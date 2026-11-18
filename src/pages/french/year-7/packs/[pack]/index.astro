@@ -1,0 +1,190 @@
+---
+/**
+ * One revision pack: the words, the rules, and practice on them.
+ *
+ * The flashcards live on their own page rather than here, the same way a
+ * session's deck does — printing this page should give you the vocabulary and
+ * the rules, and printing the cards page should give you cards. One page
+ * cannot print as both.
+ */
+import { getCollection } from "astro:content";
+import Base from "../../../../../layouts/Base.astro";
+import Breadcrumbs from "../../../../../components/Breadcrumbs.astro";
+import Section from "../../../../../components/Section.astro";
+import Exercise from "../../../../../components/Exercise.astro";
+import Note from "../../../../../components/Note.astro";
+import Rule from "../../../../../components/Rule.astro";
+import PageNav from "../../../../../components/PageNav.astro";
+import TestBadges from "../../../../../components/TestBadges.astro";
+import WordTable from "../../../../../components/WordTable.astro";
+import { cardCountFor } from "../../../../../lib/packcards";
+
+export async function getStaticPaths() {
+  const packs = (await getCollection("frenchPacks")).sort((a, b) => a.data.number - b.data.number);
+  return packs.map((pack, i) => ({
+    params: { pack: pack.data.slug },
+    props: { pack, prev: packs[i - 1], next: packs[i + 1] },
+  }));
+}
+
+const { pack, prev, next } = Astro.props;
+const p = pack.data;
+
+const exercises = await getCollection("frenchExercises");
+const byId = new Map(exercises.map((e) => [e.data.id, e]));
+const practice = p.exercises.map((id) => byId.get(id)).filter((e) => e !== undefined);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const href = (slug: string) => `${base}/french/year-7/packs/${slug}/`;
+
+/** The space French puts before ? and ! must not be where a line breaks. */
+const tight = (s: string) => s.replace(/ ([?!;:])/g, " $1");
+
+const cardCount = cardCountFor(p);
+---
+<Base
+  title={`${p.title} — Year 7 French`}
+  eyebrow={`Year 7 French · pack ${p.number}`}
+  heading={p.title}
+  standfirst={p.standfirst}
+  description={p.summary}
+>
+  <Breadcrumbs slot="nav" trail={[
+    { label: "Contents", href: `${base}/` },
+    { label: "Year 7 French", href: `${base}/french/year-7/` },
+    { label: `Pack ${p.number}` },
+  ]} />
+
+  <TestBadges parts={p.tests} notes={p.testNotes} base={base} />
+
+  {p.rules?.map((r) => (
+    <Rule lead={r.lead}><p set:html={r.body} /></Rule>
+  ))}
+
+  {p.vocab && (
+    <>
+      <Section kicker="The words">Learn these</Section>
+      <WordTable pairs words={p.vocab.map((v) => ({
+        term: tight(v.fr) + (v.alt ? `<span class="alt">or ${tight(v.alt)}</span>` : ""),
+        gloss: v.en,
+      }))} />
+    </>
+  )}
+
+  {p.countries && (
+    <>
+      <Section kicker="The words">The country, and the word for <em>in</em></Section>
+      <table class="words countries">
+        <thead><tr><th>Country</th><th>English</th><th>“in”</th></tr></thead>
+        <tbody>
+          {p.countries.map((c) => (
+            <tr class={c.gender === "m" ? "masc" : "fem"}>
+              <td class="term" lang="fr">{c.fr}</td>
+              <td class="gloss">{c.en}</td>
+              <td class="term in" lang="fr">{c.in}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  )}
+
+  {p.numbers && (
+    <>
+      <Section kicker="The words">One to thirty-one</Section>
+      <ol class="numbers">
+        {p.numbers.map(([n, word]) => (
+          <li><span class="n">{n}</span><span class="w" lang="fr">{word}</span></li>
+        ))}
+      </ol>
+    </>
+  )}
+
+  {p.alphabet && (
+    <>
+      <Section kicker="Also">Saying the letters</Section>
+      <ol class="alphabet">
+        {p.alphabet.map(([letter, sound]) => (
+          <li><span class="n">{letter}</span><span class="w">“{sound}”</span></li>
+        ))}
+      </ol>
+    </>
+  )}
+
+  {p.answers && (
+    <>
+      <Section kicker="The five">Question and answer</Section>
+      <ol class="qa">
+        {p.answers.map((a) => (
+          <li>
+            <p class="q" lang="fr">{tight(a.q)}</p>
+            <p class="a" lang="fr">{tight(a.a)}</p>
+            <p class="en">{a.en}</p>
+          </li>
+        ))}
+      </ol>
+    </>
+  )}
+
+  {p.sounds && (
+    <>
+      <Section kicker="Say it right">The sounds that catch people out</Section>
+      <WordTable words={p.sounds.map((s) => ({
+        term: s.fr, say: `“${s.say}”`, gloss: s.why,
+      }))} />
+    </>
+  )}
+
+  {p.corrections && (
+    <>
+      <Section kicker="Your own slips">Wrong, then right</Section>
+      <table class="words fixes">
+        <tbody>
+          {p.corrections.map((c) => (
+            <tr>
+              <td class="wrong">{c.wrong.map((w, i) => (
+                <><s>{w}</s>{i < c.wrong.length - 1 && <span class="sep"> · </span>}</>
+              ))}</td>
+              <td class="right term" lang="fr">{tight(c.right)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  )}
+
+  {p.facts && (
+    <>
+      <Section kicker="The facts">Worth knowing</Section>
+      <ul class="facts">
+        {p.facts.map((f) => <li set:html={f} />)}
+      </ul>
+    </>
+  )}
+
+  {p.notes?.map((n) => (
+    <Note lead={n.lead}><p set:html={n.body} /></Note>
+  ))}
+
+  {practice.length > 0 && (
+    <>
+      <Section kicker="Practice">Test yourself</Section>
+      {practice.map((e) => <Exercise exercise={e} />)}
+    </>
+  )}
+
+  <PageNav
+    prev={prev && { kicker: `Pack ${prev.data.number}`, label: prev.data.title, href: href(prev.data.slug) }}
+    cards={cardCount > 0 ? { kicker: "Flashcards", label: `${cardCount} cards`, href: `${href(p.slug)}cards/` } : undefined}
+    next={next && { kicker: `Pack ${next.data.number}`, label: next.data.title, href: href(next.data.slug) }}
+  />
+
+  <footer slot="footer">
+    <span>Year 7 French · pack {p.number}</span>
+    <span><a href={`${base}/french/year-7/`}>← Year 7 French</a></span>
+  </footer>
+</Base>
+
+<script>
+  import "../../../../../scripts/exercises";
+</script>

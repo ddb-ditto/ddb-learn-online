@@ -99,4 +99,181 @@ const reference = defineCollection({
   }),
 });
 
-export const collections = { units, sessions, decks, reference };
+/* ---------------------------------------------------------------------------
+ * Year 7 French.
+ *
+ * A different shape from the Italian course, because it is a different job.
+ * The Italian course is a designed two-year sequence of units and sessions.
+ * This is revision for two school tests on fixed dates: ten packs, and a page
+ * per test saying which packs it needs and in what order. Dates are real here
+ * and absent there, and that is the difference between a course someone starts
+ * whenever they like and a test on a Wednesday.
+ * ------------------------------------------------------------------------- */
+
+/** Which of the three school tests a pack feeds. */
+const part = z.enum(["speaking", "reading", "writing"]);
+
+/** A lead and a body, as the Note and Warn components take them. */
+const aside = z.object({ lead: z.string(), body: z.string() });
+
+const frenchPacks = defineCollection({
+  loader: glob({ pattern: "**/*.json", base: "./src/data/french/packs" }),
+  schema: z.object({
+    number: z.number().int().positive(),
+    /** The URL segment, and how tests refer to the pack. */
+    slug: z.string(),
+    title: z.string(),
+    standfirst: z.string(),
+    /** How it reads on a card in the hub and on a test page. */
+    summary: z.string(),
+    tests: z.array(part).min(1),
+    /**
+     * Why a pack is only partly needed, e.g. numbers for the speaking test.
+     * An object with three optional keys rather than a record over the enum,
+     * because a record over an enum demands every key.
+     */
+    testNotes: z.object({
+      speaking: z.string().optional(),
+      reading: z.string().optional(),
+      writing: z.string().optional(),
+    }).optional(),
+
+    /* A pack carries whichever of these its material needs; the template
+       renders the ones that are there and skips the rest. */
+    vocab: z.array(z.object({
+      fr: z.string(),
+      en: z.string(),
+      /**
+       * A second way of saying the same thing — the inversion, or the
+       * feminine. It is shown on the page and never drilled: one phrase has
+       * to be the one he produces, or a spelling drill has two right answers
+       * and marks one of them wrong.
+       */
+      alt: z.string().optional(),
+    })).optional(),
+    countries: z.array(z.object({
+      fr: z.string(), en: z.string(), in: z.string(), gender: z.enum(["m", "f"]),
+    })).optional(),
+    numbers: z.array(z.tuple([z.number().int(), z.string()])).optional(),
+    alphabet: z.array(z.tuple([z.string(), z.string()])).optional(),
+    answers: z.array(z.object({ q: z.string(), a: z.string(), en: z.string() })).optional(),
+    sounds: z.array(z.object({ fr: z.string(), say: z.string(), why: z.string() })).optional(),
+    facts: z.array(z.string()).optional(),
+    corrections: z.array(z.object({
+      wrong: z.array(z.string()).min(1), right: z.string(),
+    })).optional(),
+
+    rules: z.array(aside).optional(),
+    notes: z.array(aside).optional(),
+    /** Exercise ids this pack offers, in the order they should be worked. */
+    exercises: z.array(z.string()).default([]),
+  }),
+});
+
+const frenchTests = defineCollection({
+  loader: glob({ pattern: "**/*.json", base: "./src/data/french/tests" }),
+  schema: z.object({
+    slug: z.string(),
+    order: z.number().int(),
+    title: z.string(),
+    /** The real date. A test is on a Wednesday, so this one is dated. */
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    parts: z.array(part).min(1),
+    standfirst: z.string(),
+    sections: z.array(z.object({
+      part,
+      title: z.string(),
+      format: z.array(z.string()).min(1),
+      questions: z.array(z.string()).optional(),
+      advice: z.string().optional(),
+      howToScore: z.object({ lead: z.string(), items: z.array(z.string()) }).optional(),
+    })).min(1),
+    /** Pack slugs, most urgent first. */
+    packOrder: z.array(z.string()).min(1),
+    /** Exercise ids the practice run works through. */
+    practice: z.array(z.string()).min(1),
+  }),
+});
+
+/**
+ * Practice exercises, one file each, shaped by what they ask the learner to do.
+ *
+ * They are a union rather than one loose object because the marking differs:
+ * a typed answer is compared character by character, a choice is an index, and
+ * a reveal is not marked at all. A schema that allowed all of it everywhere
+ * would let a "type" exercise ship with no answer to type against.
+ */
+const exerciseBase = {
+  id: z.string(),
+  part,
+  title: z.string(),
+  intro: z.string().optional(),
+  text: z.string().optional(),
+  shuffle: z.boolean().default(false),
+  /** Ask this many of the items, picked at random. All of them if absent. */
+  ask: z.number().int().positive().optional(),
+};
+
+const frenchExercises = defineCollection({
+  loader: glob({ pattern: "**/*.json", base: "./src/data/french/exercises" }),
+  schema: z.discriminatedUnion("kind", [
+    /* Say it aloud, then reveal. Nothing is marked: only the person in the
+       room can hear whether it was right. */
+    z.object({
+      ...exerciseBase, kind: z.literal("prompt"),
+      speakLang: z.string().optional(),
+      items: z.array(z.object({
+        prompt: z.string(), answer: z.string(), en: z.string().optional(),
+      })).min(1),
+    }),
+    /* Think, then turn over. Also unmarked. */
+    z.object({
+      ...exerciseBase, kind: z.literal("reveal"),
+      items: z.array(z.object({
+        prompt: z.string().optional(),
+        question: z.string().optional(),
+        answer: z.string(),
+      })).min(1),
+    }),
+    /* A run of text with holes in it and a bank of words to fill them. */
+    z.object({
+      ...exerciseBase, kind: z.literal("gapfill"),
+      bank: z.array(z.string()).min(1),
+      text: z.array(z.union([z.string(), z.object({ gap: z.string() })])).min(1),
+    }),
+    z.object({
+      ...exerciseBase, kind: z.literal("truefalse"),
+      items: z.array(z.object({
+        statement: z.string(), answer: z.boolean(), because: z.string().optional(),
+      })).min(1),
+    }),
+    z.object({
+      ...exerciseBase, kind: z.literal("choice"),
+      items: z.array(z.object({
+        q: z.string(),
+        options: z.array(z.string()).min(2),
+        answer: z.number().int().nonnegative(),
+      })).min(1),
+    }),
+    /* Typed, and marked strictly. `weight` makes an item come up more often. */
+    z.object({
+      ...exerciseBase, kind: z.literal("type"),
+      items: z.array(z.object({
+        prompt: z.string(), answer: z.string(),
+        weight: z.number().int().positive().default(1),
+      })).min(1),
+    }),
+    /* Tiles put back into order. */
+    z.object({
+      ...exerciseBase, kind: z.literal("order"),
+      items: z.array(z.object({
+        tiles: z.array(z.string()).min(2), answer: z.string(),
+      })).min(1),
+    }),
+  ]),
+});
+
+export const collections = {
+  units, sessions, decks, reference,
+  frenchPacks, frenchTests, frenchExercises,
+};

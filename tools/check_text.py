@@ -6,9 +6,15 @@
 A local file path names whoever owns the machine, and is permanent once the
 repository is public.
 
-A calendar year is the second: the course does not start in a particular
-September, so a real year is wrong for everyone who starts in a different one,
-and this only looks wrong to a reader years later.
+A calendar year is the second: the Italian course does not start in a
+particular September, so a real year is wrong for everyone who starts in a
+different one, and this only looks wrong to a reader years later.
+
+That rule is about the course, not about the repository. The Year 7 French
+section is revision for two tests on two Wednesdays, and a dated thing has to
+carry its date — so its pages are exempt, and the dates live in data where
+they can be edited without touching a template. Everything else in src/ is
+still held to it.
 
 Double-encoded UTF-8 is the third. A deck shipped reading "cittA" and "a" where
 it meant "citta" and an em dash, because text that was already UTF-8 was decoded
@@ -30,6 +36,8 @@ LOCAL_PATH = re.compile(r"[A-Z]:\\Users\\|/(?:home|Users)/[a-z][\w.-]*/")
 # wrong for everyone who starts in a different one.
 YEAR = re.compile(r"\b(?:19|20)\d{2}\b")
 DATED = ("src/content", "src/pages", "src/components", "src/layouts")
+# Revision for a test on a named day. Dates belong here and nowhere else.
+UNDATED_EXCEPT = ("src/pages/french", "src/components/Countdown.astro")
 
 
 def double_encoded(line: str) -> str | None:
@@ -87,7 +95,7 @@ def main() -> int:
             continue        # binary; nothing to read
         read += 1
         where = path.relative_to(REPO)
-        if str(where).startswith(DATED):
+        if str(where).startswith(DATED) and not str(where).startswith(UNDATED_EXCEPT):
             for n, line in enumerate(text.splitlines(), 1):
                 for year in YEAR.findall(line):
                     bad.append(f"{where}:{n}: the year {year} — the course has no "
@@ -109,7 +117,8 @@ def main() -> int:
         for b in bad:
             print(f"  {b}")
         return 1
-    print("no local file paths, no calendar years, no double-encoded text.")
+    print("no local file paths, no calendar years outside the dated section, "
+          "no double-encoded text.")
     return 0
 
 

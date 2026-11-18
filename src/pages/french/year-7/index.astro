@@ -1,0 +1,73 @@
+---
+/**
+ * Year 7 French — the way in.
+ *
+ * Two tests and ten packs. The tests come first because they are the reason
+ * the section exists and they have dates on them; the packs are underneath in
+ * their own order, which is the order they were taught in.
+ */
+import { getCollection } from "astro:content";
+import Base from "../../../layouts/Base.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import Section from "../../../components/Section.astro";
+import CardGrid from "../../../components/CardGrid.astro";
+import CardLink from "../../../components/CardLink.astro";
+import Countdown from "../../../components/Countdown.astro";
+import Note from "../../../components/Note.astro";
+
+const tests = (await getCollection("frenchTests")).sort((a, b) => a.data.order - b.data.order);
+const packs = (await getCollection("frenchPacks")).sort((a, b) => a.data.number - b.data.number);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as const;
+---
+<Base
+  title="Year 7 French"
+  eyebrow="Year 7 · French"
+  heading="Year 7 French"
+  standfirst="Revision for the two class tests — ten packs, and a page for each test saying what to learn."
+  description="Year 7 French revision: vocabulary, flashcards and self-marking practice for the speaking, reading and writing tests."
+>
+  <Breadcrumbs slot="nav" trail={[
+    { label: "Contents", href: `${base}/` },
+    { label: "Year 7 French" },
+  ]} />
+
+  <Section kicker="The tests">What is coming</Section>
+
+  <div class="testcards">
+    {tests.map((t) => (
+      <a class="testcard" href={`${base}/french/year-7/tests/${t.data.slug}/`}>
+        <h3>{t.data.title}</h3>
+        <Countdown date={t.data.date} />
+        <p set:html={t.data.standfirst} />
+        <span class="go">What to learn →</span>
+      </a>
+    ))}
+  </div>
+
+  <Note lead={"Where to start"}>
+    <p>Open the test that is next and work down its list — the packs are in the order
+    they are worth doing, not in number order. Pack&nbsp;7 first for speaking;
+    Pack&nbsp;10 first for writing.</p>
+  </Note>
+
+  <Section kicker="Ten packs">Everything to revise</Section>
+  <p>Each pack is a short page: the words, the rule that holds them together, flashcards
+  that print as fold-over cards, and practice that marks itself.</p>
+
+  <CardGrid>
+    {packs.map((p) => (
+      <CardLink
+        title={`${p.data.number}. ${p.data.title}`}
+        href={`${base}/french/year-7/packs/${p.data.slug}/`}
+        note={p.data.tests.map((t) => NAME[t]).join(" · ")}
+      >{p.data.summary}</CardLink>
+    ))}
+  </CardGrid>
+
+  <footer slot="footer">
+    <span>Year 7 French · class revision</span>
+    <span><a href={`${base}/`}>← Contents</a></span>
+  </footer>
+</Base>

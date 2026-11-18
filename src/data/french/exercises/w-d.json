@@ -1,0 +1,33 @@
+{
+  "id": "w-d",
+  "kind": "type",
+  "part": "writing",
+  "title": "Put the punctuation back",
+  "intro": "Capitals, accents, apostrophes and the marks at the end. Everything else is already there.",
+  "items": [
+    {
+      "prompt": "bonjour je mappelle sam",
+      "answer": "Bonjour ! Je m'appelle Sam."
+    },
+    {
+      "prompt": "ca va",
+      "answer": "Ça va ?"
+    },
+    {
+      "prompt": "tres bien merci et toi",
+      "answer": "Très bien, merci. Et toi ?"
+    },
+    {
+      "prompt": "quel age as tu",
+      "answer": "Quel âge as-tu ?"
+    },
+    {
+      "prompt": "jhabite a cardiff au pays de galles",
+      "answer": "J'habite à Cardiff, au Pays de Galles."
+    },
+    {
+      "prompt": "au revoir sophie",
+      "answer": "Au revoir, Sophie !"
+    }
+  ]
+}

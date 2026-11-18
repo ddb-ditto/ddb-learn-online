@@ -23,6 +23,7 @@ import json
 import socketserver
 import sys
 import threading
+import unicodedata
 
 from playwright.sync_api import sync_playwright
 
@@ -61,13 +62,31 @@ threading.Thread(target=httpd.serve_forever, daemon=True).start()
 ROOT = f"http://127.0.0.1:{httpd.server_address[1]}{BASE}"
 
 def find_chromium() -> dict:
-    """Where the browser is, if it is anywhere."""
+    """Where the browser is, if it is anywhere.
+
+    Playwright lays its downloads out differently depending on the version and
+    the platform, and a machine that has a browser but not at the path this
+    guessed reports "no browser" — which the runner then counts as skipped
+    rather than failed, so the site goes unchecked and nothing says so. Hence
+    the list: `chrome-linux64` and `chrome-linux` have both been the layout,
+    and some images put a plain executable at the root.
+    """
     if os.environ.get("CHROMIUM"):
         return {"executable_path": os.environ["CHROMIUM"]}
     root = pathlib.Path(os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "/opt/pw-browsers"))
-    for found in sorted(root.glob("chromium*/chrome-linux/chrome")):
-        return {"executable_path": str(found)}
-    return {}
+    patterns = (
+        "chromium*/chrome-linux64/chrome",
+        "chromium*/chrome-linux/chrome",
+        "chromium*/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+    )
+    for pattern in patterns:
+        for found in sorted(root.glob(pattern), reverse=True):
+            if found.is_file():
+                return {"executable_path": str(found)}
+    direct = root / "chromium"
+    if direct.is_file() and os.access(direct, os.X_OK):
+        return {"executable_path": str(direct)}
+    return {}        # let Playwright try its own default, and say so if it cannot
 
 
 with sync_playwright() as pw:
@@ -332,6 +351,139 @@ with sync_playwright() as pw:
         notes.append(f"{sel.split('[')[0]} {href.rsplit('/',1)[-1]} → {got.status}")
         if got.status != 200:
             fails.append(f"{sel} does not resolve ({href})")
+
+    # ----------------------------------------------------------------------
+    # Year 7 French
+    # ----------------------------------------------------------------------
+
+    page.goto(f"{ROOT}/french/year-7/")
+    tests = page.locator(".testcard").count()
+    packs = page.locator(".cardlink").count()
+    notes.append(f"french hub: {tests} test card(s), {packs} pack card(s)")
+    if tests != 2:
+        fails.append(f"the French hub shows {tests} tests, expected 2")
+    if packs != 10:
+        fails.append(f"the French hub shows {packs} packs, expected 10")
+    if wide() > 390:
+        fails.append(f"the French hub scrolls sideways at 390px ({wide()}px)")
+    stamps = page.locator(".countdown time").count()
+    if stamps < 2:
+        fails.append("a test card has no date on it")
+
+    page.goto(f"{ROOT}/french/year-7/packs/tricky-spellings/")
+    ready = page.locator(".exercise.ready").count()
+    written = page.locator(".exercise").count()
+    notes.append(f"tricky spellings: {ready} of {written} exercise(s) booted")
+    if written == 0:
+        fails.append("the tricky spellings pack has no exercises")
+    if ready != written:
+        fails.append(f"{written - ready} exercise(s) did not start")
+
+    # The exercises are built by script, so their styling hangs off .exercise
+    # rather than reaching them directly — the same trap the deck chips fell
+    # into. An unstyled button is not invisible, it is the browser's own grey
+    # one, so this compares the paint with the site's accent rather than only
+    # asking whether anything was painted. Checked both ways against the bug:
+    # with the rule written as `.exercise :global(.exbtn)` — which is Astro
+    # <style> syntax and not valid in a plain stylesheet — the button comes
+    # back rgb(239,239,239) and this fails, as it should.
+    painted = page.evaluate("""() => {
+      const b = document.querySelector('.exercise .exbtn');
+      if (!b) return null;
+      const accent = getComputedStyle(document.documentElement)
+          .getPropertyValue('--accent').trim();
+      const probe = document.createElement('div');
+      probe.style.color = accent;
+      document.body.appendChild(probe);
+      const want = getComputedStyle(probe).color;
+      probe.remove();
+      return { got: getComputedStyle(b).backgroundColor, want };
+    }""")
+    if painted is None:
+        fails.append("no exercise button to check the styling of")
+    else:
+        notes.append(f"exercise button: {painted['got']} (accent {painted['want']})")
+        if painted["got"] != painted["want"]:
+            fails.append(f"exercise buttons are unstyled — {painted['got']}, "
+                         f"expected the accent {painted['want']}")
+
+    # Strict marking, driven the way he would drive it.
+    #
+    # The punctuation drill is the one used rather than the spelling drill,
+    # because it is not shuffled: its second item is always `ca va` → `Ça va ?`
+    # So the near miss below is always a real near miss. Driving the shuffled
+    # drill instead meant the accent was only tested when the random pick
+    # happened to produce an accented word, and a check that sometimes does
+    # nothing reads exactly like one that passed.
+    page.goto(f"{ROOT}/french/year-7/packs/greetings/")
+    wd = page.locator("#ex-w-d")
+    if wd.count() == 0:
+        fails.append("the greetings pack has no punctuation drill")
+    else:
+        items = page.evaluate("""() => JSON.parse(
+            document.querySelector('#ex-w-d .ex-data').textContent).items""")
+
+        def drill(answer: str) -> str:
+            wd.locator(".exinput").fill(answer)
+            wd.get_by_text("Check").click()
+            return wd.locator(".exresult").inner_text()
+
+        said = drill(items[0]["answer"])
+        notes.append(f"punctuation drill: {items[0]['answer']!r} → {said.splitlines()[0]!r}")
+        if "Correct" not in said:
+            fails.append(f"the right answer {items[0]['answer']!r} was marked wrong: {said!r}")
+
+        wd.get_by_text("Next").click()
+        want = items[1]["answer"]                       # "Ça va ?"
+        flat = (unicodedata.normalize("NFD", want)
+                .encode("ascii", "ignore").decode("ascii"))
+        if flat == want:
+            fails.append(f"the near-miss item {want!r} has no accent to drop — "
+                         "this check is no longer checking anything")
+        else:
+            said = drill(flat)
+            notes.append(f"near miss: {flat!r} → {said.splitlines()[0]!r}")
+            if "Correct" in said:
+                fails.append(f"{flat!r} was accepted — the writing test marks accents")
+            marks = wd.locator("mark").all_inner_texts()
+            notes.append(f"marked as missing: {marks}")
+            if not marks:
+                fails.append("a wrong answer does not show what was missing")
+
+        # And the two things that are forgiven, because they are the keyboard
+        # rather than the French.
+        page.reload()
+        wd = page.locator("#ex-w-d")
+        forgiving = items[0]["answer"].replace("'", "\u2019").replace(" !", "!")
+        if forgiving != items[0]["answer"]:
+            wd.locator(".exinput").fill(forgiving)
+            wd.get_by_text("Check").click()
+            said = wd.locator(".exresult").inner_text()
+            notes.append(f"curly apostrophe: {forgiving!r} → {said.splitlines()[0]!r}")
+            if "Correct" not in said:
+                fails.append(f"{forgiving!r} was rejected — a curly apostrophe and "
+                             "a missing space before ! are keyboard differences")
+
+    # A pack's cards are worked out from its word list, so they cannot drift
+    # from it — but they do have to arrive.
+    page.goto(f"{ROOT}/french/year-7/packs/countries/cards/")
+    chips = page.locator(".chip").count()
+    notes.append(f"countries deck chips: {chips}")
+    if chips != 2:
+        fails.append(f"the countries pack shows {chips} decks, expected 2")
+    face = page.locator("#face").inner_text()
+    page.locator("#card").click()
+    if page.locator("#face").inner_text() == face:
+        fails.append("a French card does not turn over")
+    if page.locator("#printsheets .sheet").count() == 0:
+        fails.append("the French cards build no print sheets")
+
+    # A test page lists its packs in its own order, not in number order.
+    page.goto(f"{ROOT}/french/year-7/tests/writing/")
+    first = page.locator(".cardlink .t").first.inner_text()
+    notes.append(f"writing test, first pack: {first!r}")
+    if "Tricky" not in first:
+        fails.append(f"the writing test opens with {first!r}, not the tricky spellings")
 
     # The logo belongs to one page.
     page.goto(f"{ROOT}/units/1/sessions/2/")

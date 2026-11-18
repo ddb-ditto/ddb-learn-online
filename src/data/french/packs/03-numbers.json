@@ -1,0 +1,158 @@
+{
+  "number": 3,
+  "slug": "numbers",
+  "title": "Numbers 1–31",
+  "standfirst": "One to thirty-one — enough for any age and any date.",
+  "summary": "The numbers as the class booklet writes them, hyphens included.",
+  "tests": [
+    "speaking",
+    "reading",
+    "writing"
+  ],
+  "testNotes": {
+    "speaking": "for saying his age"
+  },
+  "numbers": [
+    [
+      1,
+      "un"
+    ],
+    [
+      2,
+      "deux"
+    ],
+    [
+      3,
+      "trois"
+    ],
+    [
+      4,
+      "quatre"
+    ],
+    [
+      5,
+      "cinq"
+    ],
+    [
+      6,
+      "six"
+    ],
+    [
+      7,
+      "sept"
+    ],
+    [
+      8,
+      "huit"
+    ],
+    [
+      9,
+      "neuf"
+    ],
+    [
+      10,
+      "dix"
+    ],
+    [
+      11,
+      "onze"
+    ],
+    [
+      12,
+      "douze"
+    ],
+    [
+      13,
+      "treize"
+    ],
+    [
+      14,
+      "quatorze"
+    ],
+    [
+      15,
+      "quinze"
+    ],
+    [
+      16,
+      "seize"
+    ],
+    [
+      17,
+      "dix-sept"
+    ],
+    [
+      18,
+      "dix-huit"
+    ],
+    [
+      19,
+      "dix-neuf"
+    ],
+    [
+      20,
+      "vingt"
+    ],
+    [
+      21,
+      "vingt-et-un"
+    ],
+    [
+      22,
+      "vingt-deux"
+    ],
+    [
+      23,
+      "vingt-trois"
+    ],
+    [
+      24,
+      "vingt-quatre"
+    ],
+    [
+      25,
+      "vingt-cinq"
+    ],
+    [
+      26,
+      "vingt-six"
+    ],
+    [
+      27,
+      "vingt-sept"
+    ],
+    [
+      28,
+      "vingt-huit"
+    ],
+    [
+      29,
+      "vingt-neuf"
+    ],
+    [
+      30,
+      "trente"
+    ],
+    [
+      31,
+      "trente-et-un"
+    ]
+  ],
+  "rules": [
+    {
+      "lead": "Hyphens are part of the spelling",
+      "body": "<em>vingt-et-un</em>, <em>trente-et-un</em>, <em>dix-sept</em>, <em>dix-huit</em>, <em>dix-neuf</em>, <em>vingt-quatre</em> — all hyphenated, because that is how his class booklet writes them. <em>J'ai dix huit ans</em> is a spelling mistake."
+    }
+  ],
+  "notes": [
+    {
+      "lead": "Why it stops at 31",
+      "body": "Thirty-one covers every age he needs and every day of the month. Numbers to 100 are in his book but not on the revision list, so they are left out rather than added to what has to be learned this fortnight."
+    }
+  ],
+  "exercises": [
+    "r-a",
+    "w-a",
+    "w-e"
+  ]
+}

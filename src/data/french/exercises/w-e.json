@@ -1,0 +1,41 @@
+{
+  "id": "w-e",
+  "kind": "type",
+  "part": "writing",
+  "title": "Spot the mistake",
+  "intro": "Each one has something wrong with it. Type it out correctly.",
+  "items": [
+    {
+      "prompt": "Je m'appelles Sam.",
+      "answer": "Je m'appelle Sam."
+    },
+    {
+      "prompt": "J'habite à Pays de Galles.",
+      "answer": "J'habite au Pays de Galles."
+    },
+    {
+      "prompt": "Quel as-tu âge ?",
+      "answer": "Quel âge as-tu ?"
+    },
+    {
+      "prompt": "Je voudrais habite en Espagne.",
+      "answer": "Je voudrais habiter en Espagne."
+    },
+    {
+      "prompt": "Dans la futur je voudrais habiter en France.",
+      "answer": "Dans le futur, je voudrais habiter en France."
+    },
+    {
+      "prompt": "J'habite en Bridgend.",
+      "answer": "J'habite à Bridgend."
+    },
+    {
+      "prompt": "Ça va tres bien, melli.",
+      "answer": "Ça va très bien, merci."
+    },
+    {
+      "prompt": "J'ai dix huit ans.",
+      "answer": "J'ai dix-huit ans."
+    }
+  ]
+}

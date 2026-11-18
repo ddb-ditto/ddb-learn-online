@@ -1,0 +1,45 @@
+---
+/**
+ * A pack's flashcards. Same app as the Italian decks, same printed fold-over
+ * sheets — the cards are worked out from the pack rather than written by hand,
+ * so they cannot disagree with the word list on the page before this one.
+ */
+import { getCollection } from "astro:content";
+import Base from "../../../../../../layouts/Base.astro";
+import Breadcrumbs from "../../../../../../components/Breadcrumbs.astro";
+import Flashcards from "../../../../../../components/Flashcards.astro";
+import { cardsFor, noReverseFor } from "../../../../../../lib/packcards";
+
+export async function getStaticPaths() {
+  const packs = await getCollection("frenchPacks");
+  return packs
+    .filter((pack) => cardsFor(pack.data).length > 0)
+    .map((pack) => ({ params: { pack: pack.data.slug }, props: { pack } }));
+}
+
+const { pack } = Astro.props;
+const p = pack.data;
+const cards = cardsFor(p);
+const decks = new Set(cards.map((c) => c.d)).size;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+<Base
+  title={`${p.title} flashcards — Year 7 French`}
+  eyebrow={`Year 7 French · pack ${p.number}`}
+  heading={`Flashcards — ${p.title}`}
+  standfirst={`${cards.length} cards in ${decks} deck${decks === 1 ? "" : "s"}. Print this page for fold-over cards, 8 to a sheet.`}
+>
+  <Breadcrumbs slot="nav" trail={[
+    { label: "Contents", href: `${base}/` },
+    { label: "Year 7 French", href: `${base}/french/year-7/` },
+    { label: `Pack ${p.number}`, href: `${base}/french/year-7/packs/${p.slug}/` },
+    { label: "Flashcards" },
+  ]} />
+
+  <Flashcards cards={cards} noReverse={noReverseFor(p)} />
+
+  <footer class="noprint" slot="footer">
+    <span>Year 7 French · pack {p.number} · {p.title}</span>
+    <span><a href={`${base}/french/year-7/packs/${p.slug}/`}>← Pack {p.number}</a></span>
+  </footer>
+</Base>

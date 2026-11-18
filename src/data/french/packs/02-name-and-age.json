@@ -1,0 +1,142 @@
+{
+  "number": 2,
+  "slug": "name-and-age",
+  "title": "Name and age",
+  "standfirst": "Asking and answering the two questions every conversation starts with.",
+  "summary": "Je m'appelle, j'ai douze ans, and the spelling trap in the middle of both.",
+  "tests": [
+    "speaking",
+    "reading",
+    "writing"
+  ],
+  "vocab": [
+    {
+      "fr": "Comment tu t'appelles ?",
+      "en": "What's your name?",
+      "alt": "Comment t'appelles-tu ?"
+    },
+    {
+      "fr": "Je m'appelle Sam.",
+      "en": "My name is Sam."
+    },
+    {
+      "fr": "Il s'appelle…",
+      "en": "He is called… (she: elle)",
+      "alt": "Elle s'appelle…"
+    },
+    {
+      "fr": "Comment ça s'écrit ?",
+      "en": "How do you spell that?"
+    },
+    {
+      "fr": "Quel âge as-tu ?",
+      "en": "How old are you?"
+    },
+    {
+      "fr": "J'ai douze ans.",
+      "en": "I am twelve."
+    },
+    {
+      "fr": "Il a… ans.",
+      "en": "He is… years old. (she: elle)",
+      "alt": "Elle a… ans."
+    }
+  ],
+  "rules": [
+    {
+      "lead": "The one that costs marks",
+      "body": "<em>je m'appelle</em> — double p, no s on the end. <em>tu t'appelles</em> — with the s. Same word, two spellings, and the writing test marks spelling."
+    }
+  ],
+  "alphabet": [
+    [
+      "A",
+      "a"
+    ],
+    [
+      "B",
+      "bay"
+    ],
+    [
+      "C",
+      "say"
+    ],
+    [
+      "D",
+      "day"
+    ],
+    [
+      "E",
+      "ur"
+    ],
+    [
+      "G",
+      "jay"
+    ],
+    [
+      "H",
+      "ash"
+    ],
+    [
+      "I",
+      "ee"
+    ],
+    [
+      "J",
+      "gee"
+    ],
+    [
+      "K",
+      "ca"
+    ],
+    [
+      "O",
+      "oh"
+    ],
+    [
+      "P",
+      "pay"
+    ],
+    [
+      "R",
+      "air"
+    ],
+    [
+      "T",
+      "tay"
+    ],
+    [
+      "V",
+      "vay"
+    ],
+    [
+      "W",
+      "dooble vay"
+    ],
+    [
+      "X",
+      "eeks"
+    ],
+    [
+      "Y",
+      "ee grek"
+    ],
+    [
+      "Z",
+      "zed"
+    ]
+  ],
+  "notes": [
+    {
+      "lead": "Why the alphabet is here",
+      "body": "<em>Comment ça s'écrit ?</em> means “how do you spell that?”, and answering it means saying the letters in French. These are the sounds from his book."
+    }
+  ],
+  "exercises": [
+    "r-a",
+    "w-a",
+    "w-b",
+    "w-d",
+    "w-e"
+  ]
+}

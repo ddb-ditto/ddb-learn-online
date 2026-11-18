@@ -1,7 +1,12 @@
 name: Deploy site
 
-# Build the site and publish it. Every push is checked first for a local file
-# path and for double-encoded text, and a run that finds either deploys nothing.
+# Build the site and publish it. Every push is checked first — for a local file
+# path and double-encoded text, and for the French section agreeing with itself
+# — and a run that finds a problem deploys nothing.
+#
+# The two vocabulary checks are not here and cannot be: they need Pearson's
+# specification, which is copyright and not in the repository. They are run
+# before pushing, as CLAUDE.md says.
 
 on:
   push:
@@ -32,6 +37,8 @@ jobs:
           python-version: '3.12'
       - name: Check the text
         run: python3 tools/check_text.py
+      - name: Check the French section
+        run: python3 tools/check_french.py
 
       - uses: actions/setup-node@v4
         with:

@@ -1,0 +1,261 @@
+{
+  "id": "w-a",
+  "kind": "type",
+  "part": "writing",
+  "title": "Spell it",
+  "intro": "English on screen, French typed in. Accents and capitals count — that is the point of this one.",
+  "shuffle": true,
+  "ask": 12,
+  "items": [
+    {
+      "prompt": "Hello!",
+      "answer": "Bonjour !"
+    },
+    {
+      "prompt": "Hi!",
+      "answer": "Salut !"
+    },
+    {
+      "prompt": "Hi! (very informal)",
+      "answer": "Coucou !",
+      "weight": 2
+    },
+    {
+      "prompt": "Goodbye!",
+      "answer": "Au revoir !",
+      "weight": 2
+    },
+    {
+      "prompt": "How are you?",
+      "answer": "Ça va ?",
+      "weight": 2
+    },
+    {
+      "prompt": "I'm fine.",
+      "answer": "Ça va bien."
+    },
+    {
+      "prompt": "Not bad.",
+      "answer": "Pas mal."
+    },
+    {
+      "prompt": "So-so. (the short one)",
+      "answer": "Bof."
+    },
+    {
+      "prompt": "So-so. (the long one)",
+      "answer": "Comme ci, comme ça."
+    },
+    {
+      "prompt": "I'm not well.",
+      "answer": "Ça va mal."
+    },
+    {
+      "prompt": "And you?",
+      "answer": "Et toi ?"
+    },
+    {
+      "prompt": "thank you",
+      "answer": "merci",
+      "weight": 2
+    },
+    {
+      "prompt": "very",
+      "answer": "très",
+      "weight": 2
+    },
+    {
+      "prompt": "My name is Sam.",
+      "answer": "Je m'appelle Sam.",
+      "weight": 2
+    },
+    {
+      "prompt": "What's your name?",
+      "answer": "Comment tu t'appelles ?"
+    },
+    {
+      "prompt": "How old are you?",
+      "answer": "Quel âge as-tu ?",
+      "weight": 2
+    },
+    {
+      "prompt": "I am twelve.",
+      "answer": "J'ai douze ans."
+    },
+    {
+      "prompt": "Where do you live?",
+      "answer": "Tu habites où ?",
+      "weight": 2
+    },
+    {
+      "prompt": "I live in Bridgend.",
+      "answer": "J'habite à Bridgend."
+    },
+    {
+      "prompt": "I live in Wales.",
+      "answer": "J'habite au Pays de Galles.",
+      "weight": 2
+    },
+    {
+      "prompt": "I live in France.",
+      "answer": "J'habite en France."
+    },
+    {
+      "prompt": "I would like to live in Spain.",
+      "answer": "Je voudrais habiter en Espagne.",
+      "weight": 2
+    },
+    {
+      "prompt": "In the future, I would like to live…",
+      "answer": "Dans le futur, je voudrais habiter…",
+      "weight": 2
+    },
+    {
+      "prompt": "…because it's hot.",
+      "answer": "…parce qu'il fait chaud."
+    },
+    {
+      "prompt": "four",
+      "answer": "quatre",
+      "weight": 2
+    },
+    {
+      "prompt": "thirteen",
+      "answer": "treize",
+      "weight": 2
+    },
+    {
+      "prompt": "eighteen",
+      "answer": "dix-huit",
+      "weight": 2
+    },
+    {
+      "prompt": "twenty-one",
+      "answer": "vingt-et-un"
+    },
+    {
+      "prompt": "Germany",
+      "answer": "l'Allemagne"
+    },
+    {
+      "prompt": "in Scotland",
+      "answer": "en Écosse"
+    },
+    {
+      "prompt": "in Japan",
+      "answer": "au Japon"
+    },
+    {
+      "prompt": "Yes, I'm very well, thank you.",
+      "answer": "Oui, ça va très bien, merci."
+    },
+    {
+      "prompt": "yes",
+      "answer": "oui"
+    },
+    {
+      "prompt": "no",
+      "answer": "non"
+    },
+    {
+      "prompt": "and",
+      "answer": "et"
+    },
+    {
+      "prompt": "good / well",
+      "answer": "bien"
+    },
+    {
+      "prompt": "bad",
+      "answer": "mal"
+    },
+    {
+      "prompt": "you",
+      "answer": "toi"
+    },
+    {
+      "prompt": "He is called…",
+      "answer": "Il s'appelle…"
+    },
+    {
+      "prompt": "How do you spell that?",
+      "answer": "Comment ça s'écrit ?"
+    },
+    {
+      "prompt": "He is… years old.",
+      "answer": "Il a… ans."
+    },
+    {
+      "prompt": "He lives in…",
+      "answer": "Il habite à…"
+    },
+    {
+      "prompt": "We live…",
+      "answer": "Nous habitons…"
+    },
+    {
+      "prompt": "Where would you like to live?",
+      "answer": "Où voudrais-tu habiter ?"
+    },
+    {
+      "prompt": "in Wales",
+      "answer": "au Pays de Galles"
+    },
+    {
+      "prompt": "in Canada",
+      "answer": "au Canada"
+    },
+    {
+      "prompt": "in Portugal",
+      "answer": "au Portugal"
+    },
+    {
+      "prompt": "in Luxembourg",
+      "answer": "au Luxembourg"
+    },
+    {
+      "prompt": "in France",
+      "answer": "en France"
+    },
+    {
+      "prompt": "in Belgium",
+      "answer": "en Belgique"
+    },
+    {
+      "prompt": "in Switzerland",
+      "answer": "en Suisse"
+    },
+    {
+      "prompt": "in Great Britain",
+      "answer": "en Grande-Bretagne"
+    },
+    {
+      "prompt": "in Tunisia",
+      "answer": "en Tunisie"
+    },
+    {
+      "prompt": "in England",
+      "answer": "en Angleterre"
+    },
+    {
+      "prompt": "in Ireland",
+      "answer": "en Irlande"
+    },
+    {
+      "prompt": "in Spain",
+      "answer": "en Espagne"
+    },
+    {
+      "prompt": "in Italy",
+      "answer": "en Italie"
+    },
+    {
+      "prompt": "in Germany",
+      "answer": "en Allemagne"
+    },
+    {
+      "prompt": "in Austria",
+      "answer": "en Autriche"
+    }
+  ]
+}

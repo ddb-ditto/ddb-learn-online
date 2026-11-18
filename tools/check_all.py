@@ -3,7 +3,7 @@
 
     python3 tools/check_all.py
 
-There are four, they need different things to be present, and a check that was
+There are five, they need different things to be present, and a check that was
 skipped looks exactly like a check that passed unless something says otherwise.
 So this reports skipped and passed differently, and exits non-zero if anything
 failed — but not if something was skipped, because CI has no specification to
@@ -26,6 +26,8 @@ CHECKS = [
      "known genders and verb forms still parse", TOOLS / "spec.txt"),
     ("vocabulary", ["check_vocab.py"],
      "every taught word is examined, every article agrees", TOOLS / "spec.txt"),
+    ("french", ["check_french.py"],
+     "packs, tests and exercises agree with each other", None),
     ("site", ["check_site.py"],
      "the built site, driven in a browser", REPO / "dist/index.html"),
 ]

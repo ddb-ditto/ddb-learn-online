@@ -1,0 +1,70 @@
+{
+  "id": "r-a",
+  "kind": "reveal",
+  "part": "reading",
+  "title": "What does it mean?",
+  "intro": "French on the front, English on the back. Say it before you turn it over.",
+  "shuffle": true,
+  "items": [
+    {
+      "prompt": "Je m'appelle",
+      "answer": "my name is"
+    },
+    {
+      "prompt": "J'habite",
+      "answer": "I live"
+    },
+    {
+      "prompt": "Je voudrais habiter",
+      "answer": "I would like to live"
+    },
+    {
+      "prompt": "Quel âge as-tu ?",
+      "answer": "how old are you?"
+    },
+    {
+      "prompt": "J'ai onze ans",
+      "answer": "I am 11"
+    },
+    {
+      "prompt": "Ça va mal",
+      "answer": "I'm not well"
+    },
+    {
+      "prompt": "Bof",
+      "answer": "so-so"
+    },
+    {
+      "prompt": "Et toi ?",
+      "answer": "and you?"
+    },
+    {
+      "prompt": "en Écosse",
+      "answer": "in Scotland"
+    },
+    {
+      "prompt": "au Pays de Galles",
+      "answer": "in Wales"
+    },
+    {
+      "prompt": "l'Allemagne",
+      "answer": "Germany"
+    },
+    {
+      "prompt": "la Suisse",
+      "answer": "Switzerland"
+    },
+    {
+      "prompt": "Dans le futur",
+      "answer": "in the future"
+    },
+    {
+      "prompt": "dix-huit",
+      "answer": "18"
+    },
+    {
+      "prompt": "vingt-quatre",
+      "answer": "24"
+    }
+  ]
+}

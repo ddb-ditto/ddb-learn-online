@@ -1,0 +1,67 @@
+{
+  "id": "w-b",
+  "kind": "order",
+  "part": "writing",
+  "title": "Put the words in order",
+  "intro": "Tap the tiles in the right order. Tap one you have placed to take it back.",
+  "items": [
+    {
+      "tiles": [
+        "ans",
+        "J'ai",
+        "douze"
+      ],
+      "answer": "J'ai douze ans."
+    },
+    {
+      "tiles": [
+        "âge",
+        "Quel",
+        "as-tu",
+        "?"
+      ],
+      "answer": "Quel âge as-tu ?"
+    },
+    {
+      "tiles": [
+        "Galles",
+        "J'habite",
+        "Pays",
+        "au",
+        "de"
+      ],
+      "answer": "J'habite au Pays de Galles."
+    },
+    {
+      "tiles": [
+        "m'appelle",
+        "Sam",
+        "Je"
+      ],
+      "answer": "Je m'appelle Sam."
+    },
+    {
+      "tiles": [
+        "habiter",
+        "futur",
+        "je",
+        "Dans",
+        "voudrais",
+        "le",
+        "en",
+        "Italie"
+      ],
+      "answer": "Dans le futur, je voudrais habiter en Italie."
+    },
+    {
+      "tiles": [
+        "bien",
+        "Ça",
+        "très",
+        "va",
+        "merci"
+      ],
+      "answer": "Ça va très bien, merci."
+    }
+  ]
+}

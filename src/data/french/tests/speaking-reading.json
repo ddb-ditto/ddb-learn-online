@@ -1,0 +1,70 @@
+{
+  "slug": "speaking-reading",
+  "order": 1,
+  "title": "Speaking and Reading",
+  "date": "2026-11-25",
+  "parts": [
+    "speaking",
+    "reading"
+  ],
+  "standfirst": "Two tests on the same day — five questions answered aloud, then a reading paper.",
+  "sections": [
+    {
+      "part": "speaking",
+      "title": "Speaking",
+      "format": [
+        "Five questions, prepared in class, answered from memory.",
+        "Each one scores 0, 1 or 2."
+      ],
+      "questions": [
+        "Comment tu t'appelles ?",
+        "Ça va ?",
+        "Tu habites où ? Dans quel pays ?",
+        "Où voudrais-tu habiter ?",
+        "Quel âge as-tu ?"
+      ],
+      "howToScore": {
+        "lead": "How to get 2 rather than 1",
+        "items": [
+          "Answer in a full sentence, not a word.",
+          "Use a connective — <em>et</em>, <em>parce que</em>.",
+          "Say something about somebody else.",
+          "Ask a question back: <em>Et toi ?</em>",
+          "Say it with the right sounds: <em>i</em> = “ee”, <em>ou</em> = “oo”, silent <em>h</em>, silent last letter."
+        ]
+      }
+    },
+    {
+      "part": "reading",
+      "title": "Reading",
+      "format": [
+        "Fill the gaps with the missing words.",
+        "Read a short text and tick the sentences that are true.",
+        "Answer questions in English about short French texts.",
+        "A couple of tasks on language that has not been taught — use cognates, context and punctuation.",
+        "A short quiz on French culture and facts."
+      ],
+      "advice": "The teacher's advice: practise recognising the language taught. And remember <em>la bise</em>."
+    }
+  ],
+  "packOrder": [
+    "speaking-answers",
+    "reading-skills",
+    "culture",
+    "greetings",
+    "name-and-age",
+    "numbers",
+    "where-i-live",
+    "countries",
+    "would-like-to-live"
+  ],
+  "practice": [
+    "speaking-practice",
+    "r-a",
+    "r-b",
+    "r-c",
+    "r-d",
+    "r-e",
+    "culture-quiz"
+  ]
+}

@@ -1,0 +1,111 @@
+---
+/**
+ * One test: when it is, what it asks for, which packs to revise and in what
+ * order, and the practice that copies its format.
+ *
+ * The pack order comes from the test rather than from the pack numbers,
+ * because what to do first depends on which test is next — Pack 10 is last in
+ * the list and first in the writing test's queue.
+ */
+import { getCollection } from "astro:content";
+import Base from "../../../../../layouts/Base.astro";
+import Breadcrumbs from "../../../../../components/Breadcrumbs.astro";
+import Section from "../../../../../components/Section.astro";
+import CardGrid from "../../../../../components/CardGrid.astro";
+import CardLink from "../../../../../components/CardLink.astro";
+import Countdown from "../../../../../components/Countdown.astro";
+import Exercise from "../../../../../components/Exercise.astro";
+import Note from "../../../../../components/Note.astro";
+import Warn from "../../../../../components/Warn.astro";
+import Plain from "../../../../../components/Plain.astro";
+
+export async function getStaticPaths() {
+  const tests = await getCollection("frenchTests");
+  return tests.map((test) => ({ params: { test: test.data.slug }, props: { test } }));
+}
+
+const { test } = Astro.props;
+const t = test.data;
+
+const allPacks = await getCollection("frenchPacks");
+const bySlug = new Map(allPacks.map((p) => [p.data.slug, p]));
+const packs = t.packOrder.map((s) => bySlug.get(s)).filter((p) => p !== undefined);
+
+const exercises = await getCollection("frenchExercises");
+const exBySlug = new Map(exercises.map((e) => [e.data.id, e]));
+const practice = t.practice.map((id) => exBySlug.get(id)).filter((e) => e !== undefined);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+<Base
+  title={`${t.title} test — Year 7 French`}
+  eyebrow="Year 7 French · test"
+  heading={t.title}
+  standfirst={t.standfirst}
+  description={`What to learn for the Year 7 French ${t.title.toLowerCase()} test, and practice in the same format.`}
+>
+  <Breadcrumbs slot="nav" trail={[
+    { label: "Contents", href: `${base}/` },
+    { label: "Year 7 French", href: `${base}/french/year-7/` },
+    { label: t.title },
+  ]} />
+
+  <Countdown date={t.date} />
+
+  {t.sections.map((s) => (
+    <>
+      <Section kicker={s.title}>What it asks for</Section>
+      <Plain>
+        {s.format.map((f) => <li set:html={f} />)}
+      </Plain>
+
+      {s.questions && (
+        <>
+          <p>The five questions:</p>
+          <ol class="exquestions">
+            {s.questions.map((q) => <li lang="fr">{q}</li>)}
+          </ol>
+        </>
+      )}
+
+      {s.howToScore && (
+        <Warn lead={s.howToScore.lead}>
+          <ul class="plain">
+            {s.howToScore.items.map((i) => <li set:html={i} />)}
+          </ul>
+        </Warn>
+      )}
+
+      {s.advice && <Note lead={"From the teacher"}><p set:html={s.advice} /></Note>}
+    </>
+  ))}
+
+  <Section kicker="Revise these">The packs, in order</Section>
+  <p>Top of the list first. They are not in number order — this is the order that pays
+  off for <em>this</em> test.</p>
+
+  <CardGrid>
+    {packs.map((p, n) => (
+      <CardLink
+        title={`${n + 1}. ${p.data.title}`}
+        href={`${base}/french/year-7/packs/${p.data.slug}/`}
+        note={`Pack ${p.data.number}`}
+      >{p.data.summary}</CardLink>
+    ))}
+  </CardGrid>
+
+  <Section kicker="Practice test" id="practice">The same shapes as the real thing</Section>
+  <p>Work through these in order. Nothing is saved — close the tab and the scores are
+  gone, which is the point: do it again tomorrow.</p>
+
+  {practice.map((e) => <Exercise exercise={e} />)}
+
+  <footer slot="footer">
+    <span>Year 7 French · {t.title}</span>
+    <span><a href={`${base}/french/year-7/`}>← Year 7 French</a></span>
+  </footer>
+</Base>
+
+<script>
+  import "../../../../../scripts/exercises";
+</script>

@@ -1,0 +1,52 @@
+{
+  "id": "r-b",
+  "kind": "gapfill",
+  "part": "reading",
+  "title": "Fill the gaps",
+  "intro": "Every word in the bank is used once.",
+  "bank": [
+    "m'appelle",
+    "ans",
+    "habite",
+    "en",
+    "va",
+    "voudrais",
+    "au",
+    "toi"
+  ],
+  "text": [
+    "Salut ! Je ",
+    {
+      "gap": "m'appelle"
+    },
+    " Hugo. J'ai treize ",
+    {
+      "gap": "ans"
+    },
+    ". J'",
+    {
+      "gap": "habite"
+    },
+    " à Lyon, ",
+    {
+      "gap": "en"
+    },
+    " France. Ça ",
+    {
+      "gap": "va"
+    },
+    " très bien ! Dans le futur, je ",
+    {
+      "gap": "voudrais"
+    },
+    " habiter ",
+    {
+      "gap": "au"
+    },
+    " Canada. Et ",
+    {
+      "gap": "toi"
+    },
+    " ?"
+  ]
+}

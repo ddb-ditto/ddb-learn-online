@@ -1,0 +1,130 @@
+{
+  "number": 10,
+  "slug": "tricky-spellings",
+  "title": "Tricky spellings",
+  "standfirst": "His own mistakes, next to what they should have been.",
+  "summary": "Twelve things he has actually got wrong, which makes them the twelve most worth drilling.",
+  "tests": [
+    "writing"
+  ],
+  "corrections": [
+    {
+      "wrong": [
+        "melli",
+        "merli"
+      ],
+      "right": "merci"
+    },
+    {
+      "wrong": [
+        "coufou",
+        "cousou"
+      ],
+      "right": "coucou"
+    },
+    {
+      "wrong": [
+        "bondour",
+        "bonjar"
+      ],
+      "right": "bonjour"
+    },
+    {
+      "wrong": [
+        "au revir",
+        "au fevoir"
+      ],
+      "right": "au revoir"
+    },
+    {
+      "wrong": [
+        "tres"
+      ],
+      "right": "très"
+    },
+    {
+      "wrong": [
+        "ca va"
+      ],
+      "right": "ça va"
+    },
+    {
+      "wrong": [
+        "je m'apelle",
+        "je m'appelles"
+      ],
+      "right": "je m'appelle"
+    },
+    {
+      "wrong": [
+        "Quel as-tu âge"
+      ],
+      "right": "Quel âge as-tu ?"
+    },
+    {
+      "wrong": [
+        "j'habite a pays de galles"
+      ],
+      "right": "J'habite au Pays de Galles."
+    },
+    {
+      "wrong": [
+        "habiter l'Espagne"
+      ],
+      "right": "habiter en Espagne"
+    },
+    {
+      "wrong": [
+        "je voudrais habite"
+      ],
+      "right": "je voudrais habiter"
+    },
+    {
+      "wrong": [
+        "la futur"
+      ],
+      "right": "le futur"
+    },
+    {
+      "wrong": [
+        "dix huit"
+      ],
+      "right": "dix-huit"
+    },
+    {
+      "wrong": [
+        "quatle"
+      ],
+      "right": "quatre"
+    },
+    {
+      "wrong": [
+        "trieze"
+      ],
+      "right": "treize"
+    },
+    {
+      "wrong": [
+        "tu habites où"
+      ],
+      "right": "Tu habites où ?"
+    }
+  ],
+  "rules": [
+    {
+      "lead": "Why this pack is first for the writing test",
+      "body": "Every line here is something he has already written down wrongly once. A mistake that has been made is far likelier to be made again than one that has not, so this is where the time goes first."
+    }
+  ],
+  "notes": [
+    {
+      "lead": "The four kinds of mistake",
+      "body": "Letters in the wrong order (<em>trieze</em>, <em>quatle</em>), a missing accent (<em>tres</em>, <em>ca va</em>), a missing hyphen (<em>dix huit</em>), and words in the wrong order (<em>Quel as-tu âge</em>). Knowing which kind it is makes it easier to catch."
+    }
+  ],
+  "exercises": [
+    "w-a",
+    "w-e",
+    "w-d"
+  ]
+}

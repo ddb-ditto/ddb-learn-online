@@ -1,0 +1,134 @@
+{
+  "number": 5,
+  "slug": "countries",
+  "title": "Countries",
+  "standfirst": "Seventeen countries, each with the word for <em>in</em> that goes with it.",
+  "summary": "The country's gender decides whether it is au or en, so the two are learned together.",
+  "tests": [
+    "speaking",
+    "reading",
+    "writing"
+  ],
+  "countries": [
+    {
+      "fr": "le Pays de Galles",
+      "en": "Wales",
+      "in": "au Pays de Galles",
+      "gender": "m"
+    },
+    {
+      "fr": "le Canada",
+      "en": "Canada",
+      "in": "au Canada",
+      "gender": "m"
+    },
+    {
+      "fr": "le Portugal",
+      "en": "Portugal",
+      "in": "au Portugal",
+      "gender": "m"
+    },
+    {
+      "fr": "le Luxembourg",
+      "en": "Luxembourg",
+      "in": "au Luxembourg",
+      "gender": "m"
+    },
+    {
+      "fr": "le Japon",
+      "en": "Japan",
+      "in": "au Japon",
+      "gender": "m"
+    },
+    {
+      "fr": "la France",
+      "en": "France",
+      "in": "en France",
+      "gender": "f"
+    },
+    {
+      "fr": "la Belgique",
+      "en": "Belgium",
+      "in": "en Belgique",
+      "gender": "f"
+    },
+    {
+      "fr": "la Suisse",
+      "en": "Switzerland",
+      "in": "en Suisse",
+      "gender": "f"
+    },
+    {
+      "fr": "la Grande-Bretagne",
+      "en": "Great Britain",
+      "in": "en Grande-Bretagne",
+      "gender": "f"
+    },
+    {
+      "fr": "la Tunisie",
+      "en": "Tunisia",
+      "in": "en Tunisie",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Angleterre",
+      "en": "England",
+      "in": "en Angleterre",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Écosse",
+      "en": "Scotland",
+      "in": "en Écosse",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Irlande",
+      "en": "Ireland",
+      "in": "en Irlande",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Espagne",
+      "en": "Spain",
+      "in": "en Espagne",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Italie",
+      "en": "Italy",
+      "in": "en Italie",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Allemagne",
+      "en": "Germany",
+      "in": "en Allemagne",
+      "gender": "f"
+    },
+    {
+      "fr": "l'Autriche",
+      "en": "Austria",
+      "in": "en Autriche",
+      "gender": "f"
+    }
+  ],
+  "rules": [
+    {
+      "lead": "Five masculine, twelve feminine",
+      "body": "The five <em>le</em> countries take <strong>au</strong>. Everything else on this list takes <strong>en</strong> — and an <em>l'</em> country is feminine, so it is <em>en</em> too."
+    }
+  ],
+  "notes": [
+    {
+      "lead": "Learn the pair, never the country alone",
+      "body": "<em>le Japon</em> on its own is half a fact. The card that matters is <em>Japan → au Japon</em>, because that is what the test asks for."
+    }
+  ],
+  "exercises": [
+    "r-a",
+    "w-a",
+    "w-c",
+    "w-e"
+  ]
+}

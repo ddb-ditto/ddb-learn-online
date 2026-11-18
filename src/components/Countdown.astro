@@ -1,0 +1,36 @@
+---
+/**
+ * How long until a test.
+ *
+ * Worked out when the page is built, not in the browser: the site is static,
+ * and a number that is right for whoever deployed it and wrong for whoever
+ * reads it tomorrow would be worse than none. The page is rebuilt on every
+ * push, and the `datetime` attribute carries the real date either way.
+ *
+ * Once a test is past it says so rather than vanishing. A section that
+ * silently loses a page looks broken, and there is no harm in his seeing that
+ * the speaking test is behind him.
+ */
+interface Props { date: string; }
+const { date } = Astro.props;
+
+const DAY = 24 * 60 * 60 * 1000;
+const midnight = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+
+const when = new Date(`${date}T00:00:00Z`);
+const days = Math.round((midnight(when) - midnight(new Date())) / DAY);
+
+const long = when.toLocaleDateString("en-GB", {
+  weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
+});
+
+const label =
+  days > 1 ? `${days} days to go` :
+  days === 1 ? "Tomorrow" :
+  days === 0 ? "Today" :
+  "Done";
+---
+<p class:list={["countdown", days < 0 && "past", days >= 0 && days <= 3 && "soon"]}>
+  <time datetime={date}>{long}</time>
+  <span class="left">{label}</span>
+</p>

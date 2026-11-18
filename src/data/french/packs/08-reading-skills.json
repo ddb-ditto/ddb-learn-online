@@ -1,0 +1,33 @@
+{
+  "number": 8,
+  "slug": "reading-skills",
+  "title": "Reading skills",
+  "standfirst": "How to read a French text that has words you have never seen.",
+  "summary": "Cognates, context and punctuation — the three ways into an unknown text.",
+  "tests": [
+    "reading"
+  ],
+  "rules": [
+    {
+      "lead": "Cognates — words that look like English",
+      "body": "<em>touristes</em>, <em>monument</em>, <em>populaire</em>, <em>visité</em>, <em>cuisine</em>. If it looks like an English word, it probably is one. Guess it and read on."
+    },
+    {
+      "lead": "Context — use the words around it",
+      "body": "<em>Chaque année, des millions de touristes…</em> — you may not know <em>chaque</em>, but <em>année</em> and <em>millions de touristes</em> make “every year” the only sensible reading."
+    },
+    {
+      "lead": "Punctuation — it tells you the kind of sentence",
+      "body": "A <em>?</em> marks a question and a <em>!</em> marks an exclamation. A capital letter starts a name or a sentence. In an answer-in-English task that is often enough to know what is being asked."
+    }
+  ],
+  "notes": [
+    {
+      "lead": "Two tasks on the paper are exactly this",
+      "body": "The teacher said a couple of tasks check general reading skills on language that has not been taught. Nothing to learn by heart — this is a method, and the way to get it is to do R-E a few times."
+    }
+  ],
+  "exercises": [
+    "r-e"
+  ]
+}

@@ -1,0 +1,25 @@
+---
+/**
+ * One practice exercise. The heading and the introduction are rendered here;
+ * everything inside is built by the bundled module from the JSON below, so a
+ * new exercise is a new data file and nothing else.
+ */
+import type { CollectionEntry } from "astro:content";
+
+interface Props { exercise: CollectionEntry<"frenchExercises">; }
+const { exercise } = Astro.props;
+const ex = exercise.data;
+---
+<section class="exercise" data-exercise id={`ex-${ex.id}`}>
+  <h3>{ex.title}</h3>
+  {ex.intro && <p class="exintro" set:html={ex.intro} />}
+
+  <noscript>
+    <p class="exintro">This exercise needs JavaScript. The vocabulary and the rules
+    above it do not, and the flashcards print on paper.</p>
+  </noscript>
+
+  <div class="ex-body"></div>
+
+  <script type="application/json" class="ex-data" set:html={JSON.stringify(ex)} is:inline />
+</section>

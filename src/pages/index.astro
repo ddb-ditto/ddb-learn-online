@@ -13,20 +13,38 @@ const reference = (await getCollection("reference")).sort(
 const units = await getCollection("units");
 const sessions = await getCollection("sessions");
 
+const frenchPacks = await getCollection("frenchPacks");
+const frenchTests = (await getCollection("frenchTests")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
 const built = new Map(units.map((u) => [u.data.number, u]));
 const countFor = (n: number) => sessions.filter((s) => s.data.unit === n).length;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 <Base
   logo
-  title="Italian GCSE — contents"
-  eyebrow="Pearson Edexcel GCSE Italian · 1IN0"
-  heading="Italian at home"
-  standfirst="A two-year course taught at home, built unit by unit."
-  description="A two-year Pearson Edexcel GCSE Italian (1IN0) course taught at home: lesson pages, flashcards and printable progress sheets, free to read."
+  title="Contents"
+  eyebrow="Learning at home"
+  heading="Lessons and flashcards"
+  standfirst="A two-year Italian GCSE course, and a Year&nbsp;7 French revision section."
+  description="Lesson pages, flashcards and printable sheets: a two-year Pearson Edexcel GCSE Italian (1IN0) course taught at home, and Year 7 French revision."
 >
 
-  <Section kicker="Start here">The course</Section>
+  <Section kicker="Year 7 French">Revision for the class tests</Section>
+  <p>Ten short packs and a page for each test — the words, the rules, flashcards that
+  print, and practice that marks itself.</p>
+
+  <CardGrid>
+    <CardLink
+      title="Year 7 French"
+      href={`${base}/french/year-7/`}
+      note={`${frenchTests.length} tests · ${frenchPacks.length} packs`}
+    >Everything to revise for the speaking, reading and writing tests, with the next
+    test first.</CardLink>
+  </CardGrid>
+
+  <Section kicker="Italian GCSE">The two-year course</Section>
   <CardGrid>
     {reference.map((r) => (
       <CardLink title={r.data.title} href={`${base}/reference/${r.id}/`} note={r.data.kind}>
@@ -39,7 +57,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     </CardLink>
   </CardGrid>
 
-  <Section kicker="Unit by unit">Lessons and flashcards</Section>
+  <Section kicker="Unit by unit">Italian, unit by unit</Section>
   <p>Each unit is a lesson plan and a matching set of flashcards. The flashcards are a study app on
   screen — tap a card to turn it over — and printable fold-over cards if you print the page.</p>
 
@@ -61,7 +79,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   </CardGrid>
 
   <footer slot="footer">
-    <span>Pearson Edexcel GCSE Italian 1IN0</span>
+    <span>Pearson Edexcel GCSE Italian 1IN0 · Year 7 French</span>
     <span>Taught at home</span>
   </footer>
 </Base>

@@ -1,0 +1,58 @@
+{
+  "number": 6,
+  "slug": "would-like-to-live",
+  "title": "Where I'd like to live",
+  "standfirst": "<em>Dans le futur, je voudrais habiter…</em> — and the three mistakes it invites.",
+  "summary": "The sentence that gets the top mark, plus a reason with parce que.",
+  "tests": [
+    "speaking",
+    "reading",
+    "writing"
+  ],
+  "vocab": [
+    {
+      "fr": "Où voudrais-tu habiter ?",
+      "en": "Where would you like to live?"
+    },
+    {
+      "fr": "Je voudrais habiter en Espagne.",
+      "en": "I would like to live in Spain."
+    },
+    {
+      "fr": "Dans le futur, je voudrais habiter…",
+      "en": "In the future, I would like to live…"
+    },
+    {
+      "fr": "…parce qu'il fait chaud.",
+      "en": "…because it's hot."
+    }
+  ],
+  "rules": [
+    {
+      "lead": "After voudrais, the verb ends -er",
+      "body": "<em>je voudrais <strong>habiter</strong></em>, never <em>habite</em>. Two verbs in a row and the second one stays in its -er form."
+    },
+    {
+      "lead": "le futur, not la futur",
+      "body": "<em>Dans <strong>le</strong> futur</em>. He has written <em>la futur</em> before, and it is on the tricky spellings list for that reason."
+    },
+    {
+      "lead": "The same à / en / au rule as Pack 4",
+      "body": "Nothing new to learn here — <em>habiter <strong>en</strong> Espagne</em>, <em>habiter <strong>au</strong> Japon</em>, exactly as before."
+    }
+  ],
+  "notes": [
+    {
+      "lead": "This is the two-mark sentence",
+      "body": "A full sentence with a connective and a reason is what the speaking mark scheme is asking for. <em>Dans le futur, je voudrais habiter en Italie parce qu'il fait chaud</em> does all of it at once."
+    }
+  ],
+  "exercises": [
+    "r-a",
+    "r-b",
+    "w-a",
+    "w-b",
+    "w-c",
+    "w-e"
+  ]
+}

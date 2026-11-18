@@ -1,0 +1,42 @@
+{
+  "id": "r-c",
+  "kind": "truefalse",
+  "part": "reading",
+  "title": "True or false?",
+  "intro": "Read it once through, then answer. Look back as much as you like — that is what the real paper lets you do.",
+  "text": "Bonjour ! Je m'appelle Chloé. J'ai onze ans. J'habite à Bruxelles, en Belgique. J'ai un frère, il s'appelle Tom. Il a seize ans. Aujourd'hui, ça va mal. Dans le futur, je voudrais habiter en Espagne parce qu'il fait chaud.",
+  "items": [
+    {
+      "statement": "Chloé is 11.",
+      "answer": true
+    },
+    {
+      "statement": "She lives in France.",
+      "answer": false,
+      "because": "Belgium"
+    },
+    {
+      "statement": "Her brother is called Tom.",
+      "answer": true
+    },
+    {
+      "statement": "Tom is 6.",
+      "answer": false,
+      "because": "16 — <em>seize</em>, not <em>six</em>"
+    },
+    {
+      "statement": "She feels good today.",
+      "answer": false,
+      "because": "<em>ça va mal</em> — not well"
+    },
+    {
+      "statement": "She would like to live in Spain.",
+      "answer": true
+    },
+    {
+      "statement": "She wants to live there because it is cold.",
+      "answer": false,
+      "because": "<em>il fait chaud</em> — it's hot"
+    }
+  ]
+}

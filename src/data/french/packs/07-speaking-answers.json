@@ -1,0 +1,99 @@
+{
+  "number": 7,
+  "slug": "speaking-answers",
+  "title": "My speaking answers",
+  "standfirst": "The five questions and the five answers, learned until they come out without thinking.",
+  "summary": "Each answer is a full sentence with something extra in it, because that is what scores two.",
+  "tests": [
+    "speaking"
+  ],
+  "answers": [
+    {
+      "q": "Comment tu t'appelles ?",
+      "a": "Je m'appelle Sam. Ma sœur s'appelle Lily. Et toi ?",
+      "en": "My name is Sam. My sister is called Lily. And you?"
+    },
+    {
+      "q": "Ça va ?",
+      "a": "Ça va très bien, merci. Et toi ?",
+      "en": "I'm very well, thank you. And you?"
+    },
+    {
+      "q": "Tu habites où ? Dans quel pays ?",
+      "a": "J'habite à Bridgend, au Pays de Galles.",
+      "en": "I live in Bridgend, in Wales."
+    },
+    {
+      "q": "Où voudrais-tu habiter ?",
+      "a": "Dans le futur, je voudrais habiter en Italie parce qu'il fait chaud.",
+      "en": "In the future I'd like to live in Italy because it's hot."
+    },
+    {
+      "q": "Quel âge as-tu ?",
+      "a": "J'ai douze ans. Mon anniversaire, c'est le quinze mars.",
+      "en": "I'm 12. My birthday is 15 March."
+    }
+  ],
+  "sounds": [
+    {
+      "fr": "habite",
+      "say": "ah-beet",
+      "why": "the h is silent"
+    },
+    {
+      "fr": "habiter",
+      "say": "ah-bee-tay",
+      "why": "the h is silent"
+    },
+    {
+      "fr": "ans",
+      "say": "on",
+      "why": "don't say the last letter"
+    },
+    {
+      "fr": "pays",
+      "say": "pay-ee",
+      "why": "don't say the last letter"
+    },
+    {
+      "fr": "trente",
+      "say": "tront",
+      "why": "don't say the last letter"
+    },
+    {
+      "fr": "douze",
+      "say": "dooz",
+      "why": "ou = “oo”"
+    },
+    {
+      "fr": "voudrais",
+      "say": "voo-dray",
+      "why": "ou = “oo”"
+    },
+    {
+      "fr": "toi",
+      "say": "twah",
+      "why": "oi = “wah”"
+    },
+    {
+      "fr": "Galles",
+      "say": "gal",
+      "why": "don't say the last letter"
+    }
+  ],
+  "rules": [
+    {
+      "lead": "What turns one mark into two",
+      "body": "A full sentence rather than a word. A connective — <em>et</em>, <em>parce que</em>. Something about somebody else. A question back: <em>Et toi ?</em> And the sounds said right."
+    }
+  ],
+  "notes": [
+    {
+      "lead": "If the class answers are different, use his",
+      "body": "These are a worked version built from the five questions. If what he prepared in class differs, his are the ones to learn — the test is answering from memory, and two sets of words is worse than one."
+    }
+  ],
+  "exercises": [
+    "speaking-practice"
+  ]
+}

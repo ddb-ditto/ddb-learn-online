@@ -145,6 +145,31 @@ with sync_playwright() as pw:
             ("/french/year-7/", "is-french", "logo-french.png", "the Year 7 French mark"),
         )
 
+        def strings_in(o):
+            """Every string in a pack, however deeply it is nested."""
+            if isinstance(o, dict):
+                for v in o.values():
+                    yield from strings_in(v)
+            elif isinstance(o, list):
+                for v in o:
+                    yield from strings_in(v)
+            elif isinstance(o, str):
+                yield o
+            elif isinstance(o, (int, float)):
+                yield str(o)
+
+        def bare_form(t: str) -> str:
+            """What `packexercises.ts` strips a sentence down to."""
+            flat_t = unicodedata.normalize("NFD", t.replace("\u00a0", " ").lower())
+            flat_t = "".join(c for c in flat_t if unicodedata.category(c) != "Mn")
+            flat_t = flat_t.replace("'", "").replace("\u2019", "")
+            return " ".join(re.sub(r"[^a-z0-9 ]", " ", flat_t).split())
+
+        def words_of(t: str) -> list[str]:
+            """The tiles `packexercises.ts` cuts a sentence into."""
+            return [w for w in (x.strip(".,").strip()
+                                for x in t.replace("\u00a0", " ").split()) if w]
+
         def mark_reserves_right_space(img, what: str) -> None:
             """The width and height attributes against the file's own shape.
 
@@ -602,25 +627,56 @@ with sync_playwright() as pw:
         # happened to produce an accented word, and a check that sometimes does
         # nothing reads exactly like one that passed.
         page.goto(f"{ROOT}/french/year-7/packs/greetings/")
-        wd = page.locator("#ex-w-d")
+        # The greetings pack derives its own punctuation drill from its own
+        # sentences now, so the id is the derived one.
+        wd = page.locator("#ex-own-punctuation")
         if wd.count() == 0:
             fails.append("the greetings pack has no punctuation drill")
         else:
             items = page.evaluate("""() => JSON.parse(
-                document.querySelector('#ex-w-d .ex-data').textContent).items""")
+                document.querySelector('#ex-own-punctuation .ex-data').textContent).items""")
 
             def drill(answer: str) -> str:
                 wd.locator(".exinput").fill(answer)
                 wd.get_by_text("Check").click()
                 return wd.locator(".exresult").inner_text()
 
-            said = drill(items[0]["answer"])
-            notes.append(f"punctuation drill: {items[0]['answer']!r} → {said.splitlines()[0]!r}")
-            if "Correct" not in said:
-                fails.append(f"the right answer {items[0]['answer']!r} was marked wrong: {said!r}")
+            def wanted() -> str:
+                """The answer to the question actually on screen.
 
-            wd.get_by_text("Next").click()
-            want = items[1]["answer"]                       # "Ça va ?"
+                The drill is shuffled and derived from the pack, so the item
+                at index 0 of the data is not the one being asked. Reading the
+                prompt off the page and looking it up is the only way this
+                stays true to what somebody is looking at.
+                """
+                shown = wd.locator(".exprompt").inner_text().strip()
+                for it in items:
+                    if it["prompt"].strip() == shown:
+                        return it["answer"]
+                return ""
+
+            first = wanted()
+            if not first:
+                fails.append("could not find the answer to the question on screen")
+                first = items[0]["answer"]
+            said = drill(first)
+            notes.append(f"punctuation drill: {first!r} → {said.splitlines()[0]!r}")
+            if "Correct" not in said:
+                fails.append(f"the right answer {first!r} was marked wrong: {said!r}")
+
+            # Step on until the question on screen is one with an accent in its
+            # answer, so the near-miss test has something to drop.
+            want = ""
+            for _ in range(len(items)):
+                wd.get_by_text("Next").click()
+                page.wait_for_timeout(60)
+                cand = wanted()
+                if cand and (unicodedata.normalize("NFD", cand)
+                             .encode("ascii", "ignore").decode("ascii")) != cand:
+                    want = cand
+                    break
+                if cand:
+                    drill(cand)               # answer it so Next appears again
             flat = (unicodedata.normalize("NFD", want)
                     .encode("ascii", "ignore").decode("ascii"))
             if flat == want:
@@ -639,9 +695,10 @@ with sync_playwright() as pw:
             # And the two things that are forgiven, because they are the keyboard
             # rather than the French.
             page.reload()
-            wd = page.locator("#ex-w-d")
-            forgiving = items[0]["answer"].replace("'", "\u2019").replace(" !", "!")
-            if forgiving != items[0]["answer"]:
+            wd = page.locator("#ex-own-punctuation")
+            on_screen = wanted() or items[0]["answer"]
+            forgiving = on_screen.replace("'", "\u2019").replace(" !", "!")
+            if forgiving != on_screen:
                 wd.locator(".exinput").fill(forgiving)
                 wd.get_by_text("Check").click()
                 said = wd.locator(".exresult").inner_text()
@@ -917,7 +974,13 @@ with sync_playwright() as pw:
         for pack_file in sorted(packs_dir.glob("*.json")):
             pack = json.loads(pack_file.read_text(encoding="utf-8"))
             slug = pack["slug"]
-            raw = json.dumps(pack, ensure_ascii=False)
+            # Walk the parsed data rather than scanning the JSON text. A regex
+            # over the text loses its quote pairing on any string longer than
+            # it allows for, and silently stops finding the later ones.
+            own = list(strings_in(pack))
+            own_flat = {t.replace("\u00a0", " ") for t in own}
+            own_bare = {bare_form(t) for t in own}
+            own_words = {w for t in own for w in words_of(t)}
             page.goto(f"{ROOT}/french/year-7/packs/{slug}/")
             page.wait_for_timeout(400)
             found = page.evaluate("""() => {
@@ -930,21 +993,37 @@ with sync_playwright() as pw:
             }""")
             for ex in found:
                 items = ex.get("items") or []
-                key = tuple(str(i.get("prompt", "")) for i in items)
-                if key:
+                # Key on whatever the exercise actually asks, not on prompts
+                # alone: an `order` exercise has tiles and no prompt, and a
+                # `reveal` may have questions, so keying on prompts made every
+                # one of them look identical to every other.
+                key = tuple(
+                    str(i.get("prompt") or i.get("question") or i.get("statement")
+                        or " ".join(i.get("tiles") or []) or i.get("answer") or "")
+                    for i in items)
+                if key and any(k for k in key):
                     sets_seen.setdefault(key, []).append(f"{slug}/{ex['id']}")
                 if not str(ex["id"]).startswith("own-"):
                     continue
                 derived_seen += 1
                 for it in items:
-                    for field in ("prompt", "answer"):
-                        v = str(it.get(field, ""))
-                        if not v or v.isdigit():
-                            continue          # a number's gloss is its digit
-                        if v not in raw and v.replace("\u00a0", " ") not in raw:
-                            fails.append(f"{slug}/{ex['id']}: {v!r} is not in that "
-                                         f"pack's own data — a derived exercise "
-                                         f"invented French")
+                    vals = [str(it.get("prompt", "")), str(it.get("answer", ""))]
+                    vals += [str(t) for t in (it.get("tiles") or [])]
+                    for v in vals:
+                        if not v:
+                            continue
+                        w = v.replace("\u00a0", " ")
+                        # Three ways a derived string is the pack's own: as it
+                        # stands; stripped of its accents, marks and capitals,
+                        # which is what the punctuation drill prompts with; or
+                        # as one word of a sentence, which is what the ordering
+                        # tiles are. Anything else was invented.
+                        if w in own_flat or w in own_bare or w in own_words:
+                            continue
+                        fails.append(f"{slug}/{ex['id']}: {v!r} is not in that "
+                                     f"pack's own data, nor a stripped or split "
+                                     f"form of it — a derived exercise invented "
+                                     f"French")
         notes.append(f"derived exercises built from their own pack: {derived_seen}")
         if derived_seen < 6:
             fails.append(f"only {derived_seen} derived exercises found — the packs "
@@ -1384,9 +1463,11 @@ with sync_playwright() as pw:
             ctx.close()
 
         page.goto(f"{ROOT}/french/year-7/packs/greetings/")
-        wd = page.locator("#ex-w-d")
+        # The greetings pack derives its own punctuation drill from its own
+        # sentences now, so the id is the derived one.
+        wd = page.locator("#ex-own-punctuation")
         answers = page.evaluate("""() => JSON.parse(
-            document.querySelector('#ex-w-d .ex-data').textContent).items""")
+            document.querySelector('#ex-own-punctuation .ex-data').textContent).items""")
         if wd.get_by_text("← Back").count() == 0:
             fails.append("the typed drill has no Back button")
             answers = []                       # nothing below can be driven

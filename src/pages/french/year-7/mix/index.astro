@@ -36,7 +36,14 @@ const cards = packs.flatMap((pack) =>
 );
 
 const exercises = await getCollection("frenchExercises");
-const mixed = ["w-a", "r-a"]
+/**
+ * The across-all-packs practice, which is what this page is for.
+ *
+ * Each pack now builds its own from its own words, so these shared files are
+ * no longer on any pack page — they live here, where mixing is the point.
+ * Every one of them draws on all ten packs at once.
+ */
+const mixed = ["r-a", "w-a", "w-c", "w-b", "w-d", "w-e"]
   .map((id) => exercises.find((e) => e.data.id === id))
   .filter((e) => e !== undefined);
 

@@ -247,11 +247,26 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   Making some up would be inventing French that is wrong on purpose, which is
   further from the notebook than inventing French that is right.
 
-  Four exercises are still shared, named in `SHARED_ON_PURPOSE` in the check
-  with a reason each, so that a *new* duplication fails. Three of them —
-  word order, translation, punctuation — need whole sentences split or
-  stripped, which is derivable from what the packs already hold and simply is
-  not done yet.
+  Six are derived: *What does it mean?*, *Spell it*, *Translate into French*,
+  *Put the words in order*, *Put the punctuation back* and *Spot the mistake*.
+  A string qualifies as the pack's own in exactly three ways, and the check
+  knows all three: as it stands; **stripped** of its accents, apostrophes,
+  hyphens, capitals and end marks, which is what the punctuation drill prompts
+  with; or as one **word** of one of its sentences, which is what the ordering
+  tiles are. Anything else was invented.
+
+  A pack's words and its sentences are drilled separately and never both —
+  under three tiles it is a word to spell, three or more and it is a sentence
+  to translate and to put in order — so nothing on a page is asked twice under
+  two headings. *Spot the mistake* is the one that cannot be derived: it needs
+  misspellings, and only the tricky-spellings pack has any. That pack also
+  feeds its correct spellings to the punctuation drill, because otherwise its
+  single accented words — *très*, *ça va*, *j'habite* — would have nothing to
+  drill against.
+
+  **Testing across all ten packs at once is on *Mix it up*, and that is where
+  the shared files live now.** They are on no pack page. A pack asks about its
+  own page; mixing is a thing you choose.
 - **A wrong answer is highlighted only when the highlight points at
   something.** The character diff is for a missing accent or a dropped hyphen.
   Given an answer nowhere near the right one it finds whatever letters happen

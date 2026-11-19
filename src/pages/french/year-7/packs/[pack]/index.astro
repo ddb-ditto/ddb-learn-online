@@ -16,7 +16,6 @@ import { ownExercises } from "../../../../../lib/packexercises";
 import Note from "../../../../../components/Note.astro";
 import Rule from "../../../../../components/Rule.astro";
 import PageNav from "../../../../../components/PageNav.astro";
-import ReadingMode from "../../../../../components/ReadingMode.astro";
 import FrenchAudio from "../../../../../components/FrenchAudio.astro";
 import TestBadges from "../../../../../components/TestBadges.astro";
 import WordTable from "../../../../../components/WordTable.astro";
@@ -76,7 +75,6 @@ const cardCount = cardCountFor(p);
 
   <p class="packtime">About {p.minutes} minutes</p>
 
-  <ReadingMode />
 
   <FrenchAudio />
 
@@ -180,18 +178,10 @@ const cardCount = cardCountFor(p);
   )}
 
   {p.notes?.map((n) => (
-    n.audience === "parent" ? (
-      <div class="note forparent">
-        <span class="who">For whoever is helping</span>
-        <span class="lead" set:html={n.lead} />
-        <p set:html={n.body} />
-      </div>
-    ) : (
-      <details class="note aside" open>
-        <summary><span class="lead" set:html={n.lead} /></summary>
-        <p set:html={n.body} />
-      </details>
-    )
+    <details class="note aside">
+      <summary><span class="lead" set:html={n.lead} /></summary>
+      <p set:html={n.body} />
+    </details>
   ))}
 
   {practice.length > 0 && (

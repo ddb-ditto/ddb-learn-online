@@ -13,7 +13,6 @@ import Section from "../../../components/Section.astro";
 import CardGrid from "../../../components/CardGrid.astro";
 import CardLink from "../../../components/CardLink.astro";
 import Countdown from "../../../components/Countdown.astro";
-import ReadingMode from "../../../components/ReadingMode.astro";
 
 const tests = (await getCollection("frenchTests")).sort((a, b) => a.data.order - b.data.order);
 const packs = (await getCollection("frenchPacks")).sort((a, b) => a.data.number - b.data.number);
@@ -31,7 +30,6 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
     { label: "Year 7 French" },
   ]} />
 
-  <ReadingMode />
 
   <Section kicker="The tests">What is coming</Section>
 
@@ -46,7 +44,7 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
     ))}
   </div>
 
-  <details class="note aside" open>
+  <details class="note aside">
     <summary><span class="lead">Where to start</span></summary>
     <p>Open the next test and work down its list — that order, not number
     order.</p>

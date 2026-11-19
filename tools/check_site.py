@@ -1968,106 +1968,109 @@ with sync_playwright() as pw:
         if page.locator("#printsheets .sheet").count() == 0:
             fails.append("the French cards build no print sheets")
 
-            # ----------------------------------------------------------------------
-        # "Just what I need"
+        # ----------------------------------------------------------------------
+        # Notes, folded
         # ----------------------------------------------------------------------
         #
-        # Three things have to hold: it starts off, it actually removes the
-        # commentary, and it never touches the material. The last is the one
-        # worth guarding — a switch that quietly hid the vocabulary would be a
-        # disaster that looked like a feature.
-        # Find a pack that actually carries a note for the parent rather than
-        # naming one: which packs have one is content, and content moves. This
-        # check was pinned to the speaking-answers pack and broke the day that
-        # pack's note was rewritten for the learner — a check failing because
-        # the content improved is a check in the wrong place.
-        with_parent_note = None
-        for slug in ("name-and-age", "numbers", "speaking-answers", "culture",
-                     "greetings", "where-i-live"):
-            page.goto(f"{ROOT}/french/year-7/packs/{slug}/")
-            if page.locator(".note.forparent").count():
-                with_parent_note = slug
-                break
-        if with_parent_note is None:
-            # Intended: the French pages carry nothing written for the parent
-            # any more. The switch keeps the ability to hide one, so the
-            # search stays — it just no longer finds anything, and that is
-            # reported rather than failed. The page the switch is then driven
-            # on is the last one visited above, which has notes of the other
-            # kind and exercises to leave alone.
-            notes.append("reading mode: no pack carries a note for the parent, "
-                         "which is intended — nothing on these pages is "
-                         "addressed to one")
+        # Every note on these pages is a <details> that starts shut: the
+        # heading is what tells him whether he wants the rest, and the words
+        # and the drills below are what he came for.
+        #
+        # There used to be a switch — "Just what I need" — that folded them
+        # all at once and hid the ones written for a parent. Both have gone:
+        # nothing here is addressed to a parent any more, so the switch had
+        # half a job left, and folding by default does the other half without
+        # asking him to find a control first.
+        #
+        # Three things to hold. They start shut; they open when he asks; and
+        # the fold never reaches the material. The last is the one worth
+        # guarding — a fold that quietly took the vocabulary with it would be
+        # a disaster that looked like a feature.
+        page.goto(f"{ROOT}/french/year-7/packs/culture/")
+        if page.locator("#plainmode").count():
+            fails.append("the reading-mode switch is back; the notes fold by "
+                         "themselves now")
+        folded = page.locator("details.note.aside")
+        if folded.count() == 0:
+            fails.append("no folding note on a pack that has notes — this check "
+                         "has nothing to drive")
         else:
-            notes.append(f"reading mode checked on the {with_parent_note!r} pack")
+            notes.append(f"notes on the culture pack: {folded.count()}")
+            for n in range(folded.count()):
+                one = folded.nth(n)
+                if one.evaluate("e => e.open"):
+                    fails.append(f"note {n + 1} starts open")
+                if not one.locator("summary").is_visible():
+                    fails.append(f"note {n + 1} folds its own heading away, so "
+                                 f"there is nothing to say what is inside")
+                # Shut means the body is not on screen. `open` is an attribute
+                # and a class could override what it does, so measure.
+                if one.locator("p").first.is_visible():
+                    fails.append(f"note {n + 1} has the open attribute off and "
+                                 f"its body on screen anyway")
 
-        switch = page.locator("#plainmode")
-        if switch.count() == 0:
-            fails.append("no reading-mode switch on a pack page")
-        elif with_parent_note is None:
-            # There is no note written for the parent anywhere in the section
-            # any more, so the half of this check that drives one cannot run.
-            # Said out loud rather than skipped in silence: a check that
-            # quietly stops testing looks exactly like one that passes, and
-            # the switch still hides parent notes if one is ever written.
-            notes.append("reading mode: no parent note exists, so the "
-                         "hide-the-parent's-note half of this check did not "
-                         "run — only the folding below was tested")
-        else:
-            if switch.is_checked():
-                fails.append("the reading-mode switch starts on; a parent should see everything")
-            if not page.locator(".note.forparent").is_visible():
-                fails.append("a note for the parent is hidden before the switch is used")
-            words = lambda: len(page.inner_text("main").split())
-            before, answers, drills = words(), page.locator(".qa li").count(), page.locator(".exercise").count()
+            # And it opens when asked, or the writing is unreachable.
+            first = folded.first
+            first.locator("summary").click()
+            page.wait_for_timeout(120)
+            if not first.evaluate("e => e.open"):
+                fails.append("a note does not open when its heading is pressed")
+            if not first.locator("p").first.is_visible():
+                fails.append("a note opens but its body is still not on screen")
 
-            switch.check()
-            after = words()
-            notes.append(f"reading mode: {before} words → {after} ({before - after} fewer)")
-            if page.locator(".note.forparent").is_visible():
-                fails.append("the parent's note survives the switch")
-            if after >= before:
-                fails.append(f"the switch removes nothing ({before} → {after} words)")
-            if page.locator(".qa li").count() != answers:
-                fails.append("the switch removed some of the answers — it must only take prose")
-            if page.locator(".exercise").count() != drills:
-                fails.append("the switch removed an exercise")
-            # Visibility, not presence. `display: none` leaves the element in
-            # the DOM, so counting it proves nothing — the same trap as the
-            # `hidden` attribute, met twice now.
+            # The fold takes prose and nothing else.
             for keep, what in ((".words", "a word table"),
                                (".exintro", "an exercise's instructions"),
-                               (".qa", "the model answers")):
-                shown = page.locator(keep).count() and page.locator(keep).first.is_visible()
-                if page.locator(keep).count() and not shown:
-                    fails.append(f"the switch hides {what} — it must only take prose")
+                               (".qa", "the model answers"),
+                               (".exercise", "an exercise")):
+                here = page.locator(keep)
+                if here.count() and not here.first.is_visible():
+                    fails.append(f"{what} is hidden on a pack page — only the "
+                                 f"notes fold")
 
-            # It has to survive the walk to the next pack, or it is set per page.
-            page.goto(f"{ROOT}/french/year-7/packs/countries/")
-            if not page.locator("#plainmode").is_checked():
-                fails.append("the reading-mode choice is forgotten between pages")
-            if not page.evaluate("document.documentElement.hasAttribute('data-plain')"):
-                fails.append("reading mode is applied late — the notes would flash up first")
-            folded = page.locator("details.note.aside")
-            if folded.count() == 0:
-                fails.append("a learner's note cannot fold")
-            elif folded.first.evaluate("e => e.open"):
-                fails.append("a learner's note stays open with the switch on")
-            elif not folded.first.locator("summary").is_visible():
-                fails.append("a folded note hides its heading too — it should be one tap from open")
+            # On paper a closed <details> prints as its heading alone, so a
+            # printed pack would lose every note it has. That became true the
+            # day the notes stopped being open by default, and a rule written
+            # for the old behaviour — `display: block !important` on the
+            # paragraph — printed nothing at all: `display` does not reach
+            # inside a closed <details>, because what the browser leaves
+            # unrendered is the element's own content slot and not its
+            # children.
+            #
+            # Two things fix it, and each is checked on its own, because
+            # either one alone would hold and a dead half looks exactly like
+            # a live one. `::details-content` in the print stylesheet, which
+            # addresses that slot but is a recent pseudo-element; and a
+            # listener in Base.astro that opens the notes for the print and
+            # shuts them again after, which every browser has.
+            for js_on, how in ((True, "with scripts"), (False, "with scripts off")):
+                pc = b.new_context(viewport={"width": 390, "height": 844},
+                                   java_script_enabled=js_on)
+                pp = pc.new_page()
+                try:
+                    pp.goto(f"{ROOT}/french/year-7/packs/culture/")
+                    pp.wait_for_timeout(250)
+                    note = pp.locator("details.note.aside").first
+                    if note.locator("p").first.is_visible():
+                        fails.append(f"a note is open on screen [{how}], so the "
+                                     f"print check below proves nothing")
+                        continue
+                    pp.emulate_media(media="print")
+                    pp.wait_for_timeout(200)
+                    if not note.locator("p").first.is_visible():
+                        fails.append(f"a folded note prints as its heading "
+                                     f"alone [{how}] — the whole note is lost "
+                                     f"on paper")
+                    else:
+                        notes.append(f"print [{how}]: folded notes come back")
+                    # And the page he returns to is the one he left.
+                    pp.emulate_media(media="screen")
+                    pp.wait_for_timeout(200)
+                    if js_on and note.locator("p").first.is_visible():
+                        fails.append("the notes stay open after printing")
+                finally:
+                    pc.close()
 
-            # And wherever the switch is offered it must do something.
-            for path in ("/french/year-7/", "/french/year-7/tests/writing/"):
-                page.goto(f"{ROOT}{path}")
-                if page.locator("#plainmode").count() == 0:
-                    continue
-                if page.locator("details.note.aside, .note.forparent").count() == 0:
-                    fails.append(f"{path} offers the switch with nothing for it to act on")
-
-            page.goto(f"{ROOT}/french/year-7/packs/countries/")
-            page.locator("#plainmode").uncheck()
-            if not page.locator("details.note.aside").first.evaluate("e => e.open"):
-                fails.append("switching off does not unfold the notes again")
 
         # ----------------------------------------------------------------------
         # The Leitner box

@@ -114,25 +114,16 @@ const reference = defineCollection({
 const part = z.enum(["speaking", "reading", "writing"]);
 
 /**
- * A lead and a body, as the Note and Warn components take them, plus who it
- * is talking to.
+ * A note on a pack page: a heading and a paragraph, folded shut until it is
+ * wanted.
  *
- * The Italian course does not need this: every word of it is addressed to
- * whoever is teaching, and the child never opens it. A revision pack is used
- * by a twelve-year-old on his own, and four of the ten carried a note written
- * about him in the third person — "if his class answers differ, use his" —
- * with nothing to say it was not meant for him. So the audience is declared
- * and the page shows it.
- *
- * This is deliberately not the Note component's `child` flag, which means
- * something else: an aside to the teacher about handling one child
- * differently.
+ * There used to be an `audience` on this, and a switch that hid the ones
+ * written for a parent. Neither is here now: the section carries nothing
+ * addressed to a parent, so there was nothing for the switch to hide and
+ * nothing for the field to distinguish. If prose for a parent is ever wanted
+ * again it needs both back, and the argument made in CLAUDE.md first.
  */
-const aside = z.object({
-  lead: z.string(),
-  body: z.string(),
-  audience: z.enum(["learner", "parent"]).default("learner"),
-});
+const aside = z.object({ lead: z.string(), body: z.string() });
 
 const frenchPacks = defineCollection({
   loader: glob({ pattern: "**/*.json", base: "./src/data/french/packs" }),

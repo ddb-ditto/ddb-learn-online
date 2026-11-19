@@ -88,6 +88,44 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
     that, and so a browser with no JavaScript still follows the device.
   */}
   <script is:inline>
+    /**
+     * Open every folded note while the page is being printed.
+     *
+     * The notes on the French pages are closed by default, and a browser
+     * prints a closed <details> as its heading alone — so without this a
+     * printed pack loses every note it has. No CSS rule on the children
+     * reaches it, because what the browser leaves unrendered is the
+     * element's own content slot; `::details-content` addresses that slot
+     * but is recent, so the stylesheet handles the browsers that have it and
+     * this handles the rest.
+     *
+     * Restored afterwards, or the page he goes back to is not the one he
+     * left. matchMedia is listened to as well as beforeprint because a print
+     * *preview* changes the media without firing the event.
+     */
+    (function () {
+      var opened = [];
+      function open() {
+        opened = [].slice.call(
+          document.querySelectorAll("details.note.aside:not([open])"));
+        for (var i = 0; i < opened.length; i++) opened[i].open = true;
+      }
+      function shut() {
+        for (var i = 0; i < opened.length; i++) opened[i].open = false;
+        opened = [];
+      }
+      window.addEventListener("beforeprint", open);
+      window.addEventListener("afterprint", shut);
+      if (window.matchMedia) {
+        var mq = window.matchMedia("print");
+        var changed = function (e) { if (e.matches) { open(); } else { shut(); } };
+        if (mq.addEventListener) mq.addEventListener("change", changed);
+        else if (mq.addListener) mq.addListener(changed);
+      }
+    })();
+  </script>
+
+  <script is:inline>
     (function () {
       try {
         var saved = window.localStorage.getItem("theme");

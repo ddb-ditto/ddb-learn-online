@@ -1093,27 +1093,16 @@ footer a { color: var(--ink-faint); }
   margin: 0 0 1.4rem;
 }
 
-/* A note written about the learner rather than to him. The packs are used
-   alone, so one that says "if his class answers differ" has to say on its
-   face that it is not addressed to the reader. */
-.note.forparent { border-left-style: dashed; }
-.note.forparent .who {
-  display: block;
-  font-family: var(--sans); font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-faint); margin-bottom: 0.45rem;
-}
-
 /* The flag beside a country. Decorative to a screen reader — the country's
    name is right next to it and says the same thing. */
 .countries .flag { margin-right: 0.5rem; font-size: 1.05em; }
 
-/* ---------- "Just what I need" ------------------------------------------ */
+/* ---------- notes, folded ------------------------------------------------ */
 
-/* A note for the parent is not the learner's to read past. In plain mode it
-   goes; the switch brings it back. */
-:root[data-plain] .note.forparent { display: none; }
-
+/* A note is shut until it is wanted. It used to be open, with a switch that
+   folded every one of them at once; the switch has gone and the fold is the
+   default, because the heading is what tells him whether he wants the rest
+   and the words and drills below it are what he came for. */
 /* A learner's note folds to its heading rather than disappearing: it is still
    his, and still one tap away. */
 details.note.aside { padding-top: 0.75rem; padding-bottom: 0.75rem; }
@@ -1132,11 +1121,21 @@ details.note.aside[open] > summary { margin-bottom: 0.5rem; }
 details.note.aside > p:last-child { margin-bottom: 0; }
 
 @media print {
-  /* On paper there is no switch to undo, so everything prints — including the
-     body of a note that is folded shut on screen, which a browser would
-     otherwise leave out. */
-  :root[data-plain] .note.forparent { display: block; }
+  /* Every note is folded shut on screen, and a browser prints a closed
+     <details> as its summary alone — so on paper the bodies are forced back
+     open. Without this a printed pack loses every note it has. */
   details.note.aside > summary::after { content: ""; }
+  /* `display` does not reach inside a closed <details>: it is the element's
+     own content slot the browser leaves unrendered, not the children, so a
+     rule on the <p> does nothing at all. This is the slot, and it works
+     where ::details-content exists. The script in Base.astro covers the
+     browsers where it does not — measured, not assumed: a plain
+     `display: block !important` on the paragraph was there first and printed
+     nothing. */
+  details.note.aside::details-content {
+    content-visibility: visible !important;
+    display: block !important;
+  }
   details.note.aside > p { display: block !important; }
 }
 

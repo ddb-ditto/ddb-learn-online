@@ -16,7 +16,6 @@ import CardLink from "../../../../../components/CardLink.astro";
 import Countdown from "../../../../../components/Countdown.astro";
 import Exercise from "../../../../../components/Exercise.astro";
 import Warn from "../../../../../components/Warn.astro";
-import ReadingMode from "../../../../../components/ReadingMode.astro";
 import FrenchAudio from "../../../../../components/FrenchAudio.astro";
 import Plain from "../../../../../components/Plain.astro";
 
@@ -51,7 +50,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     { label: t.title },
   ]} />
 
-  <ReadingMode />
 
   <FrenchAudio />
 
@@ -82,7 +80,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       )}
 
       {s.advice && (
-        <details class="note aside" open>
+        <details class="note aside">
           <summary><span class="lead">From the teacher</span></summary>
           <p set:html={s.advice} />
         </details>

@@ -221,13 +221,16 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   `Countdown.astro` are exempt from the no-calendar-years rule; everything else
   in `src/` still is. Keep the dates in the test data, not in a template.
 - **No progress is stored.** Exercises mark in memory and forget: there is no
-  account and no score that outlives the tab. Five things are kept in
+  account and no score that outlives the tab. Four things are kept in
   `localStorage`, each a setting rather than a judgement, each a deliberate
-  exception written down here — the colour theme, the reading switch
-  (`fr7:plain`), which Leitner box a French card is in, which voice reads the
-  French aloud (`fr7:voice`) and how fast it reads (`fr7:rate`). Nothing that describes how he did is stored,
-  and nothing stored leaves the device. Anything new in there needs a line in
-  this list or it is a mistake.
+  exception written down here — the colour theme, which Leitner box a French
+  card is in, which voice reads the French aloud (`fr7:voice`) and how fast it
+  reads (`fr7:rate`). Nothing that describes how he did is stored, and nothing
+  stored leaves the device. Anything new in there needs a line in this list or
+  it is a mistake.
+
+  There were five. `fr7:plain` remembered the reading switch, which has gone
+  — see the folded-notes rule below.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
   from the pack's word list. Add a word to a pack and its card appears.
 - **A pack's practice is derived too, and invents no French.**
@@ -423,11 +426,11 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   left on his revision. Both that existed — *why the alphabet is here*, *why
   it stops at 31* — were explanations of why the material is the way it is,
   which is a thing for this file to record and not for his page to carry. The
-  `audience: "parent"` field and the switch that hides it both stay, because
-  the next one that gets written may earn its place; `check_site.py` now says
-  out loud that it could not test that half rather than passing in silence,
-  which is the difference between a check that is satisfied and one that has
-  quietly stopped looking.
+  `audience` field and the switch that hid it are both gone too: with no note
+  of that kind left, the switch had nothing to hide and the field nothing to
+  distinguish, and a flag that no data sets and no code acts on is worse than
+  no flag. If prose for a parent is ever wanted here again it needs both put
+  back, and the argument made in this file first.
 
   *Explaining itself*: the run page had **190 words of its 248** telling him
   that wrong answers come round again — which the bar, the button and the
@@ -458,14 +461,26 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   one. `similarity()` in `marking.ts` gates it: under a half, print the answer
   plain. Measured on the real pack data, genuine near misses score 0.71 and
   above and nonsense scores under 0.15.
-- **"Just what I need" takes prose, never material.** `ReadingMode.astro` is
-  a switch, remembered across the French section, that hides the notes written
-  for the parent and folds the ones written for the learner down to their
-  heading. It must never touch a word table, a rule, an exercise or an
-  exercise's instructions — those are what he came for, and an exercise intro
-  is how to play it, not commentary. `check_site.py` asserts that by
-  visibility, not by counting elements: `display: none` leaves them in the DOM.
-  It is off by default, because a parent opening a pack should see all of it.
+- **Notes are folded shut, and there is no switch.** Every note on a French
+  page is a `<details>` that starts closed: the heading says what is inside
+  and the body is one tap away. There was a switch — *Just what I need* — that
+  folded them all at once and hid the ones written for a parent. It has gone,
+  and both halves of the reason matter. Nothing here is addressed to a parent
+  any more, so half its job had already disappeared; and folding by default
+  does the other half without asking him to find a control first. A setting
+  that nearly everybody wants nearly always is not a setting, it is a default.
+
+  **The fold takes prose and nothing else.** Never a word table, a rule, an
+  exercise or an exercise's instructions — those are what he came for, and an
+  exercise intro is how to play it, not commentary. `check_site.py` asserts
+  that by visibility, not by counting elements: `display: none` leaves them in
+  the DOM.
+
+  **A closed `<details>` prints as its heading alone**, so without help a
+  printed pack would lose every note it has. The print stylesheet forces them
+  open and the check drives it under `emulate_media("print")` rather than
+  trusting the rule to be there. That mattered less when they were open by
+  default; it is load-bearing now.
 - **A pack never says what the learner got wrong.** It is read by the person
   it was written for, so a page saying "twelve things he has actually got
   wrong" tells him that about himself every time he opens it — and the words
@@ -871,6 +886,25 @@ white again.
   check identifies something by what is on the screen, a feature whose point
   is an empty screen will break it, and it breaks as a hang rather than as a
   failure.
+- **`display` does not reach inside a closed `<details>`.** What the browser
+  leaves unrendered is the element's own content slot, not its children, so
+  `details > p { display: block !important }` does exactly nothing — the
+  computed style of that paragraph is `block` while nothing is on screen. It
+  is the `[hidden]` lesson inverted: there the style lied by saying shown,
+  here it lies by saying shown while the element has no box at all. The
+  measure that tells the truth is the box: `is_visible()`, or
+  `getClientRects().length`.
+
+  This mattered the moment the notes started folding by default. A closed
+  `<details>` prints as its heading alone, so every printed pack would have
+  lost every note — and the print rule written for the old behaviour was that
+  very `display: block !important`, which had been correct when the notes
+  were open and became a no-op the day they were not. Two things fix it now:
+  `::details-content` in the print stylesheet, which addresses the slot but is
+  a recent pseudo-element, and a `beforeprint`/`matchMedia` listener in
+  `Base.astro` that opens the notes and shuts them again. `check_site.py`
+  drives printing twice, once with scripts off, because either half alone
+  would hold and a dead half looks exactly like a live one.
 - **A surgical slice of a file takes everything between the two anchors.**
   `s[:s.index(start)] + s[s.index(end):]` removed four rules nobody meant to
   touch, because the block being removed was not the only thing before the

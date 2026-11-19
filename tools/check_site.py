@@ -894,6 +894,76 @@ with sync_playwright() as pw:
                 ctx.close()
         notes.append(f"voice cases driven: {len(VOICE_CASES)}")
 
+        # --- voices that arrive late ----------------------------------------
+        #
+        # The bug this exists for was reported as "the icons show on my phone
+        # but not on my laptop", and that is exactly what it was. iOS has
+        # `getVoices()` populated by the time the first script runs; Chrome and
+        # Firefox on a desktop fill it after the page has loaded, and sometimes
+        # fill it without announcing it at all. The gate answered once — first
+        # `voiceschanged`, or a 1.5s timeout, whichever came first — and then
+        # held that answer for the life of the page, so a laptop with French
+        # voices all along showed none of the 35 speakers on a pack.
+        #
+        # Nothing threw and nothing looked broken: a page with no speakers is
+        # exactly what a device with no French voice is supposed to look like.
+        LATE_STUB = """
+        (voices, delay, announce) => {
+          let ready = false, ls = [];
+          const all = voices.map(v => ({name: v[0], lang: v[1],
+                                        localService: true, default: false}));
+          const stub = {
+            getVoices: () => (ready ? all : []),
+            cancel: () => {},
+            speak: u => (window.__spoken = window.__spoken || []).push({rate: u.rate}),
+            addEventListener: (t, f) => { if (t === 'voiceschanged') ls.push(f); },
+            removeEventListener: (t, f) => { ls = ls.filter(g => g !== f); },
+          };
+          Object.defineProperty(window, 'speechSynthesis',
+                                { value: stub, configurable: true });
+          Object.defineProperty(window, 'SpeechSynthesisUtterance',
+                                { value: function (t) { this.text = t; },
+                                  configurable: true });
+          setTimeout(() => { ready = true; if (announce) ls.forEach(f => f()); }, delay);
+        }
+        """
+        for label, delay, announce in (
+            ("straight away, as on iOS", 0, True),
+            ("after 2.5s, announced", 2500, True),
+            ("after 2.5s, never announced", 2500, False),
+        ):
+            ctx = b.new_context(viewport={"width": 390, "height": 844})
+            vp = ctx.new_page()
+            try:
+                vp.add_init_script(
+                    f"({LATE_STUB})({json.dumps([['Thomas', 'fr-FR']])}, {delay}, "
+                    f"{json.dumps(announce)})")
+                vp.goto(f"{ROOT}/french/year-7/packs/greetings/")
+                vp.wait_for_timeout(delay + 2600)
+                total = vp.locator(".sayit").count()
+                shown = vp.evaluate(
+                    """() => Array.from(document.querySelectorAll('.sayit'))
+                         .filter(x => getComputedStyle(x).display !== 'none').length""")
+                notes.append(f"voices {label}: {shown}/{total} speakers shown")
+                if total == 0:
+                    fails.append(f"voices [{label}]: no speakers on the page at all — "
+                                 f"this case is checking nothing")
+                elif shown != total:
+                    fails.append(f"voices [{label}]: {shown} of {total} speakers shown — "
+                                 f"the voice list was read once and never again")
+                row = vp.locator("#fraudio")
+                if not (row.count() and row.first.is_visible()):
+                    fails.append(f"voices [{label}]: the audio controls never appeared")
+                elif vp.locator("#fr-speed option").count() != 3:
+                    fails.append(f"voices [{label}]: the speed menu has "
+                                 f"{vp.locator('#fr-speed option').count()} options — "
+                                 f"being told twice built it twice")
+            except Exception as why:
+                fails.append(f"the late-voice checks crashed on [{label}]: "
+                             f"{str(why).splitlines()[0]}")
+            finally:
+                ctx.close()
+
         # --- how fast it reads ---------------------------------------------
         #
         # The speed is a setting rather than a constant because the right one

@@ -82,28 +82,42 @@ export function chosenVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoic
 }
 
 /**
- * Run `ready` once the voice list is populated, or once it is clear there is
- * nothing coming.
+ * Tell `fn` what voices there are now, and again every time that changes.
  *
- * `getVoices()` returns an empty array on the first call in Chrome and fills
- * in later, announced by `voiceschanged`. A browser with genuinely no voices
- * never fires that event, and so would leave a caller waiting forever — hence
- * the timeout, after which an empty list is the honest answer and the button
- * stays hidden.
+ * It used to answer once: the first `voiceschanged`, or a timeout, and then
+ * the answer was fixed for the life of the page. That worked on iOS, where
+ * `getVoices()` is populated by the time the first script runs, and failed
+ * on a laptop, where it is not. Chrome and Firefox fill the list after the
+ * page has loaded and fire `voiceschanged` when they do — sometimes twice,
+ * once for the installed voices and again for the network ones — and
+ * anything arriving after that single moment was never seen. Every speaker
+ * stayed hidden for good on a machine that had French voices all along.
+ *
+ * So `fn` is called straight away with whatever is known, again on every
+ * announcement, and again at a few points over the next few seconds for the
+ * browsers that fill the list without announcing anything. It must therefore
+ * be safe to run repeatedly: it is told the current state, not handed an
+ * event.
  */
-export function whenVoicesReady(ready: () => void, waitMs = 1500): void {
-  if (!("speechSynthesis" in window)) { ready(); return; }
-  if (window.speechSynthesis.getVoices().length) { ready(); return; }
+const watchers: (() => void)[] = [];
+let listening = false;
 
-  let done = false;
-  const once = () => {
-    if (done) return;
-    done = true;
-    window.speechSynthesis.removeEventListener("voiceschanged", once);
-    ready();
-  };
-  window.speechSynthesis.addEventListener("voiceschanged", once);
-  window.setTimeout(once, waitMs);
+/** When to look again, in ms. Stops after a few seconds; voices do not
+ *  appear out of nowhere ten minutes into a page. */
+const PROBES = [250, 700, 1500, 3000, 6000];
+
+const tellEveryone = (): void => { for (const f of watchers) f(); };
+
+export function onVoicesReady(fn: () => void): void {
+  watchers.push(fn);
+  if (!("speechSynthesis" in window)) { fn(); return; }
+
+  if (!listening) {
+    listening = true;
+    window.speechSynthesis.addEventListener("voiceschanged", tellEveryone);
+    for (const ms of PROBES) window.setTimeout(tellEveryone, ms);
+  }
+  fn();                                   // with what is known this instant
 }
 
 /**
@@ -159,27 +173,6 @@ export function speak(text: string, voice: SpeechSynthesisVoice): void {
 }
 
 /* -------------------------------------------------------------- the speakers */
-
-/**
- * One wait, shared.
- *
- * A pack page can carry fifty French words, each with its own speaker. Each
- * one calling `whenVoicesReady` would attach fifty `voiceschanged` listeners
- * and set fifty timers for the same answer, so the wait happens once and
- * everybody is told.
- */
-let waiting: (() => void)[] | null = [];
-
-export function onVoicesReady(fn: () => void): void {
-  if (waiting === null) { fn(); return; }        // already settled
-  waiting.push(fn);
-  if (waiting.length > 1) return;                // somebody is already waiting
-  whenVoicesReady(() => {
-    const queue = waiting!;
-    waiting = null;
-    for (const f of queue) f();
-  });
-}
 
 /**
  * The voice everything on the page speaks with, re-read each time so that

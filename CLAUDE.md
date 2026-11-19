@@ -308,6 +308,24 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   really does — `getVoices()` is empty on the first call and announced by
   `voiceschanged`.
 
+  **Ask the voice list again, and keep asking.** This was reported as "the
+  icons show on my phone but not on my laptop", and that is exactly what it
+  was. iOS has `getVoices()` populated by the time the first script runs;
+  Chrome and Firefox on a desktop fill it after the page has loaded, announce
+  it with `voiceschanged` — sometimes twice, once for the installed voices and
+  again for the network ones — and sometimes fill it without announcing
+  anything. The gate answered once, on the first announcement or a 1.5s
+  timeout, and held that answer for the life of the page, so a laptop with
+  French voices all along showed none of the 35 speakers on a pack.
+
+  Nothing threw and nothing looked wrong, because a page with no speakers is
+  precisely what a device with no French voice is supposed to look like. So
+  `onVoicesReady` now tells its callers the current state straight away, again
+  on every announcement, and again at five points over the first six seconds.
+  Its callers are told a state, not handed an event, so each one must be safe
+  to run repeatedly — the audio controls needed a guard, or a second
+  announcement appended a second set of options to both menus.
+
   If pre-recorded audio is ever added, this becomes the fallback rather than
   the main event, and a missing clip is what it falls back to.
 - **`lang="fr"` is what makes something speakable, and that is the whole

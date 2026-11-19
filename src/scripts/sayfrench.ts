@@ -71,9 +71,15 @@ function attachControls(): void {
   const speed = document.getElementById("fr-speed") as HTMLSelectElement | null;
   if (!row || !speed) return;
 
+  let built = false;
   onVoicesReady(() => {
     const voices = frenchVoices();
     if (!voices.length) return;                  // nothing speaks; nothing to set
+    // Told again every time the voice list changes, so this has to be safe to
+    // run twice: without the guard a second announcement would append a second
+    // set of options to both menus.
+    if (built) return;
+    built = true;
 
     for (const s of SPEEDS) {
       const o = document.createElement("option");

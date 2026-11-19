@@ -360,6 +360,40 @@ and its eyebrow said it a third time, so the heading is now "French at school"
 home and one revised for school. `check_site.py` fails if a heading matches
 its mark's alt text.
 
+**A supplied cut-out is not a cut-out until it has been looked at.** The DDB
+wordmark arrived as a PNG with an alpha channel already set, and the alpha was
+wrong: strictly binary, 0 or 255 with nothing between, and whole patches of
+the green card left opaque — a circle bottom left, another bottom right, a
+patch above the second D. They read as olive smudges on cream and holes on
+navy. Corner alpha would never have found them, because the corners were
+already clear. `dechroma()` keys the card out on two tests, because neither
+catches the other's case: any pixel where green beats both other channels,
+and any pixel within 100 in RGB of the card's own colour, which finds the
+blended edge pixels whose green no longer dominates. Then it clamps green to
+the larger of the other two channels, which removes the keyed-image rim and
+touches nothing else — in red, blue, yellow, black and white, green is always
+the middle channel or the smallest.
+
+**"Is it green?" is not the test; "is it *that* green?" is.** The first
+version of the check failed a correct file 424 times. Yellow blended with
+blue makes green, this artwork has yellow shapes against blue ones, and every
+downscale averages the boundary. The check measures distance from the card's
+sampled colour instead.
+
+**Quantise the alpha with the colour, not beside it.** `quantise()` used to
+split the alpha off and put a full eight-bit channel back afterwards. On flat
+artwork that costs nothing; on comic halftone, where every dot is its own
+island of alpha, it cost five times the file — 256 KB against 49 KB for
+output that differs by a mean of three parts in 255 over either theme. On the
+page everybody loads first.
+
+**Pillow's `resize` already handles alpha.** The usual advice is that it
+averages the colour behind transparent pixels into the ones beside them and
+that you must premultiply by hand. A hand-rolled premultiply was written,
+measured against a plain `thumbnail` and found byte-for-byte identical, so it
+was taken back out. A guard that prevents nothing, with a comment saying it
+prevents something, is worse than no guard.
+
 **A wordmark drawn on white has to have the white cut away**, or it is a
 glaring rectangle on the dark theme — and that is invisible while you work in
 the light one. `make_icons.transparent()` floods inward from the border and

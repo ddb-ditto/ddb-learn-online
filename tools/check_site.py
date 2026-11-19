@@ -170,6 +170,78 @@ with sync_playwright() as pw:
                 fails.append(f"the site logo renders at {round(box['width'])}px wide")
             if "italian" in (site_mark.get_attribute("alt") or "").lower():
                 fails.append("the site logo's alt text still names one subject")
+            nat = site_mark.evaluate("e => [e.naturalWidth, e.naturalHeight, e.complete]")
+            if not nat[2] or nat[0] == 0:
+                fails.append("the site logo did not load — the box is its width and "
+                             "height attributes, not the image")
+            else:
+                # The width and height attributes against the file's own
+                # shape. Comparing the *rendered* box would prove nothing:
+                # the stylesheet sets height:auto, so once the image has
+                # loaded the box takes the file's ratio whatever the
+                # attributes say. What the attributes decide is the space
+                # reserved *before* it loads, so a stale pair means the page
+                # jumps — and jumps only on the first, uncached visit, which
+                # is the one visit nobody tests.
+                attr = site_mark.evaluate(
+                    "e => [+e.getAttribute('width'), +e.getAttribute('height')]")
+                if attr[0] and attr[1] and abs(attr[0] / attr[1] - nat[0] / nat[1]) > 0.02:
+                    fails.append(f"the site logo reserves {attr[0]}x{attr[1]} for a file "
+                                 f"that is {nat[0]}x{nat[1]} — the page will jump as it "
+                                 f"loads")
+
+        # No green anywhere in either wordmark.
+        #
+        # The DDB artwork arrived as a PNG that had already been cut out, and
+        # cut out badly: binary alpha, and whole patches of the green card it
+        # was drawn on left opaque — a circle bottom left, another bottom
+        # right, a patch above the second D. On the cream theme they read as
+        # olive smudges and on the navy one as holes. Corners alone would
+        # never have caught it, because the corners were already clear.
+        #
+        # The test is proximity to that specific green, not greenness.
+        # "Any pixel where green beats the other two" was the first version
+        # and it is unsound: yellow blended with blue makes green, this
+        # artwork has yellow shapes against blue ones, and every downscale
+        # averages the boundary. It reported 424 failures on a correct file,
+        # all of them muted olive 90-100 away in RGB from the card's colour.
+        # What matters is whether the card itself is still there.
+        for name in ("logo-site.png", "logo-french.png"):
+            got = page.request.get(
+                f"http://127.0.0.1:{httpd.server_address[1]}{BASE}/{name}")
+            if got.status != 200:
+                fails.append(f"{name} is {got.status}")
+                continue
+            seen = page.evaluate("""async (bytes) => {
+                const blob = new Blob([new Uint8Array(bytes)], {type: 'image/png'});
+                const bmp = await createImageBitmap(blob);
+                const c = new OffscreenCanvas(bmp.width, bmp.height);
+                const g = c.getContext('2d');
+                g.drawImage(bmp, 0, 0);
+                const d = g.getImageData(0, 0, bmp.width, bmp.height).data;
+                const BG = [4, 164, 74], R = 100;
+                let solid = 0, edge = 0, opaque = 0;
+                for (let i = 0; i < d.length; i += 4) {
+                  const [r, gg, b, a] = [d[i], d[i+1], d[i+2], d[i+3]];
+                  if (a < 16) continue;
+                  opaque++;
+                  const far = Math.hypot(r - BG[0], gg - BG[1], b - BG[2]);
+                  if (far < R) { a > 200 ? solid++ : edge++; }
+                }
+                return {w: bmp.width, h: bmp.height, solid, edge, opaque};
+            }""", list(got.body()))
+            notes.append(f"{name}: {seen['solid']} background-green pixels in the "
+                         f"artwork, {seen['edge']} in its edges")
+            if seen["solid"]:
+                fails.append(f"{name} has {seen['solid']} opaque pixel(s) of the green "
+                             f"card it was drawn on — it was not fully keyed out")
+            # A rim of it on the edges is the other way this goes wrong: a
+            # resize that averages the colour behind transparent pixels into
+            # the ones beside them. One or two is rounding; a hundred is a halo.
+            if seen["edge"] > 50:
+                fails.append(f"{name} has {seen['edge']} edge pixels of the background "
+                             f"green — the resize bled it in from behind the "
+                             f"transparency")
 
         # The manifest used to be a static file carrying the old repository
         # name, so a rename broke the installed app and nothing said a word.

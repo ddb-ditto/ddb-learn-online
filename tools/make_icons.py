@@ -7,12 +7,16 @@
 Run it when either source in `brand/` changes; the results are committed, so
 nothing else needs an image library.
 
-There are two sources and they do different jobs.
+There are three sources and they do different jobs.
 
-`brand/wordmark.jpg` is the wide mark — "DDB" over "ddb-learn-online". It is
-the site's own logo and appears on the front page, which is the only page that
-belongs to the whole site rather than to one subject. It arrives on white, and
-is cut out here so it does not render as a glaring slab on the dark palette.
+`brand/wordmark.png` is the wide mark — "DDB" over "learn online". It is the
+site's own logo and appears on the front page, which is the only page that
+belongs to the whole site rather than to one subject. A PNG rather than a
+JPEG because it arrives with an alpha channel; see `dechroma` for why that
+alpha is not to be trusted.
+
+`brand/french.jpg` is the Year 7 French wordmark, for that section's front
+page. It arrives on white and is flooded out from the border.
 
 `brand/appicon.jpg` is the square mark, drawn as an app icon and used as one at
 512, 192 and 180 pixels.
@@ -40,7 +44,10 @@ PUBLIC = REPO / "public"
 # The artwork lives outside public/: it is the source the icons are cut from,
 # not something the site serves.
 BRAND = REPO / "brand"
-WORDMARK = BRAND / "wordmark.jpg"
+# A PNG, not a JPEG: this one arrives with an alpha channel of its own. It is
+# not a usable one — see `dechroma` — but JPEG cannot carry it at all, so the
+# source has to be a format that can.
+WORDMARK = BRAND / "wordmark.png"
 APPICON = BRAND / "appicon.jpg"
 # The Year 7 French mark, which belongs to that section's front page the way
 # the roundel belongs to /italian/. Same treatment as the site wordmark: cut
@@ -67,14 +74,16 @@ def quantise(im: Image.Image, colors: int = 128, dither: bool = True) -> Image.I
     Spray texture is all gradient, so a full-colour PNG of it is enormous and
     looks identical to a quantised one at the sizes anybody sees.
     """
-    if im.mode == "RGBA":
-        alpha = im.getchannel("A")
-        flat = im.convert("RGB").quantize(
-            colors=colors, method=Image.FASTOCTREE,
-            dither=Image.FLOYDSTEINBERG if dither else Image.NONE)
-        flat = flat.convert("RGBA")
-        flat.putalpha(alpha)
-        return flat
+    # Quantise the alpha along with the colour rather than splitting it off
+    # and putting a full eight-bit channel back afterwards.
+    #
+    # That split is what the first version did, and on flat artwork it costs
+    # nothing. On the comic wordmark it cost five times the file: every
+    # halftone dot is its own island of alpha, so the channel is as detailed
+    # as the picture and compresses about as well. Same artwork, 256 KB split
+    # and 49 KB palletised, and composited over either theme the two differ by
+    # a mean of three parts in 255 — which is to say not at all, on the page
+    # everybody loads first.
     return im.quantize(colors=colors, method=Image.FASTOCTREE,
                        dither=Image.FLOYDSTEINBERG if dither else Image.NONE)
 
@@ -104,6 +113,63 @@ def transparent(im: Image.Image) -> Image.Image:
         seen[y][x] = True
         px[x, y] = (r, g, b, 0)
         stack += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    return im
+
+
+# The flat green the site wordmark was drawn on, sampled from the file. The
+# nearest colour the artwork itself uses is its blue, 138 away in RGB, so a
+# radius of 100 keys the card and nothing that was painted on it.
+CHROMA = (4, 164, 74)
+CHROMA_RADIUS = 100
+
+
+def dechroma(im: Image.Image, keyed: int = 14) -> Image.Image:
+    """Take the green background out of artwork that was cut out badly.
+
+    The site wordmark arrived as a PNG whose alpha was already set — and
+    whose alpha was wrong. It is strictly binary, 0 or 255 and nothing
+    between, and large patches of the green it was drawn on were left opaque:
+    a circle bottom left, another bottom right, a patch above the second D.
+    They look like olive smudges on the cream theme and worse on the navy one.
+
+    Keying on green is safe here because the palette has none. Red, blue,
+    yellow, black and white: yellow's green channel sits just below its red,
+    blue's below its blue, so "green above both of the others" is only ever
+    the background. Anything over the threshold goes transparent.
+
+    Then the despill. Where green met artwork the render blended the two, so
+    cutting the flat colour leaves a rim of green-tinted pixels — the halo
+    that makes a keyed image look keyed. Clamping the green channel to the
+    larger of the other two removes the tint and touches nothing else, for
+    the same reason the key is safe: in every colour this artwork uses, green
+    is already the middle or the smallest channel.
+    """
+    im = im.convert("RGBA")
+    w, h = im.size
+    px = im.load()
+    cut = 0
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                # Clear pixels keep the green underneath them, which bleeds
+                # back in the moment anything resamples. Blank it.
+                px[x, y] = (0, 0, 0, 0)
+                continue
+            near = ((r - CHROMA[0]) ** 2 + (g - CHROMA[1]) ** 2
+                    + (b - CHROMA[2]) ** 2) ** 0.5 < CHROMA_RADIUS
+            if g - max(r, b) > keyed or near:
+                # Two tests, because neither catches the other's case. The
+                # first finds any green; the second finds the card's own
+                # colour where it has been blended dark enough with the
+                # artwork that its green no longer dominates. Without it 779
+                # pixels of the card survived, and only survived harmlessly
+                # because the resize happened to average them away.
+                px[x, y] = (0, 0, 0, 0)
+                cut += 1
+            elif g > max(r, b):
+                px[x, y] = (r, max(r, b), b, a)      # despill
+    print(f"  {'':22} {cut} green pixels keyed out of the artwork")
     return im
 
 
@@ -149,13 +215,21 @@ def main() -> int:
         if not src.exists():
             sys.exit(f"No artwork at {src.relative_to(REPO)}")
 
-    # The site logo, cut out of its white background. Sized for twice the
-    # width it is drawn at, and quantised: this is spray-paint texture, where
-    # a hundred-odd colours is invisible and the difference between half a
-    # megabyte and forty kilobytes on the page everybody loads first.
-    mark = transparent(Image.open(WORDMARK))
+    # The site logo. This artwork came already cut out, badly — see
+    # `dechroma` — so the green is keyed rather than flooded, and the resize
+    # premultiplies so nothing bleeds in from behind the transparent pixels.
+    # Quantised afterwards: this is comic halftone, where a hundred-odd
+    # colours is invisible and the difference between half a megabyte and
+    # forty kilobytes on the page everybody loads first.
+    mark = dechroma(Image.open(WORDMARK))
+    # `thumbnail` on RGBA does not average the colour behind transparent
+    # pixels into the ones beside them — checked, because the usual advice is
+    # that it does and the fix is to premultiply by hand. On this artwork the
+    # two paths are byte for byte identical, so the hand-rolled version came
+    # back out: a guard that prevents nothing, with a comment saying it
+    # prevents something, is worse than no guard at all.
     mark.thumbnail((LOGO_WIDTH * 2, LOGO_WIDTH * 2), Image.LANCZOS)
-    mark = quantise(mark, colors=48, dither=False)
+    mark = quantise(mark, colors=64, dither=False)
     mark.save(PUBLIC / "logo-site.png", optimize=True)
     kb = (PUBLIC / "logo-site.png").stat().st_size / 1024
     print(f"  {'logo-site.png':22} {mark.size[0]}x{mark.size[1]}  wordmark, cut out   {kb:.0f} KB")

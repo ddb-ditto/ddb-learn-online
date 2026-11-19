@@ -838,9 +838,15 @@ with sync_playwright() as pw:
                     if everywhere:
                         fails.append(f"voices [{label}]: {everywhere} speaker(s) shown on the "
                                      f"page with no French voice installed")
-                    picker = vp.locator(".exercise .exvoice")
+                    picker = vp.locator("#fr-voice")
                     if picker.count() and picker.first.is_visible():
                         fails.append(f"voices [{label}]: a voice picker with no French voice")
+                    # And not the speed control either: it would set the pace
+                    # of audio that cannot play.
+                    row = vp.locator("#fraudio")
+                    if row.count() and row.first.is_visible():
+                        fails.append(f"voices [{label}]: the audio controls are shown with "
+                                     f"no French voice to use them on")
                     continue
 
                 if not shown:
@@ -861,17 +867,23 @@ with sync_playwright() as pw:
                                  f"expected {want!r}")
                 if not is_fr(str(u["lang"])):
                     fails.append(f"voices [{label}]: utterance lang is {u['lang']!r}")
-                if u["rate"] != 0.9:
-                    fails.append(f"voices [{label}]: rate is {u['rate']!r}, not 0.9 — "
-                                 f"the default pace is too quick to copy")
+                # Not a fixed number any more: the speed is a setting, and
+                # which number is correct is the speed checks' business. What
+                # matters here is that it is deliberately below a
+                # conversational pace, which is the bug this caught before —
+                # the rate left at 1.
+                if not (0.5 <= u["rate"] < 1.0):
+                    fails.append(f"voices [{label}]: rate is {u['rate']!r} — the audio is "
+                                 f"not slowed below a conversational pace")
                 on_card = vp.locator("#ex-speaking-practice .exq").inner_text()
                 if flat(u["text"]) != flat(on_card):
                     fails.append(f"voices [{label}]: spoke {flat(u['text'])!r} while the "
                                  f"card showed {flat(on_card)!r}")
 
                 # The picker exists only where there is a choice. On a phone with
-                # one French voice it must not be rendered at all.
-                picker = vp.locator(".exercise .exvoice")
+                # one French voice it must not be rendered at all. It lives in
+                # the section's audio controls now, not inside one exercise.
+                picker = vp.locator("#fr-voice")
                 has_picker = picker.count() > 0 and picker.first.is_visible()
                 if len(french) > 1:
                     if not has_picker:
@@ -908,6 +920,75 @@ with sync_playwright() as pw:
             finally:
                 ctx.close()
         notes.append(f"voice cases driven: {len(VOICE_CASES)}")
+
+        # --- how fast it reads ---------------------------------------------
+        #
+        # The speed is a setting rather than a constant because the right one
+        # cannot be chosen from here: it depends on the voice the device
+        # happens to have and on how much French the listener already knows,
+        # and this machine has no voices to listen to at all. An earlier
+        # version picked 0.9 and justified it in a comment that had never been
+        # tested.
+        #
+        # The control appears wherever there is French and nowhere else. On a
+        # page with none — the section hub, which only lists the packs — it
+        # would set the pace of audio that cannot play, which is the dead
+        # button all over again.
+        for path, want in (("/french/year-7/packs/greetings/", True),
+                           ("/french/year-7/tests/writing/", True),
+                           ("/french/year-7/mix/", True),
+                           ("/french/year-7/", False),
+                           ("/units/1/", False)):
+            ctx = b.new_context(viewport={"width": 390, "height": 844})
+            vp = ctx.new_page()
+            try:
+                vp.add_init_script(
+                    f"({VOICE_STUB})({json.dumps([['Thomas', 'fr-FR']])}, false)")
+                vp.goto(f"{ROOT}{path}")
+                vp.wait_for_timeout(1700)
+                row = vp.locator("#fraudio")
+                shown = row.count() > 0 and row.first.is_visible()
+                french = vp.locator('[lang="fr"]').count()
+                if shown != want:
+                    fails.append(f"the audio controls are {'shown' if shown else 'absent'} "
+                                 f"on {path}, which has {french} French element(s)")
+                if not shown:
+                    continue
+                opts = vp.locator("#fr-speed option").all_inner_texts()
+                notes.append(f"audio controls on {path}: speeds {opts}")
+                if len(opts) < 2:
+                    fails.append(f"{path}: the speed control offers {len(opts)} step(s)")
+                if vp.locator("#fr-speed").input_value() != "slow":
+                    fails.append(f"{path}: the speed does not start on the slower setting")
+                # It has to actually reach the utterance, not just be stored.
+                sayit = vp.locator(".sayit").first
+                if sayit.count() == 0 or not sayit.is_visible():
+                    fails.append(f"{path}: no speaker to test the speed against")
+                    continue
+                sayit.click()
+                vp.wait_for_timeout(150)
+                said = vp.evaluate("window.__spoken || []")
+                if not said:
+                    fails.append(f"{path}: pressing a speaker said nothing")
+                elif said[-1]["rate"] != 0.75:
+                    fails.append(f"{path}: spoke at {said[-1]['rate']}, not the 0.75 the "
+                                 f"control is set to")
+                vp.locator("#fr-speed").select_option("slowest")
+                vp.wait_for_timeout(150)
+                sayit.click()
+                vp.wait_for_timeout(150)
+                said = vp.evaluate("window.__spoken || []")
+                if said and said[-1]["rate"] != 0.6:
+                    fails.append(f"{path}: choosing the slowest speed still spoke at "
+                                 f"{said[-1]['rate']}")
+                kept = vp.evaluate("localStorage.getItem('fr7:rate')")
+                if kept != "slowest":
+                    fails.append(f"{path}: the speed was not remembered (stored {kept!r})")
+            except Exception as why:
+                fails.append(f"the speed checks crashed on {path}: "
+                             f"{str(why).splitlines()[0]}")
+            finally:
+                ctx.close()
 
         # --- a speaker beside every bit of French, and beside nothing else ----
         #

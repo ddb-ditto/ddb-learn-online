@@ -107,13 +107,45 @@ export function whenVoicesReady(ready: () => void, waitMs = 1500): void {
 }
 
 /**
- * Say it.
+ * How fast it reads, as a setting rather than a number chosen here.
  *
- * Slower than the default, which is a conversational pace — too quick to copy
- * when the whole exercise is copying it. 0.9 is still natural; below about
- * 0.75 the synthesiser starts to distort the vowels, which defeats the object.
+ * It used to be a constant at 0.9, with a comment saying that below about
+ * 0.75 the synthesiser starts to distort the vowels. That comment was written
+ * from general knowledge and never tested — it could not be, since the
+ * machine these tools run on has no speech voices at all — so it has been
+ * taken out rather than left standing as though it were measured.
+ *
+ * Which is also the argument for a control instead of a better guess. The
+ * right speed depends on the voice the device happens to have and on how much
+ * French the listener already knows, and neither is knowable from here. Three
+ * steps, because a slider invites fiddling and the difference between 0.70
+ * and 0.72 is not a difference anybody can hear.
  */
-export const RATE = 0.9;
+export const SPEEDS = [
+  { id: "normal", label: "Normal", rate: 0.9 },
+  { id: "slow", label: "Slower", rate: 0.75 },
+  { id: "slowest", label: "Slowest", rate: 0.6 },
+] as const;
+
+/** Slower is the default: it is what was asked for, and it is easier to
+ *  follow a word you already know at a crawl than to miss one at speed. */
+const DEFAULT_SPEED = "slow";
+const RATE_KEY = "fr7:rate";
+
+export function speedId(): string {
+  let stored: string | null = null;
+  try { stored = window.localStorage.getItem(RATE_KEY); } catch { /* no storage */ }
+  return SPEEDS.some((s) => s.id === stored) ? stored! : DEFAULT_SPEED;
+}
+
+export function setSpeed(id: string): void {
+  if (!SPEEDS.some((s) => s.id === id)) return;
+  try { window.localStorage.setItem(RATE_KEY, id); } catch { /* holds for this page */ }
+}
+
+/** The rate to speak at now, read at the press so a change takes effect at once. */
+export const rate = (): number =>
+  (SPEEDS.find((s) => s.id === speedId()) ?? SPEEDS[1]).rate;
 
 export function speak(text: string, voice: SpeechSynthesisVoice): void {
   const u = new SpeechSynthesisUtterance(text);
@@ -121,7 +153,7 @@ export function speak(text: string, voice: SpeechSynthesisVoice): void {
   // Set alongside the voice: some engines consult `lang` for prosody even when
   // a voice is named, and a mismatch between the two is read as a conflict.
   u.lang = voice.lang;
-  u.rate = RATE;
+  u.rate = rate();
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
 }

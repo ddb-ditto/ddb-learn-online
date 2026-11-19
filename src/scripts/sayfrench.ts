@@ -24,7 +24,10 @@
  * will start speaking. That is the trade for not keeping a list, and
  * `check_site.py` counts the speakers per page so a jump shows up.
  */
-import { speaker, spoken } from "./speech";
+import {
+  currentVoice, frenchVoices, needsNetwork, onVoicesReady, remember,
+  setSpeed, speaker, speedId, SPEEDS, spoken,
+} from "./speech";
 
 /**
  * Where a speaker must never go, even inside something marked as French.
@@ -55,4 +58,65 @@ export function attachSpeakers(root: ParentNode = document): number {
   return made;
 }
 
+/**
+ * Fill in and switch on the audio controls, once it is known there is a voice.
+ *
+ * The row is hidden in the markup and only appears here, so a device with no
+ * French voice never sees a speed control for audio that will not play — the
+ * same rule the speakers themselves follow. The voice half appears only where
+ * there is more than one to choose between.
+ */
+function attachControls(): void {
+  const row = document.getElementById("fraudio");
+  const speed = document.getElementById("fr-speed") as HTMLSelectElement | null;
+  if (!row || !speed) return;
+
+  onVoicesReady(() => {
+    const voices = frenchVoices();
+    if (!voices.length) return;                  // nothing speaks; nothing to set
+
+    for (const s of SPEEDS) {
+      const o = document.createElement("option");
+      o.value = s.id;
+      o.textContent = s.label;
+      o.selected = s.id === speedId();
+      speed.appendChild(o);
+    }
+    speed.addEventListener("change", () => {
+      setSpeed(speed.value);
+      // Say something in the new speed, so choosing is also hearing.
+      const voice = currentVoice();
+      const sample = document.querySelector<HTMLElement>('[lang="fr"]');
+      if (voice && sample) {
+        import("./speech").then((m) => m.speak(spoken(sample.innerHTML), voice));
+      }
+    });
+
+    const wrap = document.getElementById("fr-voicewrap");
+    const pick = document.getElementById("fr-voice") as HTMLSelectElement | null;
+    if (wrap && pick && voices.length > 1) {
+      const chosen = currentVoice();
+      for (const v of voices) {
+        const o = document.createElement("option");
+        o.value = v.name;
+        o.textContent = v.name + (needsNetwork(v) ? " (needs wi-fi)" : "");
+        o.selected = chosen !== null && v.name === chosen.name;
+        pick.appendChild(o);
+      }
+      pick.addEventListener("change", () => {
+        remember(pick.value);
+        const voice = currentVoice();
+        const sample = document.querySelector<HTMLElement>('[lang="fr"]');
+        if (voice && sample) {
+          import("./speech").then((m) => m.speak(spoken(sample.innerHTML), voice));
+        }
+      });
+      wrap.hidden = false;
+    }
+
+    row.hidden = false;
+  });
+}
+
 attachSpeakers();
+attachControls();

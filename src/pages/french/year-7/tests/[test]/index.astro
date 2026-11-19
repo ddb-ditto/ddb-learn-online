@@ -17,6 +17,7 @@ import Countdown from "../../../../../components/Countdown.astro";
 import Exercise from "../../../../../components/Exercise.astro";
 import Warn from "../../../../../components/Warn.astro";
 import ReadingMode from "../../../../../components/ReadingMode.astro";
+import FrenchAudio from "../../../../../components/FrenchAudio.astro";
 import Plain from "../../../../../components/Plain.astro";
 
 export async function getStaticPaths() {
@@ -51,6 +52,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   ]} />
 
   <ReadingMode />
+
+  <FrenchAudio />
 
   <Countdown date={t.date} />
 

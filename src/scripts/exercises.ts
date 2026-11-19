@@ -15,10 +15,7 @@
  * turn the card over — never both at once.
  */
 import { NEAR_ENOUGH, diff, isCorrect, pick, shuffled, similarity } from "./marking";
-import {
-  chosenVoice, frenchVoices, needsNetwork, onVoicesReady, remember,
-  speak as speak_, speaker, spoken,
-} from "./speech";
+import { speaker, spoken } from "./speech";
 
 type Part = "speaking" | "reading" | "writing";
 
@@ -172,9 +169,6 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
   const reveal = button("Show the model answer");
   const answer = el("div", "exanswer");
   answer.hidden = true;
-  // Below the exercise, not in the button row: it is a setting, set once, and
-  // it should not sit where the thing you press every card sits.
-  const voiceRow = el("div", "exvoicerow");
 
   const step = stepper(() => items.length, () => i, (to) => { i = to; show(); },
                        { wrap: true });
@@ -210,34 +204,6 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     reveal.hidden = true;
   });
 
-  // The picker lives here because this is the exercise built around listening,
-  // but it sets the voice for every speaker on the page. Only rendered where
-  // the device has more than one French voice, which on most phones means not
-  // at all.
-  if (ex.speak.length) {
-    onVoicesReady(() => {
-      const voices = frenchVoices();
-      if (voices.length < 2) return;
-      let voice = chosenVoice(voices)!;
-      const pick = el("select", "exvoice");
-      pick.setAttribute("aria-label", "Which voice reads the French");
-      for (const v of voices) {
-        const o = el("option", undefined, v.name + (needsNetwork(v) ? " (needs wi-fi)" : ""));
-        o.value = v.name;
-        if (v.name === voice.name) o.selected = true;
-        pick.appendChild(o);
-      }
-      pick.addEventListener("change", () => {
-        voice = voices.find((v) => v.name === pick.value) ?? voice;
-        remember(voice.name);
-        // Say something in it, so choosing is also hearing. Every other
-        // speaker on the page re-reads the choice on its next press.
-        speak_(items[i]!.prompt, voice);
-      });
-      voiceRow.appendChild(pick);
-    });
-  }
-
   // Nothing here takes typing, so the arrow keys are free to do what they do
   // in the flashcard app.
   root.tabIndex = -1;
@@ -248,7 +214,7 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
 
   const row = el("div", "exrow");
   row.append(reveal);
-  stage.append(row, answer, voiceRow);
+  stage.append(row, answer);
   root.append(stage, step.nav);
   show();
 }

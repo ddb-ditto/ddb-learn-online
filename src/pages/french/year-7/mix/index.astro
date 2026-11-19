@@ -18,6 +18,7 @@ import Flashcards from "../../../../components/Flashcards.astro";
 import Exercise from "../../../../components/Exercise.astro";
 import Note from "../../../../components/Note.astro";
 import Section from "../../../../components/Section.astro";
+import FrenchAudio from "../../../../components/FrenchAudio.astro";
 import { cardsFor } from "../../../../lib/packcards";
 
 const packs = (await getCollection("frenchPacks")).sort(
@@ -53,6 +54,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     { label: "Year 7 French", href: `${base}/french/year-7/` },
     { label: "Mixed practice" },
   ]} />
+
+  <FrenchAudio />
 
   <Note lead={"Why this feels harder"}>
     <p>Working through one pack at a time feels like it is going well, because every

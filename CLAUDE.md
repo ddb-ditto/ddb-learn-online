@@ -215,11 +215,11 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   `Countdown.astro` are exempt from the no-calendar-years rule; everything else
   in `src/` still is. Keep the dates in the test data, not in a template.
 - **No progress is stored.** Exercises mark in memory and forget: there is no
-  account and no score that outlives the tab. Four things are kept in
+  account and no score that outlives the tab. Five things are kept in
   `localStorage`, each a setting rather than a judgement, each a deliberate
   exception written down here — the colour theme, the reading switch
-  (`fr7:plain`), which Leitner box a French card is in, and which voice reads
-  the French aloud (`fr7:voice`). Nothing that describes how he did is stored,
+  (`fr7:plain`), which Leitner box a French card is in, which voice reads the
+  French aloud (`fr7:voice`) and how fast it reads (`fr7:rate`). Nothing that describes how he did is stored,
   and nothing stored leaves the device. Anything new in there needs a line in
   this list or it is a mistake.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
@@ -268,6 +268,21 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   curly apostrophe and the space before `?` and `!`. Those two are keyboards,
   not French. `src/scripts/marking.ts` is the only place that decides this, and
   `check_site.py` drives it both ways in a browser.
+- **How fast it reads is a control, not a number chosen here.** It was a
+  constant at 0.9, with a comment claiming that below about 0.75 the
+  synthesiser distorts its vowels. That comment was written from general
+  knowledge and never tested, and could not be: this machine has no speech
+  voices at all. The right speed depends on the device's voice and on how much
+  French the listener already knows, neither of which is knowable from here,
+  so there are three steps — Normal, Slower, Slowest — and the default is
+  Slower. Three rather than a slider, because the difference between 0.70 and
+  0.72 is not a difference anybody can hear.
+- **The audio controls sit with the reading switch, not inside an exercise.**
+  Speed and voice govern every speaker in the section, so a control buried in
+  *Say it out loud* — one exercise, on one pack — set the pace for pages it
+  was not on. They are on every French page that has French on it, and on no
+  others: the section hub lists the packs and carries none, so a speed control
+  there would set the pace of audio that cannot play.
 - **The voice is the device's, and silence beats an English accent.** The
   audio is the browser's own synthesiser, so the only voices available are the
   ones already installed — a static site cannot ship one. `speech.ts` is the

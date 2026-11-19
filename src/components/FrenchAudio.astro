@@ -1,0 +1,50 @@
+---
+/**
+ * How the French sounds: how fast, and in which voice.
+ *
+ * It sits beside the reading switch because that is where this section keeps
+ * the things you set once and forget, and because audio is now on every page
+ * that has French on it — a control buried inside one exercise governed the
+ * whole section from a place most of it could not see. The voice picker used
+ * to live inside *Say it out loud*, which is the only exercise on one pack.
+ *
+ * Hidden until the page knows there is a French voice to use. A device with
+ * none gets no speakers either, so a speed control would be setting the pace
+ * of something that never plays. `sayfrench.ts` unhides it, fills it in and
+ * wires it up; with no JavaScript it stays hidden, which is correct, because
+ * without JavaScript nothing speaks.
+ *
+ * The voice half is hidden separately, because most phones carry exactly one
+ * French voice and a menu with one entry is furniture.
+ */
+---
+<div class="fraudio noprint" id="fraudio" hidden>
+  <span class="fraudio-item">
+    <label for="fr-speed">Speed</label>
+    <select id="fr-speed"></select>
+  </span>
+  <span class="fraudio-item" id="fr-voicewrap" hidden>
+    <label for="fr-voice">Voice</label>
+    <select id="fr-voice"></select>
+  </span>
+</div>
+
+<style>
+  /* Scoped styles do not reach what JavaScript creates, but everything here
+     is in the markup above — the options are appended to these selects, and
+     an <option> takes no styling of its own worth setting. */
+  .fraudio {
+    display: flex; flex-wrap: wrap; gap: 0.2rem 1rem;
+    align-items: center;
+    font-family: var(--sans); font-size: 0.78rem; color: var(--ink-faint);
+    margin: 0.4rem 0 1.2rem;
+  }
+  .fraudio-item { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .fraudio select {
+    font: inherit; color: var(--ink);
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 0.25rem 0.35rem; cursor: pointer;
+    max-width: 14rem;
+  }
+  .fraudio select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+</style>

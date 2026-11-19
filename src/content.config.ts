@@ -264,7 +264,14 @@ const frenchExercises = defineCollection({
       ...exerciseBase, kind: z.literal("prompt"),
       speakLang: z.string().optional(),
       items: z.array(z.object({
-        prompt: z.string(), answer: z.string(), en: z.string().optional(),
+        prompt: z.string(),
+        /**
+         * The question in English, shown beside it when the model answer is
+         * revealed. The French question sits alone at the top of the card, so
+         * somebody unsure what was being *asked* gets no help from an answer.
+         */
+        enPrompt: z.string().optional(),
+        answer: z.string(), en: z.string().optional(),
       })).min(1),
     }),
     /* Think, then turn over. Also unmarked. */

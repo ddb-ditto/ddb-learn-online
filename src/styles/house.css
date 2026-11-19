@@ -1132,3 +1132,67 @@ details.note.aside > p:last-child { margin-bottom: 0; }
   font-style: italic; font-size: 1rem;
   padding: 0.32rem 0; border-bottom: 1px solid var(--rule);
 }
+
+/* ---------- the two halves of a revealed model answer -------------------- */
+
+/*
+ * What was asked, then what to say. Tinting them differently is not
+ * decoration: the two are the same shape and the same size, and without it
+ * the eye has to read before it knows which is which.
+ *
+ * The yellow is the logo's. The green is not — green is what "this is the
+ * right one" looks like, and that is worth more than brand consistency in
+ * this one place.
+ */
+.exercise .exblock {
+  border-left: 3px solid transparent;
+  border-radius: 0 4px 4px 0;
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 0.6rem;
+}
+.exercise .exblock:last-child { margin-bottom: 0; }
+.exercise .exblock .fr { font-size: 1.08rem; margin: 0 0 0.2rem; }
+.exercise .exblock .en { margin: 0; }
+
+.exercise .exblock.asked {
+  background: rgba(254, 214, 2, 0.16);
+  border-left-color: #fed602;
+}
+.exercise .exblock.said {
+  background: rgba(63, 125, 63, 0.13);
+  border-left-color: #3f7d3f;
+}
+
+/* Over a near-black page a translucent tint goes muddy, so both are lightened
+   and the green shifted up to stay distinguishable from the yellow. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .exercise .exblock.asked { background: rgba(254, 214, 2, 0.13); }
+  :root:not([data-theme="light"]) .exercise .exblock.said  { background: rgba(110, 190, 110, 0.13); }
+}
+:root[data-theme="dark"] .exercise .exblock.asked { background: rgba(254, 214, 2, 0.13); }
+:root[data-theme="dark"] .exercise .exblock.said  { background: rgba(110, 190, 110, 0.13); }
+
+/* ---------- the three tests, in the three logo colours ------------------- */
+
+/*
+ * Colour standing for a category rather than for its own sake: a badge says
+ * which test it is by colour as well as by word, and the same three colours
+ * mean the same three things everywhere they appear.
+ *
+ * The blue is one shade down from the logo's #0b84e0, where white measured
+ * 3.9:1 — below the 4.5 this site holds itself to. At #0a6cb8 it is 5.5:1 and
+ * still reads as the same blue.
+ */
+.badge.part { border: 1px solid transparent; }
+.badge.part.speaking { background: #d81f26; color: #fff; }
+.badge.part.reading  { background: #fed602; color: #02122a; }
+.badge.part.writing  { background: #0a6cb8; color: #fff; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .badge.part.speaking { background: #ef5a5f; color: #171615; }
+  :root:not([data-theme="light"]) .badge.part.reading  { background: #fed602; color: #171615; }
+  :root:not([data-theme="light"]) .badge.part.writing  { background: #4aa6ef; color: #171615; }
+}
+:root[data-theme="dark"] .badge.part.speaking { background: #ef5a5f; color: #171615; }
+:root[data-theme="dark"] .badge.part.reading  { background: #fed602; color: #171615; }
+:root[data-theme="dark"] .badge.part.writing  { background: #4aa6ef; color: #171615; }

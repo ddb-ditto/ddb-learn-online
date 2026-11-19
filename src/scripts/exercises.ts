@@ -19,7 +19,7 @@ import { NEAR_ENOUGH, diff, isCorrect, pick, shuffled, similarity } from "./mark
 type Part = "speaking" | "reading" | "writing";
 
 interface Base { id: string; part: Part; title: string; intro?: string; shuffle: boolean; ask?: number; }
-interface PromptEx extends Base { kind: "prompt"; speakLang?: string; items: { prompt: string; answer: string; en?: string }[]; }
+interface PromptEx extends Base { kind: "prompt"; speakLang?: string; items: { prompt: string; enPrompt?: string; answer: string; en?: string }[]; }
 interface RevealEx extends Base { kind: "reveal"; text?: string; items: { prompt?: string; question?: string; answer: string }[]; }
 interface GapEx extends Base { kind: "gapfill"; bank: string[]; text: (string | { gap: string })[]; }
 interface TrueFalseEx extends Base { kind: "truefalse"; text?: string; items: { statement: string; answer: boolean; because?: string }[]; }
@@ -139,8 +139,20 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     const it = items[i]!;
     q.innerHTML = tight(it.prompt);
     answer.innerHTML = "";
-    say(answer, "p", "fr", it.answer);
-    if (it.en) say(answer, "p", "en", it.en);
+
+    // Both halves: what was asked, and what to say. The French question is at
+    // the top of the card on its own, so somebody who is not sure what it
+    // means gets nothing from the answer alone. The two blocks are tinted
+    // differently so a glance tells you which half you are looking at.
+    const asked = el("div", "exblock asked");
+    say(asked, "p", "fr", it.prompt);
+    if (it.enPrompt) say(asked, "p", "en", it.enPrompt);
+
+    const said = el("div", "exblock said");
+    say(said, "p", "fr", it.answer);
+    if (it.en) say(said, "p", "en", it.en);
+
+    answer.append(asked, said);
     answer.hidden = true;
     reveal.hidden = false;
     step.refresh(true);

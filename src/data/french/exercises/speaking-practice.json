@@ -10,27 +10,32 @@
     {
       "prompt": "Comment tu t'appelles ?",
       "answer": "Je m'appelle Sam. Ma sœur s'appelle Lily. Et toi ?",
-      "en": "My name is Sam. My sister is called Lily. And you?"
+      "en": "My name is Sam. My sister is called Lily. And you?",
+      "enPrompt": "What's your name?"
     },
     {
       "prompt": "Ça va ?",
       "answer": "Ça va très bien, merci. Et toi ?",
-      "en": "I'm very well, thank you. And you?"
+      "en": "I'm very well, thank you. And you?",
+      "enPrompt": "How are you?"
     },
     {
       "prompt": "Tu habites où ? Dans quel pays ?",
       "answer": "J'habite à Bridgend, au Pays de Galles.",
-      "en": "I live in Bridgend, in Wales."
+      "en": "I live in Bridgend, in Wales.",
+      "enPrompt": "Where do you live? Which country?"
     },
     {
       "prompt": "Où voudrais-tu habiter ?",
       "answer": "Dans le futur, je voudrais habiter en Italie parce qu'il fait chaud.",
-      "en": "In the future I'd like to live in Italy because it's hot."
+      "en": "In the future I'd like to live in Italy because it's hot.",
+      "enPrompt": "Where would you like to live?"
     },
     {
       "prompt": "Quel âge as-tu ?",
       "answer": "J'ai douze ans. Mon anniversaire, c'est le quinze mars.",
-      "en": "I'm 12. My birthday is 15 March."
+      "en": "I'm 12. My birthday is 15 March.",
+      "enPrompt": "How old are you?"
     }
   ]
 }

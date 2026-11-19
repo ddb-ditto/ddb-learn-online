@@ -602,6 +602,37 @@ with sync_playwright() as pw:
             if sp.locator(".exanswer").is_visible():
                 fails.append("the model answer stays uncovered when the question changes")
 
+        # Revealing shows both halves: what was asked and what to say, each in
+        # French and in English. The French question sits alone at the top of the
+        # card, so somebody unsure what it means gets nothing from the answer.
+        page.goto(f"{ROOT}/french/year-7/packs/speaking-answers/")
+        sp = page.locator("#ex-speaking-practice")
+        sp.get_by_text("Show the model answer").click()
+        halves = sp.locator(".exblock")
+        notes.append(f"revealed halves: {halves.count()}")
+        if halves.count() != 2:
+            fails.append(f"the reveal shows {halves.count()} block(s), expected the "
+                         f"question and the answer")
+        else:
+            asked = sp.locator(".exblock.asked")
+            said = sp.locator(".exblock.said")
+            for part, what in ((asked, "question"), (said, "answer")):
+                if part.locator(".fr").count() == 0:
+                    fails.append(f"the revealed {what} has no French")
+                if part.locator(".en").count() == 0:
+                    fails.append(f"the revealed {what} has no English")
+            # The question block must actually repeat the question, not the answer.
+            shown = asked.locator(".fr").inner_text()
+            onCard = sp.locator(".exq").inner_text()
+            if shown.replace("\u00a0", " ").strip() != onCard.replace("\u00a0", " ").strip():
+                fails.append(f"the revealed question is {shown!r}, not the one asked, {onCard!r}")
+            # And the two must be told apart by more than their order.
+            tints = [part.evaluate("e => getComputedStyle(e).backgroundColor")
+                     for part in (asked, said)]
+            notes.append(f"question/answer tints: {tints}")
+            if tints[0] == tints[1]:
+                fails.append("the question and the answer are tinted the same")
+
         page.goto(f"{ROOT}/french/year-7/packs/greetings/")
         wd = page.locator("#ex-w-d")
         answers = page.evaluate("""() => JSON.parse(
@@ -916,6 +947,12 @@ with sync_playwright() as pw:
             ("/french/year-7/packs/countries/cards/", '.chip[aria-pressed="true"]',
              "the selected deck chip"),
             ("/reference/grammar-checklist/", ".badge.f", "a Foundation grammar badge"),
+            # The three tests in the three logo colours. White on the logo's
+            # own blue measured 3.9:1, so the blue used here is a shade down
+            # from it; these are listed so nobody puts the brighter one back.
+            ("/french/year-7/packs/countries/", ".badge.part.speaking", "the Speaking badge"),
+            ("/french/year-7/packs/countries/", ".badge.part.reading", "the Reading badge"),
+            ("/french/year-7/packs/countries/", ".badge.part.writing", "the Writing badge"),
         )
         for scheme in ("light", "dark"):
             themed = b.new_page(viewport={"width": 900, "height": 800}, color_scheme=scheme)

@@ -2410,6 +2410,8 @@ with sync_playwright() as pw:
                     h1text: h1.length ? h1[0].innerText.trim() : '',
                     alt: img.alt,
                     scroll: document.body.scrollWidth,
+                    srcset: (img.getAttribute('srcset') || '').split(',')
+                              .map(p => p.trim().split(/\s+/)[0]).filter(Boolean),
                   };
                 }""")
                 if shot is None:
@@ -2443,6 +2445,18 @@ with sync_playwright() as pw:
                 if not shot["alt"].strip():
                     fails.append("the banner has no alt text, so the front "
                                  "page has no accessible name")
+                # The widths are written twice — once in make_icons.py, which
+                # emits the files, and once in src/lib/banner.ts, which names
+                # them. A browser given a srcset candidate that 404s falls
+                # back to `src` without a word, so renaming a width in one
+                # place and not the other looks like nothing at all.
+                for candidate in shot["srcset"]:
+                    got = page.request.get(
+                        f"http://127.0.0.1:{httpd.server_address[1]}{candidate}")
+                    if got.status != 200:
+                        fails.append(f"the banner's srcset names {candidate}, "
+                                     f"which is {got.status} — the page and "
+                                     f"make_icons.py disagree about the widths")
             finally:
                 bctx.close()
 

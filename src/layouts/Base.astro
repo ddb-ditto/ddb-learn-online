@@ -1,4 +1,7 @@
 ---
+import {
+  BANNER_ALT, BANNER_SIZE, bannerSrc, bannerSrcset,
+} from "../lib/banner";
 /**
  * Every page on the site. The house stylesheet is imported here and bundled
  * once, so a page costs its own markup and nothing else.
@@ -52,8 +55,12 @@ const mark = logo ? MARKS[logo] : null;
  * fixed navy strip behind an image that fills the strip is a colour nobody
  * can see, and on the page's own paper the edges follow the theme like
  * everything else.
+ *
+ * Its sizes live in `src/lib/banner.ts` rather than here, because a
+ * four-digit pixel width in a layout is indistinguishable from a calendar
+ * year to `check_text.py` — and that check is right to be coarse about the
+ * files a reader's prose lives in.
  */
-const BANNER = { w: 2048, h: 1120, alt: "DDB Learn Online" };
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /**
@@ -166,12 +173,12 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
       <h1 class="bannerhead">
         <img
           class="banner"
-          src={`${base}/banner-1024.webp`}
-          srcset={`${base}/banner-1024.webp 1024w, ${base}/banner-2048.webp 2048w`}
+          src={bannerSrc(base, 1024)}
+          srcset={bannerSrcset(base)}
           sizes="100vw"
-          width={BANNER.w}
-          height={BANNER.h}
-          alt={BANNER.alt}
+          width={BANNER_SIZE.w}
+          height={BANNER_SIZE.h}
+          alt={BANNER_ALT}
           fetchpriority="high"
         />
       </h1>

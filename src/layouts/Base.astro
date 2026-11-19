@@ -13,14 +13,17 @@ interface Props {
   standfirst?: string;
   description?: string;
   /**
-   * Which mark to show, on the way in. Above a lesson either would compete
-   * with the material rather than introduce it, so only two pages pass one.
+   * Which mark to show, on the way in. Above a lesson any of them would
+   * compete with the material rather than introduce it, so only the three
+   * front pages pass one.
    *
    * "site" is the DDB wordmark and belongs to the whole site, so it goes on
    * the front door. "italian" is the GCSE Italian mark, which says so on its
-   * face, and belongs to that course's contents page.
+   * face, and belongs to that course's contents page. "french" is the Year 7
+   * mark and belongs to that section's, the same way — not to a pack, where
+   * the breadcrumb D is the only branding.
    */
-  logo?: "site" | "italian";
+  logo?: "site" | "italian" | "french";
 }
 
 const { title, eyebrow, heading, standfirst, description, logo } = Astro.props;
@@ -29,6 +32,7 @@ const MARKS = {
   site: { src: "logo-site.png", w: 600, h: 404, alt: "DDB Learn online" },
   italian: { src: "logo.png", w: 150, h: 153,
              alt: "GCSE Italian — learn, practise, succeed" },
+  french: { src: "logo-french.png", w: 600, h: 400, alt: "Year 7 French" },
 } as const;
 const mark = logo ? MARKS[logo] : null;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");

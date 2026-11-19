@@ -1329,16 +1329,98 @@ with sync_playwright() as pw:
                 notes.append(f"{scheme} theme, worst accent contrast: {worst[0]}:1 ({worst[1]})")
             themed.close()
 
-        # The logo belongs to one page.
+        # Each mark belongs to one page: the DDB wordmark to the front door,
+        # the GCSE roundel to /italian/, the Year 7 mark to /french/year-7/.
+        # Below those, a mark competes with the material rather than
+        # introducing it, and the breadcrumb D is the only branding.
         for path, why in (("/units/1/sessions/2/", "a lesson page"),
-                          ("/french/year-7/", "a French page"),
-                          ("/french/year-7/packs/greetings/", "a French pack")):
+                          ("/french/year-7/packs/greetings/", "a French pack"),
+                          ("/french/year-7/tests/writing/", "a French test page"),
+                          ("/french/year-7/packs/greetings/cards/", "a flashcard page")):
             page.goto(f"{ROOT}{path}")
             if page.locator(".logomark").count():
                 fails.append(f"a logo is on {why}, where it competes with the material")
+
+        # And each page carries its own mark and nobody else's.
+        for path, want, why in (
+            ("/", "is-site", "the front door"),
+            ("/italian/", "is-italian", "the Italian contents"),
+            ("/french/year-7/", "is-french", "the Year 7 French front page"),
+        ):
+            page.goto(f"{ROOT}{path}")
+            marks = page.locator(".logomark")
+            if marks.count() != 1:
+                fails.append(f"{why} has {marks.count()} marks, expected 1")
+                continue
+            got = marks.first.get_attribute("class") or ""
+            if want not in got:
+                fails.append(f"{why} carries {got!r}, not the {want} mark")
+
         page.goto(f"{ROOT}/")
         if page.locator(".logomark.is-italian").count():
             fails.append("the Italian mark is on the front door, branding the site one subject")
+
+        # The Year 7 mark, measured.
+        #
+        # Three ways this breaks without anything throwing. The file can fail
+        # to load, and a broken <img> with width and height attributes still
+        # lays out at the right size, so the box alone proves nothing —
+        # naturalWidth does. The white card it was drawn on can survive the
+        # cut-out, which looks fine on the light theme and is a glaring
+        # rectangle on the dark one. And the heading can go back to repeating
+        # what the mark already says.
+        page.goto(f"{ROOT}/french/year-7/")
+        fr_mark = page.locator(".logomark.is-french")
+        if fr_mark.count() != 1:
+            fails.append(f"the French front page has {fr_mark.count()} French marks")
+        else:
+            box = fr_mark.bounding_box()
+            nat = fr_mark.evaluate(
+                "e => [e.naturalWidth, e.naturalHeight, e.complete]")
+            notes.append(f"french logo: {round(box['width'])}x{round(box['height'])}px "
+                         f"from {nat[0]}x{nat[1]}, alt {fr_mark.get_attribute('alt')!r}")
+            if not nat[2] or nat[0] == 0:
+                fails.append("the French mark did not load — the box is the width and "
+                             "height attributes, not the image")
+            if box["width"] < 120:
+                fails.append(f"the French mark renders at {round(box['width'])}px wide")
+            if not (fr_mark.get_attribute("alt") or "").strip():
+                fails.append("the French mark has no alt text")
+            # The heading must not simply repeat the mark. Both other marked
+            # pages say something the mark does not — "Which one?" under the
+            # site wordmark, "Italian at home" under the roundel.
+            h1 = (page.locator(".masthead h1").inner_text() or "").strip().lower()
+            alt = (fr_mark.get_attribute("alt") or "").strip().lower()
+            if h1 == alt:
+                fails.append(f"the heading {h1!r} repeats the mark's own words")
+
+        # The cut-out: the corners of the served PNG must be transparent, or
+        # the mark is a white rectangle on the dark theme.
+        png = page.request.get(
+            f"http://127.0.0.1:{httpd.server_address[1]}{BASE}/logo-french.png")
+        if png.status != 200:
+            fails.append(f"logo-french.png is {png.status}")
+        else:
+            edges = page.evaluate("""async (bytes) => {
+                const blob = new Blob([new Uint8Array(bytes)], {type: 'image/png'});
+                const bmp = await createImageBitmap(blob);
+                const c = new OffscreenCanvas(bmp.width, bmp.height);
+                const g = c.getContext('2d');
+                g.drawImage(bmp, 0, 0);
+                const at = (x, y) => Array.from(
+                    g.getImageData(x, y, 1, 1).data);
+                return {size: [bmp.width, bmp.height],
+                        corners: [at(1, 1), at(bmp.width - 2, 1),
+                                  at(1, bmp.height - 2),
+                                  at(bmp.width - 2, bmp.height - 2)]};
+            }""", list(png.body()))
+            notes.append(f"french mark corners: "
+                         f"{[c[3] for c in edges['corners']]} alpha")
+            opaque = [c for c in edges["corners"] if c[3] > 16]
+            if opaque:
+                fails.append(f"the French mark's background was not cut out "
+                             f"({len(opaque)} opaque corner(s)) — a white rectangle "
+                             f"on the dark theme")
 
     except Exception as crash:
         # The deepest frame is inside Playwright and says nothing useful. The

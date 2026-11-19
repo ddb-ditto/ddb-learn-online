@@ -341,13 +341,34 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 
 ## The logo
 
-There are two marks, and each belongs to one page.
+There are three marks, and each belongs to one page — the front page of what
+it names, and nothing below it.
 
 `public/logo-site.png` is the DDB wordmark. It is the site's, so it goes on the
 front door. `public/logo.png` is the GCSE Italian roundel, which says so on its
-face, so it stays on `/italian/`. Neither goes above a lesson, where it would
-compete with the material rather than introduce it. `Base.astro` takes
-`logo="site"` or `logo="italian"`; anything else gets none.
+face, so it stays on `/italian/`. `public/logo-french.png` is the Year 7 French
+wordmark and stays on `/french/year-7/`. None of them goes above a lesson, a
+pack, a test or a deck, where it would compete with the material rather than
+introduce it. `Base.astro` takes `logo="site"`, `"italian"` or `"french"`;
+anything else gets none.
+
+**The heading under a mark says something the mark does not.** "Which one?"
+sits under the site wordmark and "Italian at home" under the roundel. The
+French page's heading was "Year 7 French" above a mark reading YEAR 7 FRENCH,
+and its eyebrow said it a third time, so the heading is now "French at school"
+— which is also the true distinction between the two sections, one taught at
+home and one revised for school. `check_site.py` fails if a heading matches
+its mark's alt text.
+
+**A wordmark drawn on white has to have the white cut away**, or it is a
+glaring rectangle on the dark theme — and that is invisible while you work in
+the light one. `make_icons.transparent()` floods inward from the border and
+stops at the artwork, so enclosed white survives: the French mark's own white
+lettering, the word YEAR, is ringed by a dark outline and comes through the
+cut intact. `check_site.py` reads the served PNG's corner alpha in the browser.
+It also reads `naturalWidth`, because an `<img>` that failed to load still
+lays out at its `width` and `height` attributes — the box measures right and
+the page is empty where the mark should be.
 
 A third place carries the mark: the breadcrumb bar, as the drawn D at 20px.
 It is the only branding on a lesson or a pack, where the wordmark would

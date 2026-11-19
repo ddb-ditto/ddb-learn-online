@@ -42,6 +42,11 @@ PUBLIC = REPO / "public"
 BRAND = REPO / "brand"
 WORDMARK = BRAND / "wordmark.jpg"
 APPICON = BRAND / "appicon.jpg"
+# The Year 7 French mark, which belongs to that section's front page the way
+# the roundel belongs to /italian/. Same treatment as the site wordmark: cut
+# out of its white card, because a white rectangle on the dark palette is a
+# glaring square.
+FRENCH = BRAND / "french.jpg"
 
 # Sampled from the artwork rather than guessed, so the drawn favicon and the
 # real icon are the same two colours.
@@ -140,7 +145,7 @@ def letter_d(size: int) -> Image.Image:
 
 
 def main() -> int:
-    for src in (WORDMARK, APPICON):
+    for src in (WORDMARK, APPICON, FRENCH):
         if not src.exists():
             sys.exit(f"No artwork at {src.relative_to(REPO)}")
 
@@ -154,6 +159,16 @@ def main() -> int:
     mark.save(PUBLIC / "logo-site.png", optimize=True)
     kb = (PUBLIC / "logo-site.png").stat().st_size / 1024
     print(f"  {'logo-site.png':22} {mark.size[0]}x{mark.size[1]}  wordmark, cut out   {kb:.0f} KB")
+
+    # The French section's mark, cut out the same way. Its white lettering —
+    # the word YEAR — is enclosed by the dark outline, so the flood never
+    # reaches it and the letters survive the cut.
+    fr = transparent(Image.open(FRENCH))
+    fr.thumbnail((LOGO_WIDTH * 2, LOGO_WIDTH * 2), Image.LANCZOS)
+    fr = quantise(fr, colors=48, dither=False)
+    fr.save(PUBLIC / "logo-french.png", optimize=True)
+    kb = (PUBLIC / "logo-french.png").stat().st_size / 1024
+    print(f"  {'logo-french.png':22} {fr.size[0]}x{fr.size[1]}  Year 7 French       {kb:.0f} KB")
 
     icon = Image.open(APPICON).convert("RGB")
     for name, size in FROM_ICON.items():

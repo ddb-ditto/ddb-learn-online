@@ -1115,8 +1115,11 @@ details.note.aside > p:last-child { margin-bottom: 0; }
   details.note.aside > p { display: block !important; }
 }
 
-/* The site's own wordmark is wide, not a roundel, so it is sized by width. */
-.logomark.is-site { width: min(300px, 70vw); height: auto; }
+/* The two wide marks are wordmarks, not roundels, so they are sized by width.
+   The roundel's -0.35rem pull-back is for the air inside its ring; a wordmark
+   has none, so it sits flush with the text below it. */
+.logomark.is-site,
+.logomark.is-french { width: min(300px, 70vw); height: auto; margin-left: 0; }
 
 /* The spellings that catch people out. Only the correct form is shown: seeing
    a misspelling makes it fractionally more familiar, and familiarity is what

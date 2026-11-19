@@ -343,6 +343,13 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 - **Nobody real appears.** Where a lesson needs a name it is invented and
   Italian, or a role. The Unit 1 dialogue runs between *You* and *Child*, and
   the slot where a name belongs is written `[name]`. Never a real name.
+
+  **This covers pictures, not just names.** A version of the front-door mark
+  arrived with a photorealistic child worked into the artwork and was not
+  used. The rule was written about names and reads that way, but a likeness
+  says more than a name does, and the site is public and its git history
+  permanent — an image taken down later is still in the repository for good.
+  Artwork of a person gets asked about before it is committed, not after.
 - **Nothing is dated.** Timelines are `Year 1 · autumn` … `Year 2 · May/June`.
   No calendar years — the course does not start in a particular September. If
   an external deadline must be described, say what it *has* been and tell the

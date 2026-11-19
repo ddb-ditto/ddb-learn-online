@@ -26,7 +26,21 @@ import threading
 import traceback
 import unicodedata
 
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    # Exit 2, the same as "no browser on this machine", because it is the same
+    # situation: nothing was checked. check_all.py reads 2 as SKIPPED and
+    # anything else as FAILED, and a FAILED here is a lie that costs ten
+    # minutes — it says the site is broken when the truth is that this
+    # interpreter cannot drive a browser. README says `python3`, and on a
+    # machine where playwright lives under a different one that is exactly
+    # the command that produces the lie.
+    print(f"Playwright is not installed for this interpreter "
+          f"({sys.executable}).")
+    print("Install it, or run this with the interpreter that has it. "
+          "Nothing was checked.")
+    sys.exit(2)
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DIST = REPO / "dist"

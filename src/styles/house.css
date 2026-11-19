@@ -973,6 +973,13 @@ footer a { color: var(--ink-faint); }
 .exercise .right { border-color: #3f7d3f !important; }
 .exercise .wrong { border-color: var(--accent) !important; background: var(--accent-soft); }
 .exercise .exbtn.right { background: #3f7d3f; border-color: #3f7d3f; color: #fff; }
+/* An answered option is disabled so it takes no more clicks — but it is also
+   the feedback, and [disabled]'s 0.4 took sixty per cent off the very marking
+   it had just been given: the green read as a grey-green and the red as a
+   faint pink. Both rules applied, because they set different properties, so
+   nothing anywhere looked broken. A button with nothing to say still dims. */
+.exercise .exbtn[disabled].right,
+.exercise .exbtn[disabled].wrong { opacity: 1; }
 .exercise .exbtn.wrong { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 
 .exercise .exoptions { display: grid; gap: 0.45rem; margin: 0 0 0.6rem; }
@@ -1297,3 +1304,55 @@ details.note.aside > p:last-child { margin-bottom: 0; }
    h1 and the h1 carries no type of its own. Without this it would take the
    h1's font size and margins and push the doors down the page. */
 .masthead h1.markhead { margin: 0; font-size: inherit; line-height: 1; }
+
+/* ======================================================================
+   One at a time (/french/year-7/run/)
+   -------------------------------------------------------------------------
+   The stage sits inside an element carrying .exercise, so every control on a
+   card — .exbtn, .exinput, .extile, .exline, .exprompt, .exanswer and the
+   .right/.wrong marking — is the one the pack exercises already use. Only
+   what is genuinely new to this page is below: the bar, the tally, and the
+   out-loud card's standing instruction that a person has to judge it.
+
+   Deliberately absent: any green. Green in this section means "this is the
+   right one" and belongs to the reveals that mark nothing. Every card here
+   marks, and the same answer block carries a right answer and a wrong one,
+   so it stays neutral and the marking lives on the input and the options.
+   ====================================================================== */
+
+.run .runprogress {
+  height: 0.55rem; border-radius: 999px; overflow: hidden;
+  background: var(--accent-soft); border: 1px solid var(--accent-line);
+  margin: 0 0 0.45rem;
+}
+.run .runprogress > span {
+  display: block; height: 100%; width: 0;
+  background: var(--accent); transition: width 0.3s ease;
+}
+.run .runcount {
+  font-family: var(--sans); font-size: 0.8rem; color: var(--ink-faint);
+  margin: 0 0 1.1rem; text-align: right;
+}
+.run .runloading { font-size: 0.9rem; color: var(--ink-faint); margin: 0; }
+.run .runcard { min-height: 11rem; }
+.run .runlead { font-family: var(--sans); font-size: 0.82rem; color: var(--ink-faint); }
+.run .runoptions { display: grid; gap: 0.5rem; margin: 0.4rem 0 0; }
+.run .exbtn.runnext { margin-top: 0.9rem; }
+.run .rungloss { margin: -0.4rem 0 0.8rem; }
+
+/* The one card nothing here can mark, so it says so rather than implying a
+   score it has not got. */
+.run .runappraise {
+  font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft);
+  background: var(--note-bg); border-left: 3px solid var(--note-line);
+  padding: 0.7rem 0.85rem; margin: 0 0 1rem; border-radius: 0 4px 4px 0;
+}
+
+.run .runend h2 { margin: 0 0 0.5rem; font-size: 1.2rem; }
+.run .runend p { margin: 0 0 0.7rem; }
+.run .runnote { font-size: 0.86rem; color: var(--ink-faint); }
+
+.runaside {
+  font-family: var(--sans); font-size: 0.82rem; color: var(--ink-faint);
+  max-width: 42rem;
+}

@@ -1058,6 +1058,239 @@ with sync_playwright() as pw:
             fails.append(f"the same question set appears on {sorted(packs_with)} "
                          f"— {where[0]}")
 
+        # --- one at a time (/french/year-7/run/) ----------------------------
+        #
+        # The run composes its questions in the browser from a pool built at
+        # build time, so nothing it asks exists in the HTML to be read. The
+        # only way to check it is to play it, which is what this does: it
+        # answers every card, learns the right answer when it gets one wrong,
+        # and comes back round until the run is cleared.
+        #
+        # Four things it is here to catch, each of which would look perfectly
+        # fine in the markup:
+        #
+        #   - **Invented French.** Same rule as the derived exercises, and the
+        #     same three ways a string counts as the packs' own. This pool is
+        #     cumulative, so it is checked against every pack at once.
+        #   - **A speaker on French that is wrong on purpose.** The
+        #     punctuation prompt and the misspelling prompt are the pack's
+        #     French with something deliberately broken; spoken, both are
+        #     identical to the right answer, so a speaker there both teaches
+        #     the error and gives the answer away.
+        #   - **The out-loud card quietly scoring itself.** Nothing in a
+        #     browser can hear him. If that card ever moved the tally it would
+        #     be inventing a mark, and the page would look no different.
+        #   - **A run that cannot be finished.** A wrong answer goes to the
+        #     back of the queue, so a bug in the done-set is an endless run —
+        #     which is indistinguishable from a long one until you play it.
+        run_ctx = b.new_context(viewport={"width": 390, "height": 844})
+        run_page = run_ctx.new_page()
+        try:
+            run_page.add_init_script(
+                f"({VOICE_STUB})({json.dumps([['Thomas', 'fr-FR']])}, false)")
+            run_page.goto(f"{ROOT}/french/year-7/run/")
+            run_page.wait_for_selector(".runcard", timeout=8000)
+            if not run_page.evaluate("window.__stubbed === true"):
+                fails.append("the run page: the voice stub did not install, so "
+                             "nothing below proves anything")
+                raise RuntimeError("stub")
+
+            # Every string in every pack, the three ways a derived one counts.
+            all_own, all_bare, all_words = set(), set(), set()
+            for pack_file in sorted(packs_dir.glob("*.json")):
+                for t in strings_in(json.loads(pack_file.read_text(encoding="utf-8"))):
+                    all_own.add(t.replace("\u00a0", " "))
+                    all_bare.add(bare_form(t))
+                    all_words.update(words_of(t))
+
+            def traceable(v: str) -> bool:
+                w = v.replace("\u00a0", " ").strip()
+                return (not w) or w in all_own or w in all_bare or w in all_words
+
+            typed: dict[str, str] = {}
+            chose: dict[str, str] = {}
+            kinds = {"choose": 0, "type": 0, "order": 0, "say": 0}
+            wrong_on_purpose = 0          # cards whose prompt must stay silent
+            invented: list[str] = []
+            glyphs: list[float] = []
+            green_said = False          # the same card-by-card, so say it once
+            steps = 0
+
+            while steps < 250 and not run_page.query_selector("#run-again"):
+                steps += 1
+                card = run_page.query_selector(".runcard")
+                how = card.query_selector(".exintro").inner_text().strip()
+                pe = card.query_selector(".exprompt")
+                prompt = pe.inner_text().strip() if pe else ""
+                key = how + "||" + prompt
+
+                # Everything on the card that claims to be the packs' own.
+                for sel in (".exprompt", ".runoptions .exbtn", ".extile", ".rungloss"):
+                    for el in card.query_selector_all(sel):
+                        t = el.inner_text().strip()
+                        if t and not traceable(t):
+                            invented.append(f"{how}: {t!r}")
+
+                if card.query_selector(".runappraise"):
+                    kinds["say"] += 1
+                    said = card.query_selector(".runappraise").inner_text().lower()
+                    if "teacher" not in said and "parent" not in said:
+                        fails.append("the out-loud card does not say who has to "
+                                     "judge it — nothing here can mark speaking")
+                    before = run_page.inner_text("#run-tally")
+                    card.query_selector(".runcheck").click()
+                    run_page.wait_for_selector(".exanswer")
+                    after = run_page.inner_text("#run-tally")
+                    if before != after:
+                        fails.append(f"the out-loud card moved the score "
+                                     f"({before} → {after}) — nothing on this page "
+                                     f"can hear him, so it must not mark him")
+                    ans = run_page.query_selector(".exanswer .fr")
+                    if ans and not traceable(ans.inner_text()):
+                        invented.append(f"out-loud answer: {ans.inner_text()!r}")
+                    run_page.click(".runnext")
+                    continue
+
+                if card.query_selector(".runoptions"):
+                    kinds["choose"] += 1
+                    opts = card.query_selector_all(".runoptions .exbtn")
+                    want = chose.get(key)
+                    target = next((o for o in opts
+                                   if o.inner_text().strip() == want), opts[0])
+                    target.click()
+                    run_page.wait_for_selector(".runnext")
+                    right = card.query_selector(".runoptions .exbtn.right")
+                    if right is None:
+                        fails.append("a multiple-choice card marked nothing right")
+                        break
+                    # An answered option is disabled so it takes no more
+                    # clicks, and `.exbtn[disabled]` dims to 0.4 — which was
+                    # taking sixty per cent off the marking itself. Both rules
+                    # applied, because they set different properties, so the
+                    # green was there all along and simply could not be seen.
+                    dim = right.evaluate("e => getComputedStyle(e).opacity")
+                    if float(dim) < 0.99:
+                        fails.append(f"the right answer is marked at opacity "
+                                     f"{dim} — disabling an answered option is "
+                                     f"dimming the feedback it was just given")
+                    chose[key] = right.inner_text().strip()
+                    run_page.click(".runnext")
+                    continue
+
+                if card.query_selector(".expool"):
+                    kinds["order"] += 1
+                    known = typed.get(key)
+                    if known:
+                        for word in known.replace("\u00a0", " ").split():
+                            for tile in card.query_selector_all(".extile:not(.placed)"):
+                                if tile.inner_text().strip().strip(".,") == word.strip(".,"):
+                                    tile.click()
+                                    break
+                    else:
+                        for tile in card.query_selector_all(".extile"):
+                            tile.click()
+                    run_page.click(".runcheck")
+                else:
+                    kinds["type"] += 1
+                    # The two prompts that are French with something
+                    # deliberately wrong with it. Counted, so that "none of
+                    # them has a speaker" cannot pass on a run that happened
+                    # to contain none.
+                    if "marks back" in how or "wrong with this" in how:
+                        wrong_on_purpose += 1
+                        if pe.query_selector(".sayit"):
+                            fails.append(f"a speaker on French that is wrong on "
+                                         f"purpose ({how}: {prompt!r}) — spoken, it "
+                                         f"is the right answer")
+                    run_page.fill(".exinput", typed.get(key, "zzz"))
+                    run_page.click(".runcheck")
+
+                run_page.wait_for_selector(".exanswer")
+                shown = run_page.query_selector(".exanswer .fr")
+                typed[key] = shown.inner_text().strip()
+                if not traceable(typed[key]):
+                    invented.append(f"{how} answer: {typed[key]!r}")
+                # The answer's speaker is a glyph, and a glyph that lays out
+                # at 0x0 is an empty grey button beside the word — which is
+                # exactly what shipped once with every check green.
+                say = shown.query_selector(".sayit svg")
+                if say is None:
+                    fails.append(f"no speaker on the answer shown for {how!r}")
+                else:
+                    box = say.bounding_box() or {"width": 0, "height": 0}
+                    glyphs.append(min(box["width"], box["height"]))
+                # An answer block here is never green: green in this section
+                # means "this is the right one" and belongs to the reveals
+                # that mark nothing. This block carries a failed attempt as
+                # often as a correct one.
+                paint = run_page.evaluate("""() => {
+                  const a = document.querySelector('.runcard .exanswer');
+                  const green = getComputedStyle(document.documentElement)
+                                  .getPropertyValue('--answer-bg').trim();
+                  const probe = document.createElement('div');
+                  probe.style.background = green;
+                  document.body.appendChild(probe);
+                  const want = getComputedStyle(probe).backgroundColor;
+                  probe.remove();
+                  return { got: getComputedStyle(a).backgroundColor, want };
+                }""")
+                if paint["got"] == paint["want"] and not green_said:
+                    green_said = True
+                    fails.append(f"the run's answer block is the green "
+                                 f"'you were right' colour ({paint['got']}) on a "
+                                 f"card that marks — it shows wrong answers too")
+                run_page.click(".runnext")
+
+            notes.append(f"one at a time: cleared in {steps} cards {kinds}")
+            if not run_page.query_selector("#run-again"):
+                fails.append(f"the run did not finish in {steps} cards "
+                             f"({run_page.inner_text('#run-tally')}) — a question "
+                             f"answered correctly is not being taken out of the queue")
+            else:
+                # The bar fills on correct answers, so a cleared run is a full
+                # bar. It animates, so wait the transition out before measuring.
+                run_page.wait_for_timeout(500)
+                width = run_page.evaluate("""() => {
+                  const f = document.getElementById('run-fill');
+                  const t = f.parentElement;
+                  return f.getBoundingClientRect().width /
+                         t.getBoundingClientRect().width;
+                }""")
+                notes.append(f"one at a time: bar at {width:.0%} when cleared")
+                if width < 0.95:
+                    fails.append(f"the run finished with the bar at {width:.0%} — "
+                                 f"it is asking something it never counts")
+                # And the other end. A card that scores itself when it should
+                # not — the out-loud one is the obvious candidate — pushes the
+                # bar past full, which the lower bound would never see. This
+                # was measured at 113% against exactly that bug.
+                if width > 1.001:
+                    fails.append(f"the run finished with the bar at {width:.0%} — "
+                                 f"it is counting something it never asked, so "
+                                 f"something is marking itself")
+
+            if not kinds["choose"] or not kinds["type"] or not kinds["say"]:
+                fails.append(f"the run never showed one of its card kinds "
+                             f"({kinds}) — part of it is dead")
+            if not wrong_on_purpose:
+                notes.append("one at a time: no punctuation or misspelling card "
+                             "came up, so the silent-prompt check proved nothing "
+                             "this run")
+            else:
+                notes.append(f"one at a time: {wrong_on_purpose} silent prompt(s) "
+                             f"checked for a speaker")
+            if glyphs and min(glyphs) < 8:
+                fails.append(f"an answer's speaker glyph lays out at "
+                             f"{min(glyphs):.0f}px — an empty button")
+            for bad in invented[:6]:
+                fails.append(f"the run invented French — {bad} is in no pack, "
+                             f"nor a stripped or split form of anything in one")
+        except Exception as why:
+            if str(why) != "stub":
+                fails.append(f"the run page crashed the check: {why}")
+        finally:
+            run_ctx.close()
+
         # --- voices that arrive late ----------------------------------------
         #
         # The bug this exists for was reported as "the icons show on my phone

@@ -267,6 +267,71 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   **Testing across all ten packs at once is on *Mix it up*, and that is where
   the shared files live now.** They are on no pack page. A pack asks about its
   own page; mixing is a thing you choose.
+- **One at a time is a run, not a page of exercises.** `/french/year-7/run/`
+  is linked from the bottom of *Mix it up* and from nowhere else for now. It
+  draws on all ten packs like that page does, but asks the other way: one card
+  on screen, marked the moment he answers, and the bar moves only when he is
+  **right**. A question he gets wrong goes to the back of the queue and comes
+  round again, so the run ends when it has been cleared rather than when it
+  has been read through.
+
+  `runqueue.ts` builds the pool at build time and `run.ts` composes the
+  questions in the browser, so no two runs ask the same set in the same way.
+  **The no-invention rule applies here exactly as it does to a pack's own
+  practice**, and is checked the same three ways — as it stands, stripped, or
+  as one word of a sentence. The multiple-choice wrong answers are *other
+  real items' real glosses*, drawn from the same group as the right one:
+  other numbers for a number, other countries for a country. Writing three
+  plausible wrong meanings would be inventing English about French he was
+  never taught, and mixing the groups makes the question answerable without
+  any French at all.
+
+  **It stores nothing.** No streak, no best score, no history — the tally
+  lives in a closure and dies with the tab. A Duolingo-style streak is the
+  obvious thing to add and would be the first thing in this section to keep a
+  judgement about him, so it needs the argument made and a line in the
+  `localStorage` list above, not a quiet commit.
+
+  **Speaking is the one thing it cannot mark, and says so.** Two cards a run
+  ask for an answer out loud and then state plainly that a teacher or a parent
+  has to listen and judge it; they are not scored either way. A browser can
+  read French out where the device has a voice, but nothing in it can hear him
+  back, and a card that asked *did you get that right?* would be a mark he
+  awarded himself sitting in the tally as though it were not. If a listening
+  drill is ever wanted, the synthesiser can set the question — but a device
+  with no French voice is silent, so it cannot be the only way a thing is
+  asked.
+
+  Two things it borrows rather than repeats. The cards sit inside an element
+  carrying `.exercise`, so every control on them is `exercises.ts`'s own —
+  `.exbtn`, `.exinput`, `.extile`, `.exline`, `.right`, `.wrong`. A parallel
+  set of `.run*` rules would have drifted by the second change. And the
+  ordering card compares with commas and full stops stripped off **both**
+  sides, exactly as the pack pages' drill does, because `runqueue.ts` splits a
+  sentence on its spaces and drops them: without that, a sentence ending in a
+  full stop can never be rebuilt from its own tiles, so it comes round for
+  ever and the run cannot be finished. The first version here did exactly
+  that, and nothing about the card looked wrong — it rendered, it marked, it
+  said what the answer was. What found it was the check playing a whole run
+  and never reaching the end, which is why `check_site.py` **plays one
+  through** rather than inspecting a card.
+
+  **It has a Next and no Back, and that is the one place it departs from the
+  rule above.** Every other one-at-a-time exercise in this section steps both
+  ways, and all four of them shipped without a Back, so the absence of one is
+  exactly the bug that rule exists to catch. Here it is the design: a run is
+  cleared, not worked through, and the thing a Back would be for — having
+  another go at one you got wrong — is what the queue already does by bringing
+  it round again. A Back would also have to decide what an answered card looks
+  like on the way past, and the honest answer is read-only, which is a button
+  that does nothing twice. If this ever grows one, it needs `stepper()` and the
+  read-only rule, not a hand-rolled pair of arrows.
+
+  **The answer block is never green here.** Green in this section means "this
+  is the right one" and belongs to the reveals that mark nothing. Every card
+  in the run marks, and the same block carries a correct answer as often as a
+  failed one, so it stays neutral and the marking lives on the input and the
+  options, where it already is.
 - **A wrong answer is highlighted only when the highlight points at
   something.** The character diff is for a missing accent or a dropped hyphen.
   Given an answer nowhere near the right one it finds whatever letters happen
@@ -605,6 +670,16 @@ white again.
   prints the tags.
 - **MDX is JSX.** Void tags self-close, a list item must be on one line, and a
   bare `<` in prose is read as a tag.
+- **Two rules that set different properties both apply, and one can undo the
+  other.** An answered quiz option is `disabled`, so it takes no more clicks,
+  and `.exbtn[disabled]` dims to `opacity: 0.4`. It is also the feedback, and
+  `.exbtn.right` paints it green — so both rules applied, in full, and the
+  marking arrived at forty per cent: the green read as a grey-green and the
+  red as a faint pink. Nothing was overridden, nothing was missing, and the
+  DOM was perfect; it had simply been turned down. Every `choice` exercise on
+  the site had shipped like that. Found by looking at a screenshot of the new
+  run page, measured in the browser, then fixed once in `house.css` for all of
+  them — a button with nothing to say still dims.
 - **`[hidden]` is the weakest rule in CSS.** Any class that sets `display`
   beats the browser's own `[hidden] { display: none }`, so an element whose
   `hidden` property is perfectly true sits there on screen — and the DOM looks

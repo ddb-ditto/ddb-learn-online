@@ -80,6 +80,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   <Section kicker="Then">Write them out</Section>
   {mixed.map((e) => <Exercise ex={e.data} />)}
 
+  <Section kicker="Or">One at a time</Section>
+  <p>Everything on this page is a list you work down. <a href={`${base}/french/year-7/run/`}>One
+  at a time</a> is the same material asked the other way: a single question on screen, marked
+  as soon as you answer it, and anything you get wrong comes round again before the run ends.
+  Two of its cards are out loud, and for those a teacher or a parent has to listen — nothing
+  on a web page can mark how you sound.</p>
+
   <footer class="noprint" slot="footer">
     <span>Year 7 French · mixed practice</span>
     <span><a href={`${base}/french/year-7/`}>← Year 7 French</a></span>

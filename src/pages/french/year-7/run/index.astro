@@ -1,0 +1,87 @@
+---
+/**
+ * One question at a time, from everything.
+ *
+ * *Mix it up* is still a page of exercises: he can see how many are left, he
+ * can skip the hard one, and he finishes it by getting to the bottom. This is
+ * the other half of the same idea — a single card at a time, marked the
+ * moment he answers, and a bar that only moves when he is right. A question
+ * he gets wrong goes to the back and comes round again, so the run ends when
+ * he has cleared it rather than when he has been through it once.
+ *
+ * The questions are composed in the browser from the pool below, which is
+ * built here at build time from every pack by `runqueue.ts`. Nothing on this
+ * page is written French: it is the ten packs' own words, countries, numbers,
+ * sentences, spoken answers and real misspellings, rearranged.
+ *
+ * Nothing is saved. The tally lives for the run and dies with the tab, like
+ * every other exercise in this section.
+ */
+import { getCollection } from "astro:content";
+import Base from "../../../../layouts/Base.astro";
+import Breadcrumbs from "../../../../components/Breadcrumbs.astro";
+import FrenchAudio from "../../../../components/FrenchAudio.astro";
+import Note from "../../../../components/Note.astro";
+import { buildPool } from "../../../../lib/runqueue";
+
+const packs = (await getCollection("frenchPacks")).sort(
+  (a, b) => a.data.number - b.data.number,
+);
+const pool = buildPool(packs.map((p) => p.data));
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+<Base
+  title="One at a time — Year 7 French"
+  eyebrow="Year 7 French"
+  heading="One at a time"
+  standfirst="Every pack, one question on screen, and it is not finished until you have got them all right."
+  description="Year 7 French: a run of questions drawn from all ten packs, one at a time, with the ones you miss coming round again."
+>
+  <Breadcrumbs slot="nav" trail={[
+    { label: "Home", href: `${base}/` },
+    { label: "Year 7 French", href: `${base}/french/year-7/` },
+    { label: "One at a time" },
+  ]} />
+
+  <FrenchAudio />
+
+  <Note lead={"Why the wrong ones come back"}>
+    <p>A list of exercises is finished when you reach the bottom of it, whether or
+    not you got them right. This one is finished when the bar is full, and the bar
+    only moves when you are right — so anything you miss goes to the back and comes
+    round again later in the same run. That gap, between getting it wrong and being
+    asked it again, is what makes it stick.</p>
+    <p>Two of the cards are <strong>out loud</strong>, and nothing on this page can
+    mark those. Your computer can read French to you but it cannot hear you back,
+    so for those a teacher or a parent has to listen and tell you how it went.
+    They do not count towards the bar either way.</p>
+  </Note>
+
+  <div class="exercise run">
+    <div class="runprogress" role="progressbar" aria-valuemin="0" aria-valuenow="0"
+         aria-label="Questions cleared">
+      <span id="run-fill"></span>
+    </div>
+    <p class="runcount" id="run-tally">0 of 0</p>
+    <div id="run-stage">
+      <p class="runloading">Loading the questions…</p>
+    </div>
+  </div>
+
+  <script type="application/json" id="run-pool" is:inline set:html={JSON.stringify(pool)} />
+
+  <p class="runaside">Nothing you do here is saved anywhere. Every run picks a
+  different set and asks it a different way, so going again is not going again
+  over the same thing.</p>
+
+  <footer class="noprint" slot="footer">
+    <span>Year 7 French · one at a time</span>
+    <span><a href={`${base}/french/year-7/mix/`}>← Mixed practice</a></span>
+  </footer>
+</Base>
+
+<script>
+  import "../../../../scripts/sayfrench";
+  import "../../../../scripts/run";
+</script>

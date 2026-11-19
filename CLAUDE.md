@@ -292,6 +292,38 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   judgement about him, so it needs the argument made and a line in the
   `localStorage` list above, not a quiet commit.
 
+  **Listening is drilled here and nowhere else, and the audio is the
+  question.** Two shapes: type what you hear, and pick which of four written
+  phrases was spoken. That **inverts the rule above it** — *audio never
+  reaches an answer before he has committed to one* — and the inversion is
+  the point rather than an oversight: on this card the sound is the prompt
+  and what he writes is the answer. So the typed shape shows no French at
+  all until it is marked, and no English either, because a gloss on screen
+  would turn it into a translation drill he could finish with the sound off.
+  `check_site.py` asserts that emptiness, because a card that leaked the
+  French would look entirely normal.
+
+  **Whether a listening card can be asked is decided when it is drawn, not
+  when the run is built.** A device with no French voice has nothing to hear,
+  and a card he cannot answer never leaves the queue — a wrong answer goes to
+  the back and comes round again, so one impossible card makes the run
+  unfinishable. `showHear` therefore asks for a voice at the moment of
+  drawing and, finding none, asks that same item the ordinary way instead.
+  Deciding it at build time would also have dropped listening from every
+  first run on a laptop, where the voice list arrives after the page has
+  loaded. The check plays a whole run **twice**, on a device with a French
+  voice and on one without, and fails if a listening card appears on the
+  second or never appears on the first: either half passes for free on its
+  own.
+
+  Two smaller things, both from looking at it. A pack entry that is a stem
+  ending in an ellipsis — *Nous habitons…*, *Il s'appelle…* — can be picked
+  between but never transcribed, because an ellipsis makes no sound and
+  typing one back means guessing three dots are there. And the play button
+  stays live after marking: hearing it again with the spelling in front of
+  him is the moment the sound and the written form join up, which is the
+  whole reason for the card.
+
   **Speaking is the one thing it cannot mark, and says so.** Two cards a run
   ask for an answer out loud and then state plainly that a teacher or a parent
   has to listen and judge it; they are not scored either way. A browser can
@@ -326,6 +358,25 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   like on the way past, and the honest answer is read-only, which is a button
   that does nothing twice. If this ever grows one, it needs `stepper()` and the
   read-only rule, not a hand-rolled pair of arrows.
+
+  **Five hues, one per kind, and they are the colour of this page.** A run is
+  fourteen cards in a row and in one colour it reads as fourteen identical
+  white boxes; a colour per kind — meaning, spelling, word order, listening,
+  out loud — makes it a sequence of different things and says what is coming
+  before he reads a word. They are themed tokens declared in all three blocks
+  the way `--pen` is, and they are in `check_site.py`'s token list, because a
+  blue that carries on cream disappears on near-black. Each is used as text
+  and as a rule on the page's own paper and **never as a block behind
+  words**, so there is no contrast pairing to get wrong and no `--on-*` token
+  to invent. The check also asserts the five are five different colours that
+  actually reached the page: an undefined token resolves to nothing, the rule
+  is dropped, and the label quietly falls back to the body colour.
+
+  The progress bar runs through all five, and its gradient is sized to the
+  **track** from JavaScript rather than left to CSS. Sized to the filled part,
+  which is what CSS does on its own, the whole gradient is squeezed into
+  however much is done, so one card in reads as a smudge of all five instead
+  of the first of them. Only JavaScript knows how wide the track is.
 
   **The answer block is never green here.** Green in this section means "this
   is the right one" and belongs to the reveals that mark nothing. Every card
@@ -734,6 +785,25 @@ white again.
   So a check on something a person is meant to see measures the thing they
   see — the glyph's box, and that the button is not the browser's default one
   — and not merely that an element exists and is not hidden.
+- **A size assertion on something correctly hidden fails a correct build.**
+  The run's answer carries a speaker, and the check measured its glyph —
+  because a glyph laying out at 0x0 is the bug that shipped once. Played on
+  a device with no French voice, where the speaker is *supposed* to be built
+  and left hidden, a hidden element has no box at all, so the measurement
+  came back 0 and reported the right behaviour as the defect. Measure the
+  glyph where there is a voice; where there is not, assert the thing that
+  should be true there instead — that the speaker is not visible. Two
+  assertions, one per device, rather than one that is wrong on half of them.
+- **A card that deliberately shows nothing has nothing to key on.** The check
+  plays a run and answers a repeated card with what it revealed the first
+  time, which means telling two cards apart by what is on them. The typed
+  listening card shows no French and no English on purpose, so every one of
+  them keyed identically, the replay typed the wrong answer, and one card
+  came round 230 times until the step limit stopped it. Its audio *is* its
+  question, so that is what it is keyed by. The reading is general: when a
+  check identifies something by what is on the screen, a feature whose point
+  is an empty screen will break it, and it breaks as a hang rather than as a
+  failure.
 - **A surgical slice of a file takes everything between the two anchors.**
   `s[:s.index(start)] + s[s.index(end):]` removed four rules nobody meant to
   touch, because the block being removed was not the only thing before the

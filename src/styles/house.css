@@ -1311,44 +1311,128 @@ details.note.aside > p:last-child { margin-bottom: 0; }
    The stage sits inside an element carrying .exercise, so every control on a
    card — .exbtn, .exinput, .extile, .exline, .exprompt, .exanswer and the
    .right/.wrong marking — is the one the pack exercises already use. Only
-   what is genuinely new to this page is below: the bar, the tally, and the
-   out-loud card's standing instruction that a person has to judge it.
+   what is genuinely new to this page is below.
 
-   Deliberately absent: any green. Green in this section means "this is the
-   right one" and belongs to the reveals that mark nothing. Every card here
-   marks, and the same answer block carries a right answer and a wrong one,
-   so it stays neutral and the marking lives on the input and the options.
+   **The five hues are the colour of this page.** A run is fourteen cards in
+   a row, and in one colour it reads as fourteen identical white boxes; a
+   hue per kind makes it a sequence of different things, and tells him what
+   he is about to be asked before he reads a word. They are themed tokens in
+   all three blocks, like --pen: a blue that carries on cream disappears on
+   near-black. Each is used as text and as a rule on the page's own paper,
+   never as a block behind words, so there is no contrast pairing to get
+   wrong and no --on-* token needed.
+
+   Deliberately absent from all of it: green. Green in this section means
+   "this is the right one" and belongs to the reveals that mark nothing.
+   Every card here marks, and the same answer block carries a right answer
+   and a wrong one, so it stays neutral and the marking lives on the input
+   and the options.
    ====================================================================== */
 
+:root {
+  --k-mean:   #1f5fa8;     /* meaning        — blue   */
+  --k-spell:  #7a3f9c;     /* spelling, accents, mistakes — purple */
+  --k-order:  #0f7461;     /* word order     — teal   */
+  --k-hear:   #96630a;     /* listening      — amber  */
+  --k-say:    #a8356a;     /* out loud       — pink   */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --k-mean:   #86b8ee;
+    --k-spell:  #cba2e2;
+    --k-order:  #5fcab3;
+    --k-hear:   #e4b961;
+    --k-say:    #ef96bc;
+  }
+}
+:root[data-theme="dark"] {
+  --k-mean:   #86b8ee;
+  --k-spell:  #cba2e2;
+  --k-order:  #5fcab3;
+  --k-hear:   #e4b961;
+  --k-say:    #ef96bc;
+}
+
+/* The bar runs through all five, so it is the page's colour in one line and
+   fills left to right as a run is cleared. */
 .run .runprogress {
-  height: 0.55rem; border-radius: 999px; overflow: hidden;
+  height: 0.6rem; border-radius: 999px; overflow: hidden;
   background: var(--accent-soft); border: 1px solid var(--accent-line);
   margin: 0 0 0.45rem;
 }
 .run .runprogress > span {
   display: block; height: 100%; width: 0;
-  background: var(--accent); transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--k-mean), var(--k-spell),
+                              var(--k-say), var(--k-hear), var(--k-order));
+  /* The gradient is sized to the filled part, so it stretches as the bar
+     grows and the colours accumulate: one card in it is blue, a cleared run
+     is all five. Measured by width, which is what the check reads. */
+  transition: width 0.35s ease;
 }
 .run .runcount {
   font-family: var(--sans); font-size: 0.8rem; color: var(--ink-faint);
   margin: 0 0 1.1rem; text-align: right;
 }
 .run .runloading { font-size: 0.9rem; color: var(--ink-faint); margin: 0; }
-.run .runcard { min-height: 11rem; }
+
+.run .runcard {
+  min-height: 11rem;
+  border-top: 3px solid var(--rule);
+  padding-top: 0.9rem;
+}
+.run .runkind {
+  font-family: var(--sans); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-faint); margin: 0 0 0.5rem;
+}
+.run .runcard.is-mean  { border-top-color: var(--k-mean); }
+.run .runcard.is-spell { border-top-color: var(--k-spell); }
+.run .runcard.is-order { border-top-color: var(--k-order); }
+.run .runcard.is-hear  { border-top-color: var(--k-hear); }
+.run .runcard.is-say   { border-top-color: var(--k-say); }
+.run .runcard.is-mean  .runkind { color: var(--k-mean); }
+.run .runcard.is-spell .runkind { color: var(--k-spell); }
+.run .runcard.is-order .runkind { color: var(--k-order); }
+.run .runcard.is-hear  .runkind { color: var(--k-hear); }
+.run .runcard.is-say   .runkind { color: var(--k-say); }
+
 .run .runlead { font-family: var(--sans); font-size: 0.82rem; color: var(--ink-faint); }
 .run .runoptions { display: grid; gap: 0.5rem; margin: 0.4rem 0 0; }
 .run .exbtn.runnext { margin-top: 0.9rem; }
-.run .rungloss { margin: -0.4rem 0 0.8rem; }
+.run .rungloss { margin: 0.1rem 0 0.8rem; }
+
+/* The listening card. The play button is the question, not a footnote beside
+   a word, so it is a button you cannot miss rather than the 15px glyph. */
+.run .runhear { margin: 0.2rem 0 1rem; }
+.run .exbtn.runplay {
+  font-size: 1rem; padding: 0.7rem 1.3rem;
+  border-color: var(--k-hear); color: var(--k-hear);
+  background: var(--card);
+}
+.run .exbtn.runplay:hover { background: var(--note-bg); opacity: 1; }
+.run .runplayicon { font-size: 0.85em; margin-right: 0.15rem; }
+.run .runhint {
+  font-family: var(--sans); font-size: 0.8rem; color: var(--ink-faint);
+  margin: 0.55rem 0 0;
+}
 
 /* The one card nothing here can mark, so it says so rather than implying a
    score it has not got. */
 .run .runappraise {
   font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft);
-  background: var(--note-bg); border-left: 3px solid var(--note-line);
+  background: var(--note-bg); border-left: 3px solid var(--k-say);
   padding: 0.7rem 0.85rem; margin: 0 0 1rem; border-radius: 0 4px 4px 0;
 }
 
-.run .runend h2 { margin: 0 0 0.5rem; font-size: 1.2rem; }
+.run .runend { text-align: center; padding: 0.6rem 0 0.2rem; }
+.run .runend h2 {
+  margin: 0 0 0.5rem; font-size: 1.35rem;
+  /* The same five, in the same order as the bar he has just filled. */
+  background: linear-gradient(90deg, var(--k-mean), var(--k-spell),
+                              var(--k-say), var(--k-hear), var(--k-order));
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
 .run .runend p { margin: 0 0 0.7rem; }
 .run .runnote { font-size: 0.86rem; color: var(--ink-faint); }
 

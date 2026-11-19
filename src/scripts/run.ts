@@ -32,7 +32,7 @@
  * having them.
  */
 import { diff, isCorrect, NEAR_ENOUGH, shuffled, similarity } from "./marking";
-import { speaker, spoken } from "./speech";
+import { currentVoice, speak, speaker, spoken } from "./speech";
 
 /* ------------------------------------------------------------------ the pool */
 
@@ -53,7 +53,24 @@ type Question =
   /** Tiles to put in order. */
   | (Base & { k: "order"; en: string; tiles: string[]; answer: string })
   /** Out loud. Nothing here marks it. */
-  | (Base & { k: "say"; q: string; a: string; en: string });
+  | (Base & { k: "say"; q: string; a: string; en: string })
+  /**
+   * Heard, not read. The audio *is* the question, which inverts the usual
+   * rule — everywhere else a speaker waits until he has committed, because
+   * it would otherwise give the answer away. Here giving it away in sound is
+   * the whole task, so the card shows no French at all until it is marked.
+   *
+   * `options`, when it is there, makes it the easier shape: four written
+   * phrases, one of which was spoken. Without it he types what he heard.
+   *
+   * Either way the card needs a French voice, and whether the device has one
+   * is not known when the run is built — a desktop browser fills its voice
+   * list after the page has loaded. So it is decided at the moment the card
+   * is shown, and a card that cannot be heard asks the same item another way
+   * instead of sitting there unanswerable. A question got wrong comes round
+   * again, so an unanswerable one would never leave the queue.
+   */
+  | (Base & { k: "hear"; fr: string; en: string; options?: string[]; answer?: number });
 
 /** How many markable questions a run holds. About ten minutes of work. */
 const LENGTH = 14;
@@ -76,14 +93,15 @@ const esc = (s: string): string =>
  * pool if a group is too small, and gives up if even that cannot fill it,
  * in which case the item is asked some other way.
  */
-function distractors(item: Item, pool: Item[]): string[] | null {
+function distractors(item: Item, pool: Item[],
+                     side: (i: Item) => string = (i) => i.en): string[] | null {
   const other = (from: Item[]): string[] => {
-    const seen = new Set([item.en]);
+    const seen = new Set([side(item)]);
     const out: string[] = [];
     for (const c of shuffled(from)) {
-      if (seen.has(c.en)) continue;
-      seen.add(c.en);
-      out.push(c.en);
+      if (seen.has(side(c))) continue;
+      seen.add(side(c));
+      out.push(side(c));
       if (out.length === CHOICES - 1) break;
     }
     return out;
@@ -93,6 +111,10 @@ function distractors(item: Item, pool: Item[]): string[] | null {
   const anything = other(pool);
   return anything.length === CHOICES - 1 ? anything : null;
 }
+
+/** The French of other real items, to be told apart from the one spoken. */
+const frDistractors = (item: Item, pool: Item[]): string[] | null =>
+  distractors(item, pool, (i) => i.fr);
 
 /** Every way this item could be asked, as questions ready to run. */
 function waysToAsk(item: Item, at: number, pool: Item[]): Question[] {
@@ -127,6 +149,28 @@ function waysToAsk(item: Item, at: number, pool: Item[]): Question[] {
       how: "Put the capitals, accents and marks back",
       // French with its marks stripped off: wrong on purpose, so never spoken.
       prompt: item.bare, french: true, answer: item.fr,
+    });
+  }
+
+  // Both listening shapes. Whether either can actually be asked is settled
+  // when the card is shown, not here — see the `hear` kind above.
+  //
+  // Typing back what you heard is only fair where everything in the answer
+  // can be heard. Several of the packs' entries are stems ending in an
+  // ellipsis — *Nous habitons…*, *Il s'appelle…* — and an ellipsis makes no
+  // sound, so transcribing one means typing three dots there is no way of
+  // knowing are there. They are still fine to pick between, where the
+  // written form is on the screen.
+  if (!/…|\.\.\./.test(item.fr)) {
+    out.push({ k: "hear", id, pack: item.pack, fr: item.fr, en: item.en });
+  }
+
+  const heard = frDistractors(item, pool);
+  if (heard) {
+    const options = shuffled([item.fr, ...heard]);
+    out.push({
+      k: "hear", id, pack: item.pack, fr: item.fr, en: item.en,
+      options, answer: options.indexOf(item.fr),
     });
   }
 
@@ -202,6 +246,13 @@ if (stage && fill && tally && data) {
       const bar = fill!.parentElement;
       bar?.setAttribute("aria-valuemax", String(total));
       bar?.setAttribute("aria-valuenow", String(done.size));
+      // The five hues are laid out across the *track*, so the fill uncovers
+      // them left to right as the run is cleared. Sized to the fill instead —
+      // which is what CSS does on its own — the whole gradient is squeezed
+      // into however much is done, and one card in reads as a smudge of all
+      // five rather than as the first of them. Only JavaScript knows how wide
+      // the track is.
+      if (bar) fill!.style.backgroundSize = `${bar.clientWidth}px 100%`;
       tally!.textContent = `${done.size} of ${total}`;
     };
 
@@ -243,10 +294,27 @@ if (stage && fill && tally && data) {
       progress();
     };
 
-    const card = (inner: string): HTMLElement => {
-      stage!.innerHTML = `<div class="runcard">${inner}</div>`;
+    /**
+     * One card, under a coloured label saying what kind of question it is.
+     *
+     * The colour is the point of the label as much as the word is: five
+     * hues, one per kind, so a run reads as a sequence of different things
+     * rather than fourteen identical white boxes. Each is a themed token —
+     * a hue that works on cream is invisible on near-black — declared in all
+     * three blocks the way `--pen` is, and checked.
+     */
+    const card = (tone: string, label: string, inner: string): HTMLElement => {
+      stage!.innerHTML = `<div class="runcard is-${tone}">`
+        + `<p class="runkind">${esc(label)}</p>${inner}</div>`;
       return stage!.firstElementChild as HTMLElement;
     };
+
+    /** What to call a typed card, which is four different jobs. */
+    const typeLabel = (how: string): string =>
+      how.includes("capitals") ? "Accents"
+        : how.includes("wrong with this") ? "Mistake"
+        : how.startsWith("Write") ? "Writing"
+        : "Spelling";
 
     /**
      * The classes below are `exercises.ts`'s own — `.exbtn`, `.exinput`,
@@ -288,11 +356,36 @@ if (stage && fill && tally && data) {
       fr.appendChild(speaker(() => spoken(fr.innerHTML), french.slice(0, 40)));
     };
 
+    /**
+     * The right answer after a typed card, with what was missed picked out —
+     * but only where picking it out means something. Shared by the spelling
+     * cards and the listening one, which needs it most: an accent he did not
+     * hear is exactly the kind of near miss a highlight is for.
+     */
+    const showAnswer = (box: HTMLElement, typed: string, expected: string,
+                        right: boolean): void => {
+      if (right) return reveal(box, expected, "Yes —");
+      if (similarity(typed, expected) < NEAR_ENOUGH) {
+        // Nowhere near: a diff would come back in fragments with holes in it.
+        return reveal(box, expected, "It is");
+      }
+      const marks = diff(typed, expected)
+        .map((r) => (r.same ? esc(r.text) : `<mark>${esc(r.text)}</mark>`)).join("");
+      const p = document.createElement("p");
+      p.className = "exanswer";
+      p.innerHTML = `<span class="runlead">Nearly —</span> `
+        + `<span lang="fr" class="fr">${marks}</span>`;
+      box.appendChild(p);
+      const fr = p.querySelector<HTMLElement>(".fr")!;
+      fr.appendChild(speaker(() => spoken(fr.innerHTML), expected.slice(0, 40)));
+    };
+
     function show(q: Question): void {
       const again = done.has(q.id) === false && at > 0
         && queue.slice(0, at).some((e) => e.id === q.id);
 
       if (q.k === "say") return showSay(q);
+      if (q.k === "hear") return showHear(q, again);
       if (q.k === "choose") return showChoose(q, again);
       if (q.k === "order") return showOrder(q, again);
       return showType(q, again);
@@ -301,7 +394,7 @@ if (stage && fill && tally && data) {
     /* --------------------------------------------------------- choose */
 
     function showChoose(q: Extract<Question, { k: "choose" }>, again: boolean): void {
-      const box = card(`
+      const box = card("mean", "Meaning", `
         <p class="exintro">What does this mean?</p>
         <p class="exprompt"><span lang="fr" class="fr">${esc(q.fr)}</span></p>
         <div class="exrow runoptions"></div>`);
@@ -340,7 +433,7 @@ if (stage && fill && tally && data) {
       const prompt = q.french
         ? `<span lang="fr" class="fr">${esc(q.prompt)}</span>`
         : esc(q.prompt);
-      const box = card(`
+      const box = card("spell", typeLabel(q.how), `
         <p class="exintro">${esc(q.how)}</p>
         <p class="exprompt">${prompt}</p>
         <input type="text" class="exinput" autocomplete="off" autocapitalize="off"
@@ -361,22 +454,7 @@ if (stage && fill && tally && data) {
         input.disabled = true;
         check.remove();
         input.classList.add(right ? "right" : "wrong");
-        if (right) {
-          reveal(box, q.answer, "Yes —");
-        } else if (similarity(typed, q.answer) >= NEAR_ENOUGH) {
-          // Close enough that marking up the difference points at something.
-          const marks = diff(typed, q.answer)
-            .map((r) => (r.same ? esc(r.text) : `<mark>${esc(r.text)}</mark>`)).join("");
-          const p = document.createElement("p");
-          p.className = "exanswer";
-          p.innerHTML = `<span class="runlead">Nearly —</span> `
-            + `<span lang="fr" class="fr">${marks}</span>`;
-          box.appendChild(p);
-          const fr = p.querySelector<HTMLElement>(".fr")!;
-          fr.appendChild(speaker(() => spoken(fr.innerHTML), q.answer.slice(0, 40)));
-        } else {
-          reveal(box, q.answer, "It is");
-        }
+        showAnswer(box, typed, q.answer, right);
         mark(q, right, again);
         onward(box);
       };
@@ -389,7 +467,7 @@ if (stage && fill && tally && data) {
     /* ---------------------------------------------------------- order */
 
     function showOrder(q: Extract<Question, { k: "order" }>, again: boolean): void {
-      const box = card(`
+      const box = card("order", "Word order", `
         <p class="exintro">Put the words in order</p>
         <p class="exprompt">${esc(q.en)}</p>
         <p class="exline runline" aria-live="polite"></p>
@@ -451,6 +529,125 @@ if (stage && fill && tally && data) {
       });
     }
 
+    /* ----------------------------------------------------------- hear */
+
+    /**
+     * Type what you heard, or pick which of four was spoken.
+     *
+     * Two rules meet here and one of them has to bend. *Audio never reaches
+     * an answer before he has committed to one* is the spine of the
+     * exercises — but on this card the audio **is** the question, and the
+     * answer is what he writes down from it. So the usual order is inverted:
+     * it speaks first and shows nothing, and the French appears only once
+     * the card has been marked. Which is also why the typed shape prints no
+     * English either: a gloss on screen would turn it into a translation
+     * drill he could finish with the sound off.
+     *
+     * The fallback is the important part. A device with no French voice
+     * cannot be asked this at all, and a card he cannot answer would never
+     * leave the queue — a wrong answer goes to the back and comes round
+     * again, so one impossible card makes the run unfinishable. The voice is
+     * therefore checked *here*, at the moment of showing, rather than when
+     * the run was built: a laptop fills its voice list after the page has
+     * loaded, so building the queue against what was known at the start
+     * would drop listening from every first run on a desktop.
+     */
+    function showHear(q: Extract<Question, { k: "hear" }>, again: boolean): void {
+      const voice = currentVoice();
+      if (!voice) {
+        // Nothing to listen to. Ask the same item the ordinary way, so the
+        // run still has fourteen answerable cards in it.
+        return showType({
+          k: "type", id: q.id, pack: q.pack,
+          how: "Write it in French", prompt: q.en, french: false, answer: q.fr,
+        }, again);
+      }
+
+      const pick = q.options !== undefined && q.answer !== undefined;
+      const box = card("hear", "Listening", `
+        <p class="exintro">${pick ? "Which one did you hear?" : "Type what you hear"}</p>
+        <div class="runhear"></div>
+        ${pick ? '<div class="exrow runoptions"></div>'
+               : `<input type="text" class="exinput" autocomplete="off"
+                         autocapitalize="off" autocorrect="off" spellcheck="false"
+                         lang="fr" aria-label="What you heard, in French">
+                  <button type="button" class="exbtn runcheck">Check</button>`}`);
+
+      // A big one, because it is the question rather than a footnote beside a
+      // word, and because he will press it several times.
+      const play = document.createElement("button");
+      play.type = "button";
+      play.className = "exbtn quiet runplay";
+      play.innerHTML = `<span class="runplayicon" aria-hidden="true">\u25B6</span> Play it`;
+      play.addEventListener("click", () => {
+        const v = currentVoice();
+        if (v) speak(q.fr, v);
+      });
+      box.querySelector(".runhear")!.appendChild(play);
+
+      const hint = document.createElement("p");
+      hint.className = "runhint";
+      hint.textContent = "Press it as many times as you like. "
+        + "Speed is at the top of the page.";
+      box.querySelector(".runhear")!.appendChild(hint);
+
+      // Say it once without being asked. A browser may refuse before the page
+      // has been touched, which is why the button is there whatever happens.
+      speak(q.fr, voice);
+
+      /** Mark, then show the French — which until now has been nowhere. */
+      const settle = (right: boolean, typed?: string): void => {
+        // The play button stays live on purpose. Hearing it again with the
+        // spelling in front of him is the moment the sound and the written
+        // form join up, and that is the whole reason for the card.
+        if (typed === undefined) reveal(box, q.fr, right ? "Yes —" : "It was");
+        else showAnswer(box, typed, q.fr, right);
+        const gloss = document.createElement("p");
+        gloss.className = "en rungloss";
+        gloss.textContent = q.en;
+        box.appendChild(gloss);
+        mark(q, right, again);
+        onward(box);
+      };
+
+      if (pick) {
+        const options = box.querySelector<HTMLElement>(".runoptions")!;
+        const buttons: HTMLButtonElement[] = [];
+        q.options!.forEach((label, n) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "exbtn option";
+          b.setAttribute("lang", "fr");
+          b.textContent = label;
+          b.addEventListener("click", () => {
+            for (const other of buttons) other.disabled = true;
+            const right = n === q.answer;
+            b.classList.add(right ? "right" : "wrong");
+            if (!right) buttons[q.answer!]!.classList.add("right");
+            settle(right);
+          });
+          buttons.push(b);
+          options.appendChild(b);
+        });
+        return;
+      }
+
+      const input = box.querySelector<HTMLInputElement>("input")!;
+      const check = box.querySelector<HTMLButtonElement>(".runcheck")!;
+      const submit = (): void => {
+        const typed = input.value.trim();
+        if (!typed) return input.focus();
+        const right = isCorrect(typed, q.fr);
+        input.disabled = true;
+        check.remove();
+        input.classList.add(right ? "right" : "wrong");
+        settle(right, typed);
+      };
+      check.addEventListener("click", submit);
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+      input.focus();
+    }
+
     /* ------------------------------------------------------------ say */
 
     /**
@@ -464,7 +661,7 @@ if (stage && fill && tally && data) {
      * worth nothing and would quietly sit in the tally as though it were not.
      */
     function showSay(q: Extract<Question, { k: "say" }>): void {
-      const box = card(`
+      const box = card("say", "Out loud", `
         <p class="exintro">Out loud — someone has to listen to this one</p>
         <p class="exprompt"><span lang="fr" class="fr">${esc(q.q)}</span></p>
         <p class="en rungloss">${esc(q.en)}</p>

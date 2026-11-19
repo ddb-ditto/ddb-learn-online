@@ -38,6 +38,26 @@ const mark = logo ? MARKS[logo] : null;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /**
+ * The mark's attributes, written once and used in both places it can appear.
+ *
+ * A page with a heading shows the mark above it. A page with no heading — the
+ * front door, where the mark says the site's name better than a line of type
+ * could — puts the mark *inside* the h1 instead, so the page still has one
+ * and its accessible name is the mark's alt text. A front page with no h1 at
+ * all is the alternative, and that is worse for anybody arriving by search or
+ * by screen reader.
+ */
+const markAttrs = mark
+  ? {
+      class: `logomark is-${logo}`,
+      src: `${base}/${mark.src}`,
+      width: mark.w,
+      height: mark.h,
+      alt: mark.alt,
+    }
+  : null;
+
+/**
  * Which commit built this page. GitHub Pages serves HTML with a ten-minute
  * cache, so a page in front of you can be several deploys old — and a stale
  * page is indistinguishable from a bug until you can see which one it is.
@@ -83,15 +103,13 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
 </head>
 <body>
 
-{heading && (
+{(heading || mark) && (
   <header class="masthead">
     <div class="masthead-inner">
-      {mark && (
-        <img class:list={["logomark", `is-${logo}`]} src={`${base}/${mark.src}`}
-             width={mark.w} height={mark.h} alt={mark.alt} />
-      )}
+      {markAttrs && !heading && <h1 class="markhead"><img {...markAttrs} /></h1>}
+      {markAttrs && heading && <img {...markAttrs} />}
       {eyebrow && <p class="eyebrow">{eyebrow}</p>}
-      <h1>{heading}</h1>
+      {heading && <h1>{heading}</h1>}
       {standfirst && <p class="standfirst" set:html={standfirst} />}
     </div>
   </header>

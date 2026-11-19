@@ -352,6 +352,17 @@ pack, a test or a deck, where it would compete with the material rather than
 introduce it. `Base.astro` takes `logo="site"`, `"italian"` or `"french"`;
 anything else gets none.
 
+**The front door has no heading, so its mark carries the h1.** The eyebrow,
+the heading and the standfirst were taken off that page: the mark says the
+site's name better than a line of type, and the two doors say the rest. Two
+things had to change with them. The masthead rendered only when there was a
+heading, so removing the words would have removed the mark too — a front page
+with no branding at all, and nothing in the build to say so. And a page needs
+an h1, so when there is no heading the mark goes *inside* one and its alt text
+becomes the page's accessible name. A front page with no h1 looks perfectly
+fine in the markup and gives anybody arriving by search or by screen reader a
+page with no name.
+
 **The heading under a mark says something the mark does not.** "Which one?"
 sits under the site wordmark and "Italian at home" under the roundel. The
 French page's heading was "Year 7 French" above a mark reading YEAR 7 FRENCH,

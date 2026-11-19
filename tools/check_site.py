@@ -129,7 +129,34 @@ with sync_playwright() as pw:
         # Two choices and nothing else. Both have to be here and both have to go
         # somewhere: a door that 404s is worse than no door.
         page.goto(f"{ROOT}/")
-        notes.append(f"front page h1: {page.locator('h1').first.inner_text()!r}")
+
+        # The front door carries no heading, no eyebrow and no standfirst: the
+        # mark says the site's name better than a line of type, and the two
+        # doors say the rest. So the mark *is* the h1 here.
+        #
+        # Two things to hold on to. The masthead used to render only when there
+        # was a heading, so taking the words out would have taken the mark with
+        # them — the page would have come back with no branding and nothing
+        # would have said so. And a front page with no h1 at all is the other
+        # easy outcome: the markup looks fine, and anybody arriving by search
+        # or by screen reader gets a page with no name.
+        h1s = page.locator("h1")
+        if h1s.count() != 1:
+            fails.append(f"the front page has {h1s.count()} h1 elements, expected 1")
+        else:
+            named = page.evaluate("""() => {
+                const h = document.querySelector('h1');
+                const img = h.querySelector('img');
+                return (h.textContent.trim() || (img && img.alt) || '').trim();
+            }""")
+            notes.append(f"front page h1 names the site as {named!r}")
+            if not named:
+                fails.append("the front page's h1 has no accessible name — no text and "
+                             "no alt on the mark inside it")
+        if not page.locator(".logomark").is_visible():
+            fails.append("the front door shows no mark — the masthead renders only when "
+                         "something is in it, and the words were taken out")
+
         doors = page.locator(".doors .door")
         notes.append(f"doors: {doors.count()} — {doors.all_inner_texts()!r}"[:120])
         if doors.count() != 2:

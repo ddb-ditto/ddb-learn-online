@@ -1292,3 +1292,8 @@ details.note.aside > p:last-child { margin-bottom: 0; }
 :root[data-theme="dark"] .exercise .exreveal .exanswer {
   background: rgba(110, 190, 110, 0.13);
 }
+
+/* The front door has no heading: the mark is the heading, so it carries the
+   h1 and the h1 carries no type of its own. Without this it would take the
+   h1's font size and margins and push the doors down the page. */
+.masthead h1.markhead { margin: 0; font-size: inherit; line-height: 1; }

@@ -676,10 +676,28 @@ with sync_playwright() as pw:
         # commentary, and it never touches the material. The last is the one
         # worth guarding — a switch that quietly hid the vocabulary would be a
         # disaster that looked like a feature.
-        page.goto(f"{ROOT}/french/year-7/packs/speaking-answers/")
+        # Find a pack that actually carries a note for the parent rather than
+        # naming one: which packs have one is content, and content moves. This
+        # check was pinned to the speaking-answers pack and broke the day that
+        # pack's note was rewritten for the learner — a check failing because
+        # the content improved is a check in the wrong place.
+        with_parent_note = None
+        for slug in ("name-and-age", "numbers", "speaking-answers", "culture",
+                     "greetings", "where-i-live"):
+            page.goto(f"{ROOT}/french/year-7/packs/{slug}/")
+            if page.locator(".note.forparent").count():
+                with_parent_note = slug
+                break
+        if with_parent_note is None:
+            fails.append("no pack carries a note for the parent, so the reading "
+                         "switch cannot be checked against one")
+        notes.append(f"reading mode checked on the {with_parent_note!r} pack")
+
         switch = page.locator("#plainmode")
         if switch.count() == 0:
             fails.append("no reading-mode switch on a pack page")
+        elif with_parent_note is None:
+            pass
         else:
             if switch.is_checked():
                 fails.append("the reading-mode switch starts on; a parent should see everything")

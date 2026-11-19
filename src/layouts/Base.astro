@@ -24,9 +24,16 @@ interface Props {
    * the breadcrumb D is the only branding.
    */
   logo?: "site" | "italian" | "french";
+  /**
+   * The front door's banner: artwork across the top of the window, in place
+   * of a mark rather than as well as one. See BANNER below for why it is not
+   * one of the three.
+   */
+  banner?: boolean;
 }
 
-const { title, eyebrow, heading, standfirst, description, logo } = Astro.props;
+const { title, eyebrow, heading, standfirst, description, logo,
+        banner = false } = Astro.props;
 
 const MARKS = {
   site: { src: "logo-site.png", w: 600, h: 355, alt: "DDB Learn online" },
@@ -34,6 +41,19 @@ const MARKS = {
   french: { src: "logo-french.png", w: 600, h: 457, alt: "Year 7 French" },
 } as const;
 const mark = logo ? MARKS[logo] : null;
+
+/**
+ * The front door's banner: artwork that spans the window above everything.
+ *
+ * Deliberately not a fourth entry in MARKS. The three marks are cut out of
+ * the card they were drawn on and placed on a dark band, because they are
+ * lettering with no ground of its own. This has a ground — it is a picture —
+ * so it is never keyed, never quantised, and never sits on `.on-dark`: a
+ * fixed navy strip behind an image that fills the strip is a colour nobody
+ * can see, and on the page's own paper the edges follow the theme like
+ * everything else.
+ */
+const BANNER = { w: 2048, h: 1120, alt: "DDB Learn Online" };
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /**
@@ -140,8 +160,22 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
 </head>
 <body>
 
-{(heading || mark) && (
-  <header class:list={["masthead", mark && "on-dark"]}>
+{(heading || mark || banner) && (
+  <header class:list={["masthead", mark && "on-dark", banner && "has-banner"]}>
+    {banner && (
+      <h1 class="bannerhead">
+        <img
+          class="banner"
+          src={`${base}/banner-1024.webp`}
+          srcset={`${base}/banner-1024.webp 1024w, ${base}/banner-2048.webp 2048w`}
+          sizes="100vw"
+          width={BANNER.w}
+          height={BANNER.h}
+          alt={BANNER.alt}
+          fetchpriority="high"
+        />
+      </h1>
+    )}
     <div class="masthead-inner">
       {markAttrs && !heading && <h1 class="markhead"><img {...markAttrs} /></h1>}
       {markAttrs && heading && <img {...markAttrs} />}

@@ -125,6 +125,47 @@ body {
   border-bottom-color: var(--mark-bg);
 }
 .masthead.on-dark .masthead-inner { padding-top: 1.9rem; padding-bottom: 1.6rem; }
+
+/* The front door's banner: artwork the full width of the window, above
+   everything, with no band behind it.
+
+   The three marks need `.on-dark` because they are lettering cut out of their
+   card and have no ground of their own — on the light theme's white card they
+   sat on nothing. This has a ground, so a fixed navy strip behind it would be
+   a colour nobody can ever see, and the masthead keeps the page's own paper:
+   the strip either side on a very wide window, and the rule under it, then
+   follow the theme like everything else rather than staying navy in the
+   light one.
+
+   `object-fit: cover` with a capped height, rather than letting the natural
+   1.83:1 run free: full width on a 1440 window is 787px of banner and the
+   two doors start below the fold. Cover crops the top and bottom, which is
+   background, and never the sides, where the lettering is. */
+.masthead.has-banner {
+  background: var(--paper);
+  border-bottom-color: var(--accent);
+}
+.masthead .banner {
+  display: block;
+  width: 100%;
+  /* A band that grows with the window rather than the picture's own 1.83:1.
+     Left to its natural shape it is 787px tall on a 1440 window — the whole
+     screen, with both doors below the fold — and on a phone it shows the
+     backdrop green above and below the artwork, because nothing is cropped
+     at that width. One height rule crops the same way at every size: the
+     floor keeps the phone's band from being a letterbox, the ceiling keeps
+     the desktop's from being the whole page. */
+  height: clamp(170px, 26vw, 380px);
+  object-fit: cover;
+  /* Crops top and bottom, which is backdrop, and never the sides, where the
+     lettering runs to both edges. */
+  object-position: center;
+}
+.masthead h1.bannerhead { margin: 0; font-size: inherit; line-height: 0; }
+/* With a banner the inner block holds nothing on the front door, so it must
+   not add a band of padding under the artwork. It still lays out normally on
+   a page that has both. */
+.masthead.has-banner .masthead-inner:empty { padding: 0; }
 .masthead-inner {
   max-width: 60rem;
   margin: 0 auto;

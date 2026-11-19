@@ -139,8 +139,13 @@ with sync_playwright() as pw:
         # check named two files by hand and skipped the Italian one when it
         # stopped being a hand-drawn roundel. Add a fourth mark here and every
         # check below picks it up.
+        # The front door is not here any more: it carries a banner rather than
+        # the site wordmark — artwork with a ground of its own, which is never
+        # keyed, never quantised and never on a dark band, so every check
+        # below would be asking it the wrong questions. It has its own block.
+        # `logo-site.png` is still generated and is now on no page; it is kept
+        # against the banner being a trial rather than a decision.
         MARKS = (
-            ("/", "is-site", "logo-site.png", "the site mark, on the front door"),
             ("/italian/", "is-italian", "logo.png", "the Italian mark"),
             ("/french/year-7/", "is-french", "logo-french.png", "the Year 7 French mark"),
         )
@@ -2358,6 +2363,105 @@ with sync_playwright() as pw:
             fails.append(f"the band-width check crashed: {str(why_).splitlines()[0]}")
         finally:
             wide_ctx.close()
+
+        # ----------------------------------------------------------------------
+        # The front door's banner
+        # ----------------------------------------------------------------------
+        #
+        # Artwork across the top of the window, in place of the site wordmark.
+        # It is not one of the three marks and is checked separately, because
+        # almost everything true of them is false of it: it keeps its own
+        # ground rather than being cut out of one, it is WebP rather than PNG,
+        # and it must *not* sit on the fixed dark band.
+        #
+        # That last one is the point of it. `--mark-bg` is the same navy in
+        # both themes — deliberately, for the marks — so a masthead carrying
+        # it is the one strip of the site that ignores the colour switch. The
+        # banner brings its own background, so the header goes back to the
+        # page's own paper and follows the theme like everything else. Checked
+        # by loading the front door on a light device and a dark one and
+        # requiring the two to differ: with `.on-dark` back they are the same
+        # navy twice and this fires.
+        seen = {}
+        for scheme in ("light", "dark"):
+            bctx = b.new_context(viewport={"width": 1280, "height": 900},
+                                 color_scheme=scheme)
+            bp = bctx.new_page()
+            try:
+                bp.goto(f"{ROOT}/")
+                bp.wait_for_timeout(300)
+                shot = bp.evaluate("""() => {
+                  const img = document.querySelector('.masthead .banner');
+                  const head = document.querySelector('.masthead');
+                  if (!img || !head) return null;
+                  const r = img.getBoundingClientRect();
+                  const h1 = document.querySelectorAll('h1');
+                  return {
+                    loaded: img.naturalWidth > 0,
+                    width: Math.round(r.width),
+                    height: Math.round(r.height),
+                    page: document.documentElement.clientWidth,
+                    served: img.currentSrc.split('/').pop(),
+                    bg: getComputedStyle(head).backgroundColor,
+                    markbg: getComputedStyle(document.documentElement)
+                              .getPropertyValue('--mark-bg').trim(),
+                    onDark: head.classList.contains('on-dark'),
+                    h1s: h1.length,
+                    h1text: h1.length ? h1[0].innerText.trim() : '',
+                    alt: img.alt,
+                    scroll: document.body.scrollWidth,
+                  };
+                }""")
+                if shot is None:
+                    fails.append(f"the front door has no banner [{scheme}]")
+                    continue
+                seen[scheme] = shot
+                # An <img> that failed to load still lays out at its width and
+                # height attributes, so the box measures right and the page is
+                # empty where the artwork should be.
+                if not shot["loaded"]:
+                    fails.append(f"the banner did not load [{scheme}] — the "
+                                 f"box is the right size and the page is blank "
+                                 f"there")
+                if shot["width"] < shot["page"] - 1:
+                    fails.append(f"the banner is {shot['width']}px of "
+                                 f"{shot['page']}px [{scheme}] — it is meant to "
+                                 f"span the window")
+                if shot["scroll"] > shot["page"]:
+                    fails.append(f"the front door scrolls sideways [{scheme}] "
+                                 f"({shot['scroll']}px of {shot['page']}px)")
+                if shot["onDark"]:
+                    fails.append("the banner sits on the fixed dark band, which "
+                                 "is the one strip of the site that ignores the "
+                                 "colour switch")
+                # A front page with no h1 looks fine in the markup and gives
+                # anybody arriving by search or screen reader a page with no
+                # name. The banner carries it, so its alt text is that name.
+                if shot["h1s"] != 1:
+                    fails.append(f"the front door has {shot['h1s']} h1s "
+                                 f"[{scheme}], expected 1")
+                if not shot["alt"].strip():
+                    fails.append("the banner has no alt text, so the front "
+                                 "page has no accessible name")
+            finally:
+                bctx.close()
+
+        if len(seen) == 2:
+            light, dark = seen["light"]["bg"], seen["dark"]["bg"]
+            notes.append(f"front door header: {light} light, {dark} dark; "
+                         f"banner {seen['light']['width']}x"
+                         f"{seen['light']['height']}, "
+                         f"{seen['light']['served']}")
+            if light == dark:
+                fails.append(f"the front door's header is {light} on both "
+                             f"themes — it is not following the colour switch")
+            # And the served file is the small one at this width, or the
+            # first page everybody loads is carrying the 2048 for nothing.
+            if not seen["light"]["served"].endswith(".webp"):
+                fails.append(f"the banner is served as "
+                             f"{seen['light']['served']} — this is the first "
+                             f"image anybody loads and PNG costs eight times "
+                             f"WebP on this artwork")
 
         # The dark band belongs to the three front pages. A lesson's masthead
         # is a heading on the page's own paper, and turning every masthead

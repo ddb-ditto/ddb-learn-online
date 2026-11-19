@@ -605,7 +605,11 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 
   **This covers pictures, not just names.** A version of the front-door mark
   arrived with a photorealistic child worked into the artwork and was not
-  used. The rule was written about names and reads that way, but a likeness
+  used. The banner now on the front door was asked about under the
+  same rule and allowed: its figure is a black silhouette with no features,
+  which is a pictogram rather than a likeness of anybody. The asking is the
+  rule, not the answer — a permanent public history is why it happens before
+  the commit. The rule was written about names and reads that way, but a likeness
   says more than a name does, and the site is public and its git history
   permanent — an image taken down later is still in the repository for good.
   Artwork of a person gets asked about before it is committed, not after.
@@ -632,6 +636,40 @@ wordmark and stays on `/french/year-7/`. None of them goes above a lesson, a
 pack, a test or a deck, where it would compete with the material rather than
 introduce it. `Base.astro` takes `logo="site"`, `"italian"` or `"french"`;
 anything else gets none.
+
+**The front door has a banner, not a mark, and it is a different animal.**
+`brand/banner.png` is artwork with a ground of its own — graffiti lettering on
+a green backdrop — spanning the window above the two doors. It is not a fourth
+entry in `MARKS` and every rule below about the marks is false of it: it is
+never keyed, because the ground is the picture; never quantised, because a
+hundred colours of halftone is exactly the case a palette makes worse; and
+never on `.on-dark`.
+
+That last one was the request and it is the interesting half. `--mark-bg` is
+the same navy in both themes *on purpose*, so a masthead wearing it is the one
+strip of the site that ignores the colour switch. The marks need it — they are
+lettering cut out of a card, with nothing of their own to sit on. The banner
+does not, so the header goes back to `--paper` and follows the theme like
+everything else. `check_site.py` loads the front door on a light device and a
+dark one and fails if the header is the same colour twice; proved against the
+bug, which reads `rgb(2, 18, 41)` both times.
+
+**WebP, and the size was measured rather than assumed.** At 1024px this
+artwork is 638 KB as PNG, 116 as JPEG and 78 as WebP. PNG is for the flat
+lettering the marks are cut from and is the wrong tool for a picture; this is
+the first image anybody loads. Two widths, a phone's and a desktop's, through
+`srcset`.
+
+**It is cropped at every width, not shown whole.** Left to its natural 1.83:1
+it is 787px tall on a 1440 window — the entire screen, with both doors below
+the fold — and on a phone, where nothing is cropped, the backdrop green shows
+above and below the artwork. One `height: clamp(170px, 26vw, 380px)` with
+`object-fit: cover` crops the same way everywhere: top and bottom, which is
+backdrop, never the sides, where the lettering runs to both edges.
+
+`public/logo-site.png` is still generated and is now on no page. Kept, because
+the banner is a trial: putting `logo="site"` back on the front door restores
+the old masthead whole.
 
 **All three front pages are a dark band and the mark, and nothing else.**
 The marks are drawn for a dark ground, and on the light theme's white card

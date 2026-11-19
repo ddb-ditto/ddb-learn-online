@@ -59,6 +59,10 @@ FRENCH = BRAND / "french.png"
 # hand-made roundel committed straight to public/ with no source in here at
 # all, which meant nothing regenerated it and nothing checked it.
 ITALIAN = BRAND / "italian.png"
+# The front door's banner, which is a different animal from the three marks:
+# it keeps its own background rather than being cut out of one, so it never
+# goes near `dechroma`. It is artwork that fills the top of the page.
+BANNER = BRAND / "banner.png"
 
 # Sampled from the artwork rather than guessed, so the drawn favicon and the
 # real icon are the same two colours.
@@ -71,6 +75,15 @@ DRAWN = {"favicon-32.png": 32, "favicon-16.png": 16}
 # How wide the wordmark is drawn in the masthead. The file is twice this, for
 # the screens that want it.
 LOGO_WIDTH = 300
+
+# The banner spans the window, so the widths are screen widths rather than a
+# drawn size: a phone and a desktop. WebP because this is the first image
+# anybody loads and the format is worth about four fifths of the file —
+# measured on this artwork at 1024px: 638 KB as PNG, 116 as JPEG, 78 as WebP.
+# A photographic banner is the wrong job for PNG, which is for the flat
+# artwork the marks are cut from.
+BANNER_WIDTHS = (1024, 2048)
+BANNER_QUALITY = 80
 
 
 def quantise(im: Image.Image, colors: int = 128, dither: bool = True) -> Image.Image:
@@ -271,6 +284,18 @@ def main() -> int:
         flat.save(PUBLIC / name, optimize=True)
         kb = (PUBLIC / name).stat().st_size / 1024
         print(f"  {name:22} {size}x{size}  from the app icon   {kb:.0f} KB")
+
+    # The front door's banner. No `dechroma` and no `quantise`: it keeps its
+    # own green ground, and a hundred-odd colours of halftone is exactly the
+    # case a palette makes worse rather than smaller.
+    art = Image.open(BANNER).convert("RGB")
+    for width in BANNER_WIDTHS:
+        wide = art.resize((width, round(art.height * width / art.width)),
+                          Image.LANCZOS)
+        out = PUBLIC / f"banner-{width}.webp"
+        wide.save(out, "WEBP", quality=BANNER_QUALITY, method=6)
+        kb = out.stat().st_size / 1024
+        print(f"  {out.name:22} {wide.size[0]}x{wide.size[1]}  the front door      {kb:.0f} KB")
 
     for name, size in DRAWN.items():
         letter_d(size).save(PUBLIC / name, optimize=True)

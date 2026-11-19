@@ -214,8 +214,14 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 - **Dates belong here and only here.** `src/pages/french` and
   `Countdown.astro` are exempt from the no-calendar-years rule; everything else
   in `src/` still is. Keep the dates in the test data, not in a template.
-- **Nothing is stored.** No localStorage, in either section. Exercises mark in
-  memory and forget.
+- **No progress is stored.** Exercises mark in memory and forget: there is no
+  account and no score that outlives the tab. Four things are kept in
+  `localStorage`, each a setting rather than a judgement, each a deliberate
+  exception written down here — the colour theme, the reading switch
+  (`fr7:plain`), which Leitner box a French card is in, and which voice reads
+  the French aloud (`fr7:voice`). Nothing that describes how he did is stored,
+  and nothing stored leaves the device. Anything new in there needs a line in
+  this list or it is a mistake.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
   from the pack's word list. Add a word to a pack and its card appears.
 - **A wrong answer is highlighted only when the highlight points at
@@ -262,6 +268,27 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   curly apostrophe and the space before `?` and `!`. Those two are keyboards,
   not French. `src/scripts/marking.ts` is the only place that decides this, and
   `check_site.py` drives it both ways in a browser.
+- **The voice is the device's, and silence beats an English accent.** The
+  audio is the browser's own synthesiser, so the only voices available are the
+  ones already installed — a static site cannot ship one. `speech.ts` is the
+  only place that decides which: French voices only, a named Apple, Google or
+  Microsoft voice preferred over the device default, `rate` 0.9 because the
+  default pace is too quick to copy, and a picker rendered only where the
+  device has more than one.
+
+  **`utterance.lang` is a hint, not a guarantee.** It does not make a device
+  find a French voice, and the old code asked only whether the browser had a
+  speech API at all — true everywhere — so the ♪ Hear it button appeared on
+  machines that read the French in an English accent and on machines with no
+  voices at all, where pressing it did nothing. Both were invisible to
+  reading: the DOM is identical either way. `check_site.py` now replaces the
+  voice list before the page's scripts run and drives the button against nine
+  shapes of device, including a list that arrives late, which is what Chrome
+  really does — `getVoices()` is empty on the first call and announced by
+  `voiceschanged`.
+
+  If pre-recorded audio is ever added, this becomes the fallback rather than
+  the main event, and a missing clip is what it falls back to.
 
 ## House rules for content
 
@@ -366,6 +393,19 @@ the border, which stops at the ring and so leaves the cream inside it intact.
   theme's accent is a dark red and the dark theme's is a light salmon; white
   serves the first and fails the second at 2.7:1. `check_site.py` measures it
   in both themes and was proved against the bug.
+- **Some browser globals cannot be assigned over, and fail silently.**
+  `window.speechSynthesis` is a read-only accessor on `Window.prototype`, so
+  `window.speechSynthesis = stub` in a non-strict script does nothing at all
+  and throws nothing either. The voice checks appeared to find eight real
+  failures before this was spotted — the test harness, not the site, was
+  broken. Use `Object.defineProperty(window, name, { value, configurable: true })`,
+  and have the stub assert it installed, so a harness that failed says so
+  instead of reporting the page as broken.
+- **An assertion gated on something optional may never run.** The wi-fi
+  warning on the voice picker was checked only when a picker existed, and the
+  case it was written for had a single voice, so no picker rendered and the
+  check was dead code — it passed against a build with the warning removed.
+  Proving an assertion against its bug catches this and nothing else does.
 - **Always name the encoding.** `read_text()` and `write_text()` without
   `encoding="utf-8"` are how the decks came to say *cittÃ* and *â* instead of
   *città* and an em dash — text already in UTF-8, decoded as Latin-1 and

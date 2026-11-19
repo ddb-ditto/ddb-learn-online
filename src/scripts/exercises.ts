@@ -15,6 +15,10 @@
  * turn the card over — never both at once.
  */
 import { NEAR_ENOUGH, diff, isCorrect, pick, shuffled, similarity } from "./marking";
+import {
+  chosenVoice, frenchVoices, needsNetwork, remember,
+  speak as speak_, whenVoicesReady,
+} from "./speech";
 
 type Part = "speaking" | "reading" | "writing";
 
@@ -131,6 +135,9 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
   const reveal = button("Show the model answer");
   const answer = el("div", "exanswer");
   answer.hidden = true;
+  // Below the exercise, not in the button row: it is a setting, set once, and
+  // it should not sit where the thing you press every card sits.
+  const voiceRow = el("div", "exvoicerow");
 
   const step = stepper(() => items.length, () => i, (to) => { i = to; show(); },
                        { wrap: true });
@@ -163,18 +170,44 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     reveal.hidden = true;
   });
 
-  // Browsers without French speech simply do not offer the button, rather
-  // than offering one that reads it in English.
-  const canSpeak = ex.speakLang !== undefined && "speechSynthesis" in window;
-  if (canSpeak) {
-    speak.addEventListener("click", () => {
-      const u = new SpeechSynthesisUtterance(items[i]!.prompt);
-      u.lang = ex.speakLang!;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
+  // A device with no French voice does not get the button, rather than one
+  // that reads the French in an English accent or does nothing at all. Both
+  // of those were live before: `"speechSynthesis" in window` is true in every
+  // modern browser whether or not a single French voice is installed.
+  //
+  // The list arrives late in Chrome, so the button starts hidden and appears
+  // if and when a French voice turns up — never the other way round, which
+  // would mean a button that works and then vanishes.
+  speak.hidden = true;
+  if (ex.speakLang !== undefined) {
+    whenVoicesReady(() => {
+      const voices = frenchVoices();
+      if (!voices.length) return;
+
+      let voice = chosenVoice(voices)!;
+      speak.hidden = false;
+      speak.addEventListener("click", () => speak_(items[i]!.prompt, voice));
+
+      // The picker only exists where there is a choice to make. Most phones
+      // carry one French voice, so most of the time this is not rendered at
+      // all rather than rendered with a single option.
+      if (voices.length > 1) {
+        const pick = el("select", "exvoice");
+        pick.setAttribute("aria-label", "Which voice reads the French");
+        for (const v of voices) {
+          const o = el("option", undefined, v.name + (needsNetwork(v) ? " (needs wi-fi)" : ""));
+          o.value = v.name;
+          if (v.name === voice.name) o.selected = true;
+          pick.appendChild(o);
+        }
+        pick.addEventListener("change", () => {
+          voice = voices.find((v) => v.name === pick.value) ?? voice;
+          remember(voice.name);
+          speak_(items[i]!.prompt, voice);
+        });
+        voiceRow.appendChild(pick);
+      }
     });
-  } else {
-    speak.hidden = true;
   }
 
   // Nothing here takes typing, so the arrow keys are free to do what they do
@@ -187,7 +220,7 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
 
   const row = el("div", "exrow");
   row.append(speak, reveal);
-  stage.append(row, answer);
+  stage.append(row, answer, voiceRow);
   root.append(stage, step.nav);
   show();
 }

@@ -1196,3 +1196,28 @@ details.note.aside > p:last-child { margin-bottom: 0; }
 :root[data-theme="dark"] .badge.part.speaking { background: #ef5a5f; color: #171615; }
 :root[data-theme="dark"] .badge.part.reading  { background: #fed602; color: #171615; }
 :root[data-theme="dark"] .badge.part.writing  { background: #4aa6ef; color: #171615; }
+
+/* The voice picker.
+ *
+ * Only rendered where the device has more than one French voice, so on most
+ * phones this selector matches nothing at all. It sits under the exercise
+ * rather than in the button row: it is a setting, chosen once, and the row
+ * above it is what gets pressed on every card.
+ *
+ * `.exercise .exvoice`, not `.exercise :global(.exvoice)` — this is a plain
+ * global stylesheet, where `:global()` is invalid syntax and silently drops
+ * the whole rule.
+ */
+.exercise .exvoicerow {
+  margin: 0.9rem 0 0;
+  display: flex; align-items: center; gap: 0.45rem;
+}
+.exercise .exvoicerow:empty { display: none; }
+.exercise .exvoice {
+  font-family: var(--sans); font-size: 0.75rem;
+  color: var(--ink-faint);
+  background: var(--card); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 0.25rem 0.35rem; cursor: pointer;
+  max-width: 100%;
+}
+.exercise .exvoice:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

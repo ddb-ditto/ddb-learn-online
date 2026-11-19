@@ -633,6 +633,169 @@ with sync_playwright() as pw:
             if tints[0] == tints[1]:
                 fails.append("the question and the answer are tinted the same")
 
+        # --- the voice that reads the French ------------------------------------
+        #
+        # The ♪ Hear it button is only honest if the device has a French voice.
+        # Before this was checked, the code asked `"speechSynthesis" in window`
+        # — true in every modern browser whatever voices are installed — so two
+        # things both happened: a machine with no voices showed a button that
+        # did nothing when pressed, and a machine with English voices and no
+        # French one read *Comment tu t'appelles ?* in an English accent, which
+        # is worse than silence in a pronunciation drill.
+        #
+        # Neither is visible by reading the page: the DOM is identical either
+        # way. So the voice list is replaced before the page's own scripts run
+        # and the button is driven against each shape of device. `localService`
+        # false marks a voice that has to be fetched, which is silent offline.
+        #
+        # Every case runs in its own context, because the chosen voice is
+        # remembered and would otherwise leak into the next one.
+        VOICE_STUB = """
+        (voices, late) => {
+          window.__spoken = [];
+          const all = voices.map(v => ({ name: v[0], lang: v[1],
+                                         localService: v[2] !== false, default: false }));
+          let listeners = [];
+          let ready = !late;
+          const stub = {
+            getVoices: () => (ready ? all : []),
+            cancel: () => {},
+            speak: u => window.__spoken.push({ text: u.text, voice: u.voice && u.voice.name,
+                                               lang: u.lang, rate: u.rate }),
+            addEventListener: (t, f) => {
+              if (t !== 'voiceschanged') return;
+              listeners.push(f);
+              setTimeout(() => { ready = true; listeners.forEach(g => g()); }, 50);
+            },
+            removeEventListener: (t, f) => { listeners = listeners.filter(g => g !== f); },
+          };
+          // A plain assignment to window.speechSynthesis fails silently: it is a
+          // read-only accessor on Window.prototype. This cost a run of eight
+          // false failures before it was spotted.
+          Object.defineProperty(window, 'speechSynthesis',
+                                { value: stub, configurable: true });
+          Object.defineProperty(window, 'SpeechSynthesisUtterance',
+                                { value: function (text) { this.text = text; },
+                                  configurable: true });
+          window.__stubbed = window.speechSynthesis === stub;
+        }
+        """
+        VOICE_CASES = [
+            # label,                   voices,                                      late
+            ("no voices at all",       [],                                          False),
+            ("English voices only",    [["Daniel", "en-GB"], ["Samantha", "en-US"]], False),
+            ("one French voice",       [["Marie", "fr-FR"]],                        False),
+            ("French, best last",      [["Microsoft Hortense", "fr-FR"],
+                                        ["Thomas", "fr-FR"]],                       False),
+            ("French arriving late",   [["Thomas", "fr-FR"]],                       True),
+            ("French and English",     [["Daniel", "en-GB"], ["Amélie", "fr-CA"]],  False),
+            ("underscore locale",      [["Julie", "fr_FR"]],                        False),
+            ("network voice alone",    [["Google français", "fr-FR", False]],       False),
+            # Two voices, one of them network-only, so there is a picker for the
+            # wi-fi warning to appear on. With a single voice no picker renders,
+            # which made the first version of that assertion dead code — it
+            # passed against a build with the warning deliberately removed.
+            ("network voice listed",   [["Thomas", "fr-FR"],
+                                        ["Google français", "fr-FR", False]],       False),
+        ]
+        is_fr = lambda lang: lang.lower().replace("_", "-").startswith("fr")
+
+        for label, voices, late in VOICE_CASES:
+            ctx = b.new_context(viewport={"width": 390, "height": 844})
+            vp = ctx.new_page()
+            try:
+                vp.add_init_script(f"({VOICE_STUB})({json.dumps(voices)}, "
+                                   f"{json.dumps(late)})")
+                vp.goto(f"{ROOT}/french/year-7/packs/speaking-answers/")
+                vp.wait_for_timeout(2200)
+                if not vp.evaluate("window.__stubbed === true"):
+                    fails.append(f"voices [{label}]: the stub did not install, so this "
+                                 f"case proved nothing")
+                    continue
+
+                french = [v[0] for v in voices if is_fr(v[1])]
+                btn = vp.locator(".exercise .exbtn.quiet")
+                shown = btn.count() > 0 and btn.first.is_visible()
+
+                if not french:
+                    # The whole point. `hidden` alone is not enough to assert:
+                    # any class setting `display` beats [hidden], so measure it.
+                    if shown:
+                        disp = btn.first.evaluate("e => getComputedStyle(e).display")
+                        fails.append(f"voices [{label}]: Hear it is offered with no French "
+                                     f"voice (display: {disp}) — it reads English or nothing")
+                    picker = vp.locator(".exercise .exvoice")
+                    if picker.count() and picker.first.is_visible():
+                        fails.append(f"voices [{label}]: a voice picker with no French voice")
+                    continue
+
+                if not shown:
+                    fails.append(f"voices [{label}]: no Hear it button though the device "
+                                 f"has {french}")
+                    continue                       # a finding, not an exception
+
+                btn.first.click()
+                vp.wait_for_timeout(150)
+                spoken = vp.evaluate("window.__spoken || []")
+                if not spoken:
+                    fails.append(f"voices [{label}]: Hear it was pressed and said nothing")
+                    continue
+                u = spoken[-1]
+                want = "Thomas" if "Thomas" in french else french[0]
+                if u["voice"] != want:
+                    fails.append(f"voices [{label}]: spoke with {u['voice']!r}, "
+                                 f"expected {want!r}")
+                if not is_fr(str(u["lang"])):
+                    fails.append(f"voices [{label}]: utterance lang is {u['lang']!r}")
+                if u["rate"] != 0.9:
+                    fails.append(f"voices [{label}]: rate is {u['rate']!r}, not 0.9 — "
+                                 f"the default pace is too quick to copy")
+                flat = lambda t: t.replace(" ", " ").replace(" ", " ").strip()
+                on_card = vp.locator("#ex-speaking-practice .exq").inner_text()
+                if flat(u["text"]) != flat(on_card):
+                    fails.append(f"voices [{label}]: spoke {flat(u['text'])!r} while the "
+                                 f"card showed {flat(on_card)!r}")
+
+                # The picker exists only where there is a choice. On a phone with
+                # one French voice it must not be rendered at all.
+                picker = vp.locator(".exercise .exvoice")
+                has_picker = picker.count() > 0 and picker.first.is_visible()
+                if len(french) > 1:
+                    if not has_picker:
+                        fails.append(f"voices [{label}]: {len(french)} French voices and "
+                                     f"no way to choose between them")
+                    else:
+                        if picker.first.input_value() != want:
+                            fails.append(f"voices [{label}]: the picker starts on "
+                                         f"{picker.first.input_value()!r}, not {want!r}")
+                        other = [v for v in french if v != want][0]
+                        picker.first.select_option(other)
+                        vp.wait_for_timeout(150)
+                        after = vp.evaluate("window.__spoken || []")[-1]
+                        if after["voice"] != other:
+                            fails.append(f"voices [{label}]: choosing {other!r} still "
+                                         f"spoke with {after['voice']!r}")
+                        kept = vp.evaluate("localStorage.getItem('fr7:voice')")
+                        if kept != other:
+                            fails.append(f"voices [{label}]: the chosen voice was not "
+                                         f"remembered (stored {kept!r})")
+                elif has_picker:
+                    fails.append(f"voices [{label}]: a picker offering one voice")
+
+                # A voice that is fetched rather than installed goes quiet on a
+                # train, so it has to say so where it is chosen.
+                if has_picker and any(len(v) > 2 and v[2] is False for v in voices):
+                    labels = picker.first.evaluate(
+                        "e => Array.from(e.options).map(o => o.textContent)")
+                    if not any("wi-fi" in t for t in labels):
+                        fails.append(f"voices [{label}]: a network-only voice is offered "
+                                     f"without saying it needs one")
+            except Exception as why:               # a crash here is a finding
+                fails.append(f"voices [{label}] crashed: {str(why).splitlines()[0]}")
+            finally:
+                ctx.close()
+        notes.append(f"voice cases driven: {len(VOICE_CASES)}")
+
         page.goto(f"{ROOT}/french/year-7/packs/greetings/")
         wd = page.locator("#ex-w-d")
         answers = page.evaluate("""() => JSON.parse(

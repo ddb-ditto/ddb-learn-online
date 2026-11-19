@@ -1056,6 +1056,46 @@ with sync_playwright() as pw:
             # English gloss do not.
             sp_page.goto(f"{ROOT}/french/year-7/packs/greetings/")
             sp_page.wait_for_timeout(1800)
+            # A speaker has to be *visible*, which is not the same as not being
+            # display:none.
+            #
+            # The styles for `.sayit` were deleted by accident — a slice that
+            # meant to remove the old voice picker took the whole block with it
+            # — and every check still passed. The button was in the DOM, its
+            # `display` was `inline-block`, it was not `hidden`, and it had a
+            # perfectly good `<svg>` inside. But the SVG carries a viewBox and
+            # no width or height attributes, so with no CSS to size it, it laid
+            # out at 0x0: the page showed an empty grey browser button beside
+            # every French word, and that is what shipped.
+            #
+            # So: measure the glyph, not the element's existence.
+            first = sp_page.locator(".sayit").first
+            if first.count() == 0:
+                fails.append("no speakers to measure on the greetings pack")
+            else:
+                shape = first.evaluate("""e => {
+                    const svg = e.querySelector('svg');
+                    const r = e.getBoundingClientRect();
+                    const g = svg ? svg.getBoundingClientRect() : {width: 0, height: 0};
+                    const c = getComputedStyle(e);
+                    return {bw: r.width, bh: r.height, gw: g.width, gh: g.height,
+                            bg: c.backgroundColor, border: c.borderTopWidth};
+                }""")
+                notes.append(f"speaker: button {shape['bw']:.0f}x{shape['bh']:.0f}, "
+                             f"glyph {shape['gw']:.0f}x{shape['gh']:.0f}")
+                if shape["gw"] < 6 or shape["gh"] < 6:
+                    fails.append(f"the speaker's glyph renders at "
+                                 f"{shape['gw']:.0f}x{shape['gh']:.0f} — there is a button "
+                                 f"on the page with nothing visible in it")
+                if shape["bw"] < 10 or shape["bh"] < 10:
+                    fails.append(f"the speaker renders at {shape['bw']:.0f}x"
+                                 f"{shape['bh']:.0f}, too small to press")
+                # And it must not be the browser's default button, which is what
+                # it falls back to when its own rules are missing.
+                if shape["border"] not in ("0px", "0"):
+                    fails.append(f"the speaker has a {shape['border']} border — it is "
+                                 f"rendering as an unstyled browser button")
+
             terms = sp_page.locator("table.words td.term")
             on_terms = sp_page.locator("table.words td.term .sayit")
             notes.append(f"word-table speakers: {on_terms.count()} on {terms.count()} terms")

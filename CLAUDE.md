@@ -609,6 +609,24 @@ white again.
   case it was written for had a single voice, so no picker rendered and the
   check was dead code — it passed against a build with the warning removed.
   Proving an assertion against its bug catches this and nothing else does.
+- **Shown is not the same as visible, and the checks knew only the first.**
+  The `.sayit` rules were deleted by accident — a slice meant to remove the
+  old voice picker took the whole block after it as well — and the speakers
+  shipped like that for several commits with everything green. The button was
+  in the DOM, it was not `hidden`, its computed `display` was `inline-block`,
+  and it held a perfectly good `<svg>`. But that SVG carries a viewBox and no
+  width or height attributes, so with no CSS to size it, it laid out at 0x0:
+  beside every French word was an empty grey browser button. It took somebody
+  looking at the site to find it.
+
+  So a check on something a person is meant to see measures the thing they
+  see — the glyph's box, and that the button is not the browser's default one
+  — and not merely that an element exists and is not hidden.
+- **A surgical slice of a file takes everything between the two anchors.**
+  `s[:s.index(start)] + s[s.index(end):]` removed four rules nobody meant to
+  touch, because the block being removed was not the only thing before the
+  end anchor. Where a stylesheet is edited by cutting a range, print what the
+  cut contains before writing it, or match the rules by name.
 - **"None of X" passes for free on a page with no X.** "No speaker on the
   pronunciation column" was asserted against the greetings pack, which has no
   pronunciation column — only the speaking-answers pack does. It passed with

@@ -1214,6 +1214,44 @@ details.note.aside > p:last-child { margin-bottom: 0; }
 :root[data-theme="dark"] .badge.part.reading  { background: #fed602; color: #171615; }
 :root[data-theme="dark"] .badge.part.writing  { background: #4aa6ef; color: #171615; }
 
+/* ---------- the speaker, beside anything in French ----------------------- */
+
+/*
+ * A glyph, not a sentence.
+ *
+ * It replaced a button reading "♪ Hear it", which was fine beside one question
+ * and wrong beside fifty words: the label repeats on every row and says
+ * nothing the icon does not. The accessible name carries the word being read,
+ * so a screen reader gets "Hear “merci” in French" rather than fifty buttons
+ * all called the same thing.
+ *
+ * Quiet by default and the accent on hover or focus. It sits beside the word
+ * it reads, so it must not compete with it — at full strength a column of
+ * these reads as the content and the French reads as the decoration.
+ */
+.sayit {
+  appearance: none; background: none; border: 0; padding: 0 0 0 0.3rem;
+  margin: 0; cursor: pointer; vertical-align: baseline;
+  color: var(--ink-faint); opacity: 0.55;
+  line-height: 1;
+}
+/* The size is not optional. The inline SVG carries a viewBox and no width or
+   height attributes, so without this it lays out at 0x0 — and the button
+   around it, with none of these rules to strip it back, renders as the
+   browser's own small grey box with nothing visible inside. That is exactly
+   how the speakers shipped for several commits: in the DOM, `display` not
+   `none`, and nothing whatsoever to see. */
+.sayit svg { width: 0.82em; height: 0.82em; display: inline-block; vertical-align: -0.04em; }
+.sayit:hover, .sayit:focus-visible { color: var(--accent); opacity: 1; }
+.sayit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+/* On paper it is a button that cannot be pressed. */
+@media print { .sayit { display: none; } }
+
+/* A tile is a button, so its speaker cannot sit inside it — a button inside a
+   button is not valid HTML and the inner one does not receive the click. It
+   goes alongside, pulled in tight so the pair reads as one object. */
+.exercise .sayit.ontile { margin-left: -0.15rem; margin-right: 0.35rem; }
+
 /* The whole-passage speaker, which appears only once the gaps are filled. */
 .exercise .expassage { margin: 0.6rem 0 0; }
 .exercise .expassage:empty { display: none; }

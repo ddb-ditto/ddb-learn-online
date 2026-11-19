@@ -230,6 +230,28 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   this list or it is a mistake.
 - **Flashcards are derived, never written.** `src/lib/packcards.ts` builds them
   from the pack's word list. Add a word to a pack and its card appears.
+- **A pack's practice is derived too, and invents no French.**
+  `src/lib/packexercises.ts` builds *What does it mean?*, *Spell it* and
+  *Spot the mistake* from the pack's own vocabulary, countries, numbers or
+  misspellings. Before that, *Spell it* was one file of 59 items shared by
+  seven packs and *What does it mean?* one of 15 shared by six, so a pack
+  asked about every word in the course and asked the identical questions each
+  time — pack 3's practice was pack 2's practice.
+
+  **The source is the class's notebook and this may rearrange it, not add to
+  it.** Every prompt and every answer has to be findable in that pack's own
+  data, verbatim; `check_site.py` reads each built page and checks exactly
+  that, and that no two packs set an identical set. A drill needing a word the
+  pack does not hold is a drill that must not be generated — which is why
+  *Spot the mistake* exists only where there are real misspellings to use.
+  Making some up would be inventing French that is wrong on purpose, which is
+  further from the notebook than inventing French that is right.
+
+  Four exercises are still shared, named in `SHARED_ON_PURPOSE` in the check
+  with a reason each, so that a *new* duplication fails. Three of them —
+  word order, translation, punctuation — need whole sentences split or
+  stripped, which is derivable from what the packs already hold and simply is
+  not done yet.
 - **A wrong answer is highlighted only when the highlight points at
   something.** The character diff is for a missing accent or a dropped hyphen.
   Given an answer nowhere near the right one it finds whatever letters happen

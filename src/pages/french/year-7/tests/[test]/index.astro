@@ -108,7 +108,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   <p>Work through these in order. Nothing is saved — close the tab and the scores are
   gone, which is the point: do it again tomorrow.</p>
 
-  {practice.map((e) => <Exercise exercise={e} />)}
+  {practice.map((e) => <Exercise ex={e.data} />)}
 
   <footer slot="footer">
     <span>Year 7 French · {t.title}</span>

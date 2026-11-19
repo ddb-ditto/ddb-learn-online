@@ -41,9 +41,14 @@ if not (DIST / "index.html").exists():
 _asset = re.search(r'href="(/[^"]*?)/_astro/', (DIST / "index.html").read_text(encoding="utf-8"))
 BASE = _asset.group(1) if _asset else ""
 
+# The spot-the-mistake drill, whichever the pack is using: its own, built from
+# its own misspellings, or the shared file for the packs that have none.
 EVAL_WANTED = """() => {
-  const d = JSON.parse(document.querySelector('#ex-w-e .ex-data').textContent);
-  const p = document.querySelector('#ex-w-e .exprompt').textContent;
+  const sec = document.querySelector('#ex-own-mistake') ||
+              document.querySelector('#ex-w-e');
+  if (!sec) return null;
+  const d = JSON.parse(sec.querySelector('.ex-data').textContent);
+  const p = sec.querySelector('.exprompt').textContent;
   const hit = d.items.find((i) => i.prompt === p);
   return hit ? hit.answer : null;
 }"""
@@ -894,6 +899,86 @@ with sync_playwright() as pw:
                 ctx.close()
         notes.append(f"voice cases driven: {len(VOICE_CASES)}")
 
+        # --- a pack's own practice -------------------------------------------
+        #
+        # *Spell it* was one file of 59 items shared by seven packs and *What
+        # does it mean?* one of 15 shared by six, so a pack's practice asked
+        # about every word in the course and asked the identical questions on
+        # each pack. They are built from the pack now — see `packexercises.ts`.
+        #
+        # The rule that matters more than the duplication: **this invents no
+        # French**. The source is the class's own notebook, and a drill that
+        # needed a word the pack does not have would be a drill that must not
+        # exist. So every string in a derived exercise has to be findable in
+        # that pack's own data, verbatim.
+        packs_dir = REPO / "src" / "data" / "french" / "packs"
+        derived_seen = 0
+        sets_seen: dict[tuple, list[str]] = {}
+        for pack_file in sorted(packs_dir.glob("*.json")):
+            pack = json.loads(pack_file.read_text(encoding="utf-8"))
+            slug = pack["slug"]
+            raw = json.dumps(pack, ensure_ascii=False)
+            page.goto(f"{ROOT}/french/year-7/packs/{slug}/")
+            page.wait_for_timeout(400)
+            found = page.evaluate("""() => {
+                const out = [];
+                document.querySelectorAll('[data-exercise]').forEach(sec => {
+                  const d = sec.querySelector('script.ex-data');
+                  if (d) out.push(JSON.parse(d.textContent));
+                });
+                return out;
+            }""")
+            for ex in found:
+                items = ex.get("items") or []
+                key = tuple(str(i.get("prompt", "")) for i in items)
+                if key:
+                    sets_seen.setdefault(key, []).append(f"{slug}/{ex['id']}")
+                if not str(ex["id"]).startswith("own-"):
+                    continue
+                derived_seen += 1
+                for it in items:
+                    for field in ("prompt", "answer"):
+                        v = str(it.get(field, ""))
+                        if not v or v.isdigit():
+                            continue          # a number's gloss is its digit
+                        if v not in raw and v.replace("\u00a0", " ") not in raw:
+                            fails.append(f"{slug}/{ex['id']}: {v!r} is not in that "
+                                         f"pack's own data — a derived exercise "
+                                         f"invented French")
+        notes.append(f"derived exercises built from their own pack: {derived_seen}")
+        if derived_seen < 6:
+            fails.append(f"only {derived_seen} derived exercises found — the packs "
+                         f"are not building their own practice")
+        # And no two packs set an identical question set, except where the
+        # pack has nothing of its own to build one from.
+        #
+        # These four are shared on purpose, for now, and each for the same
+        # reason: the drill needs material the pack does not hold. *Spot the
+        # mistake* needs misspellings, and only the tricky-spellings pack has
+        # any — generating them would mean inventing French that is wrong on
+        # purpose, which is further from the notebook than inventing French
+        # that is right. The other three need whole sentences split or
+        # stripped, which is derivable and simply is not done yet.
+        #
+        # Named rather than waved through, so a *new* duplication fails.
+        SHARED_ON_PURPOSE = {
+            "w-e": "needs misspellings; only pack 10 has any",
+            "w-b": "needs sentences to shuffle; derivable, not yet done",
+            "w-c": "needs sentences to translate; derivable, not yet done",
+            "w-d": "needs sentences to strip; derivable, not yet done",
+        }
+        for key, where in sets_seen.items():
+            packs_with = {w.split("/")[0] for w in where}
+            if len(packs_with) < 2:
+                continue
+            ids = {w.split("/")[1] for w in where}
+            if ids <= set(SHARED_ON_PURPOSE):
+                notes.append(f"shared on purpose: {sorted(ids)} on "
+                             f"{len(packs_with)} packs")
+                continue
+            fails.append(f"the same question set appears on {sorted(packs_with)} "
+                         f"— {where[0]}")
+
         # --- voices that arrive late ----------------------------------------
         #
         # The bug this exists for was reported as "the icons show on my phone
@@ -1154,7 +1239,9 @@ with sync_playwright() as pw:
             # purpose and must stay silent; the marked answer may speak.
             sp_page.goto(f"{ROOT}/french/year-7/packs/tricky-spellings/")
             sp_page.wait_for_timeout(1800)
-            for eid in ("ex-w-e", "ex-w-d"):
+            # Pack 10 builds its own now, so the id moved. Both are listed
+            # because the shared file is still what packs 2-6 get.
+            for eid in ("ex-own-mistake", "ex-w-e", "ex-w-d"):
                 box = sp_page.locator(f"#{eid}")
                 if box.count() == 0:
                     continue                       # that pack does not carry it
@@ -1331,7 +1418,11 @@ with sync_playwright() as pw:
         wanted_js = EVAL_WANTED
         for typed, what in (("jasjsd", "gibberish"), ("", "nothing at all")):
             page.goto(f"{ROOT}/french/year-7/packs/tricky-spellings/")
-            we = page.locator("#ex-w-e")
+            # That pack builds its own spot-the-mistake from its own
+            # misspellings now, so the id moved from the shared file's.
+            we = page.locator("#ex-own-mistake")
+            if we.count() == 0:
+                we = page.locator("#ex-w-e")
             if we.count() == 0:
                 fails.append("no spot-the-mistake drill to check the highlighting with")
                 break

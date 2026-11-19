@@ -6,9 +6,13 @@
  */
 import type { CollectionEntry } from "astro:content";
 
-interface Props { exercise: CollectionEntry<"frenchExercises">; }
-const { exercise } = Astro.props;
-const ex = exercise.data;
+/**
+ * The exercise's data, not its collection entry — because a pack can now
+ * build its own from its own words (`packexercises.ts`) and those have no
+ * entry to be the data of.
+ */
+interface Props { ex: CollectionEntry<"frenchExercises">["data"]; }
+const { ex } = Astro.props;
 ---
 <section class="exercise" data-exercise id={`ex-${ex.id}`}>
   <h3>{ex.title}</h3>

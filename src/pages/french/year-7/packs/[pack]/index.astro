@@ -12,6 +12,7 @@ import Base from "../../../../../layouts/Base.astro";
 import Breadcrumbs from "../../../../../components/Breadcrumbs.astro";
 import Section from "../../../../../components/Section.astro";
 import Exercise from "../../../../../components/Exercise.astro";
+import { ownExercises } from "../../../../../lib/packexercises";
 import Note from "../../../../../components/Note.astro";
 import Rule from "../../../../../components/Rule.astro";
 import PageNav from "../../../../../components/PageNav.astro";
@@ -33,8 +34,22 @@ const { pack, prev, next } = Astro.props;
 const p = pack.data;
 
 const exercises = await getCollection("frenchExercises");
-const byId = new Map(exercises.map((e) => [e.data.id, e]));
-const practice = p.exercises.map((id) => byId.get(id)).filter((e) => e !== undefined);
+const byId = new Map(exercises.map((e) => [e.data.id, e.data]));
+/**
+ * The pack's own practice, built from its own words, then whatever shared
+ * exercise it still lists.
+ *
+ * Its own comes first because it is the pack's: *Spell it* here asks about
+ * the words on this page, not about every word in the course. The shared
+ * files are what is left over for the packs that have no word list to build
+ * from — see `packexercises.ts`.
+ */
+const own = ownExercises(p);
+const ownSet = new Set(own.map((e) => e.id));
+const shared = p.exercises
+  .map((id) => byId.get(id))
+  .filter((e) => e !== undefined && !ownSet.has(e.id));
+const practice = [...own, ...shared];
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (slug: string) => `${base}/french/year-7/packs/${slug}/`;
@@ -184,7 +199,7 @@ const cardCount = cardCountFor(p);
   {practice.length > 0 && (
     <>
       <Section kicker="Practice">Test yourself</Section>
-      {practice.map((e) => <Exercise exercise={e} />)}
+      {practice.map((e) => <Exercise ex={e} />)}
     </>
   )}
 

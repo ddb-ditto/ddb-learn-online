@@ -85,11 +85,17 @@ is.
 These predate the website and were nearly lost with the folder it replaced.
 They are the project's rules, not the site's.
 
-- **One unit at a time.** Build the next unit only after the previous one has
-  been taught, or at least started, so it can be calibrated to how it landed.
-  Do not batch-produce units nobody has tried. This is the rule most likely to
-  be broken by enthusiasm, and it was broken once already — Unit 2 was built
-  without anyone asking whether Unit 1 had been taught.
+- **The course is paused. Do not offer to build a unit, and do not ask
+  whether the last one has been taught.** Units 1 and 2 exist and no more are
+  wanted for now. The rule below is why this needs saying: it makes asking
+  look like diligence, so it was asked over and over. When the next unit is
+  wanted, somebody will say so. Everything else in the repository — the French
+  section, the site, the tools — carries on as normal.
+- **One unit at a time**, when they resume. Build the next unit only after the
+  previous one has been taught, or at least started, so it can be calibrated to
+  how it landed. Do not batch-produce units nobody has tried. This is the rule
+  most likely to be broken by enthusiasm, and it was broken once already — Unit
+  2 was built without anyone asking whether Unit 1 had been taught.
 - **Ask before assuming prior knowledge.** If it is unclear whether something
   has been covered, ask rather than guess.
 - **Say when something cannot be done.** Access limits, blocked deletions,

@@ -161,9 +161,7 @@ const cardCount = cardCountFor(p);
   {p.corrections && (
     <>
       <Section kicker="Easy to get wrong">The spelling that counts</Section>
-      <p>Read these, do not copy them out wrong first. Spotting a misspelling is
-      practised in <em>Spot the mistake</em> below, where getting it wrong costs
-      nothing.</p>
+      <p>Read these; do not copy them out wrong first.</p>
       <ol class="spellings">
         {p.corrections.map((c) => (
           <li lang="fr">{tight(c.right)}</li>

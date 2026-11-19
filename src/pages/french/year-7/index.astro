@@ -48,14 +48,12 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
 
   <details class="note aside" open>
     <summary><span class="lead">Where to start</span></summary>
-    <p>Open the test that is next and work down its list — the packs are in the order
-    they are worth doing, not in number order. Pack&nbsp;7 first for speaking;
-    Pack&nbsp;10 first for writing.</p>
+    <p>Open the next test and work down its list — that order, not number
+    order.</p>
   </details>
 
   <Section kicker="When a pack is done">Mix it up</Section>
-  <p>Working through one pack at a time feels like it is going well, because every
-  answer comes from the same place. Mixing them is harder and holds better.</p>
+  <p>Harder than one pack at a time, and it holds better.</p>
 
   <CardGrid>
     <CardLink
@@ -67,9 +65,6 @@ const NAME = { speaking: "Speaking", reading: "Reading", writing: "Writing" } as
   </CardGrid>
 
   <Section kicker="Ten packs">Everything to revise</Section>
-  <p>Each pack is a short page: the words, the rule that holds them together, flashcards
-  that print as fold-over cards, and practice that marks itself.</p>
-
   <CardGrid id="packs">
     {packs.map((p) => (
       <CardLink

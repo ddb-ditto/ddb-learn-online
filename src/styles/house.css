@@ -1436,7 +1436,10 @@ details.note.aside > p:last-child { margin-bottom: 0; }
 .run .runend p { margin: 0 0 0.7rem; }
 .run .runnote { font-size: 0.86rem; color: var(--ink-faint); }
 
-.runaside {
-  font-family: var(--sans); font-size: 0.82rem; color: var(--ink-faint);
-  max-width: 42rem;
+/* The one line of help the page keeps. It replaced a 190-word note
+   explaining the mechanic, which the bar, the button and the cards all
+   demonstrate in about ten seconds of use. */
+.run + .runhelp, .runhelp {
+  font-family: var(--sans); font-size: 0.85rem; color: var(--ink-soft);
+  max-width: 42rem; margin: 0 0 1rem;
 }

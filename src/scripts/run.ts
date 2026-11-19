@@ -152,9 +152,17 @@ function waysToAsk(item: Item, at: number, pool: Item[]): Question[] {
     });
   }
 
-  // Both listening shapes. Whether either can actually be asked is settled
-  // when the card is shown, not here — see the `hear` kind above.
+  // Listening, in one shape or the other but never both as separate ways of
+  // asking. Each other kind contributes one entry to this list and the caller
+  // picks one entry per item, so two listening entries gave listening twice
+  // anybody else's share — measured at twelve cards of twenty-nine in a run,
+  // which is a third of a revision session spent on the one skill the tests
+  // do not examine.
   //
+  // Whether either can actually be asked is settled when the card is drawn,
+  // not here — see the `hear` kind above.
+  const listening: Question[] = [];
+
   // Typing back what you heard is only fair where everything in the answer
   // can be heard. Several of the packs' entries are stems ending in an
   // ellipsis — *Nous habitons…*, *Il s'appelle…* — and an ellipsis makes no
@@ -162,17 +170,19 @@ function waysToAsk(item: Item, at: number, pool: Item[]): Question[] {
   // knowing are there. They are still fine to pick between, where the
   // written form is on the screen.
   if (!/…|\.\.\./.test(item.fr)) {
-    out.push({ k: "hear", id, pack: item.pack, fr: item.fr, en: item.en });
+    listening.push({ k: "hear", id, pack: item.pack, fr: item.fr, en: item.en });
   }
 
   const heard = frDistractors(item, pool);
   if (heard) {
     const options = shuffled([item.fr, ...heard]);
-    out.push({
+    listening.push({
       k: "hear", id, pack: item.pack, fr: item.fr, en: item.en,
       options, answer: options.indexOf(item.fr),
     });
   }
+
+  if (listening.length) out.push(shuffled(listening)[0]!);
 
   return out;
 }

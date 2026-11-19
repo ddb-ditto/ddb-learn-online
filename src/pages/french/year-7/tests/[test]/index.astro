@@ -91,8 +91,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   ))}
 
   <Section kicker="Revise these">The packs, in order</Section>
-  <p>Top of the list first. They are not in number order — this is the order that pays
-  off for <em>this</em> test.</p>
+  <p>Top of the list first — not number order.</p>
 
   <CardGrid>
     {packs.map((p, n) => (
@@ -105,8 +104,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   </CardGrid>
 
   <Section kicker="Practice test" id="practice">The same shapes as the real thing</Section>
-  <p>Work through these in order. Nothing is saved — close the tab and the scores are
-  gone, which is the point: do it again tomorrow.</p>
+  <p>Nothing is saved, so do it again tomorrow.</p>
 
   {practice.map((e) => <Exercise ex={e.data} />)}
 

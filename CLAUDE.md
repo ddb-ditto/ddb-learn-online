@@ -303,6 +303,14 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   `check_site.py` asserts that emptiness, because a card that leaked the
   French would look entirely normal.
 
+  **One listening shape per item, not two.** `waysToAsk` returns the ways an
+  item can be asked and the caller picks one of them, so listing both
+  listening shapes gave listening twice the share of every other kind —
+  measured at twelve cards in a run of twenty-nine, a third of a revision
+  session spent on the one skill neither test examines. The two shapes are
+  chosen between first and the winner is offered as the item's single
+  listening entry.
+
   **Whether a listening card can be asked is decided when it is drawn, not
   when the run is built.** A device with no French voice has nothing to hear,
   and a card he cannot answer never leaves the queue — a wrong answer goes to
@@ -406,6 +414,42 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   in the run marks, and the same block carries a correct answer as often as a
   failed one, so it stays neutral and the marking lives on the input and the
   options, where it already is.
+- **The French pages carry nothing written for the parent, and no page
+  explains itself.** Two different cuts, made together, and the second is the
+  bigger one.
+
+  *Written for the parent*: the section is read by the person it was written
+  for, so an aside addressed over his shoulder is somebody else's post-it
+  left on his revision. Both that existed — *why the alphabet is here*, *why
+  it stops at 31* — were explanations of why the material is the way it is,
+  which is a thing for this file to record and not for his page to carry. The
+  `audience: "parent"` field and the switch that hides it both stay, because
+  the next one that gets written may earn its place; `check_site.py` now says
+  out loud that it could not test that half rather than passing in silence,
+  which is the difference between a check that is satisfied and one that has
+  quietly stopped looking.
+
+  *Explaining itself*: the run page had **190 words of its 248** telling him
+  that wrong answers come round again — which the bar, the button and the
+  cards demonstrate in about ten seconds of use. The mixed page had sixty
+  more making an argument its own standfirst already made in one line, and
+  the hub made the same argument a third time. All of it went. What is left
+  on the run page is the one thing use does *not* teach: that an empty answer
+  is allowed.
+
+  The test to apply: **would he find this out by using the page?** If yes it
+  is padding, however well written. Notes from the teacher stay — *the
+  teacher named la bise specifically*, *a couple of tasks check reading on
+  language you have not been taught* — because those are not discoverable,
+  they are intelligence from the room. So do the rules, the words and the
+  drills. Prose about why the thing is built the way it is belongs here.
+
+  **The Italian course is the opposite case and this rule does not reach it.**
+  Its reader *is* the teaching parent, so *Insist the final vowel is as strong
+  as the first*, *Do not teach the meaning of any word in this unit* and *Ask
+  "why?" on at least three of them* are not commentary around the course —
+  they are the course. Stripping notes there on the grounds that they address
+  a parent would delete the teaching and leave the drills.
 - **A wrong answer is highlighted only when the highlight points at
   something.** The character diff is for a missing accent or a dropped hyphen.
   Given an answer nowhere near the right one it finds whatever letters happen

@@ -1360,10 +1360,18 @@ with sync_playwright() as pw:
                 if not voices and heard:
                     fails.append(f"{heard} listening card(s) on a device with "
                                  f"no French voice")
-                for want in ("meaning", "out loud"):
-                    if not kinds.get(want):
-                        fails.append(f"the run [{label}] never showed a "
-                                     f"{want!r} card — part of it is dead")
+                # Only the out-loud cards are guaranteed: two are placed in
+                # every run by construction. Every other kind is drawn at
+                # random from the ways each item can be asked, so a fourteen
+                # card run can honestly contain none of a given one — this
+                # failed a correct build when a voiced run happened to draw
+                # no meaning card, while the other run drew eight. So the
+                # guaranteed kind is required per run, and the rest only have
+                # to appear across the two.
+                if not kinds.get("out loud"):
+                    fails.append(f"the run [{label}] showed no out-loud card, "
+                                 f"and two are placed in every run")
+                kinds_across.update(k for k, n in kinds.items() if n)
                 if dimmed:
                     fails.append(f"the right answer is marked at opacity "
                                  f"{dimmed[0]} — disabling an answered option "
@@ -1387,8 +1395,14 @@ with sync_playwright() as pw:
             finally:
                 ctx.close()
 
+        kinds_across: set = set()
         play_a_run([["Thomas", "fr-FR"]], "a French voice")
         play_a_run([], "no French voice")
+        notes.append(f"card kinds seen across both runs: {sorted(kinds_across)}")
+        for want in ("meaning", "spelling", "mistake", "accents", "out loud"):
+            if want not in kinds_across:
+                fails.append(f"no {want!r} card in either run — that kind is "
+                             f"never being built")
 
         # --- a learner who cannot do any of it -----------------------------
         #
@@ -1975,15 +1989,30 @@ with sync_playwright() as pw:
                 with_parent_note = slug
                 break
         if with_parent_note is None:
-            fails.append("no pack carries a note for the parent, so the reading "
-                         "switch cannot be checked against one")
-        notes.append(f"reading mode checked on the {with_parent_note!r} pack")
+            # Intended: the French pages carry nothing written for the parent
+            # any more. The switch keeps the ability to hide one, so the
+            # search stays — it just no longer finds anything, and that is
+            # reported rather than failed. The page the switch is then driven
+            # on is the last one visited above, which has notes of the other
+            # kind and exercises to leave alone.
+            notes.append("reading mode: no pack carries a note for the parent, "
+                         "which is intended — nothing on these pages is "
+                         "addressed to one")
+        else:
+            notes.append(f"reading mode checked on the {with_parent_note!r} pack")
 
         switch = page.locator("#plainmode")
         if switch.count() == 0:
             fails.append("no reading-mode switch on a pack page")
         elif with_parent_note is None:
-            pass
+            # There is no note written for the parent anywhere in the section
+            # any more, so the half of this check that drives one cannot run.
+            # Said out loud rather than skipped in silence: a check that
+            # quietly stops testing looks exactly like one that passes, and
+            # the switch still hides parent notes if one is ever written.
+            notes.append("reading mode: no parent note exists, so the "
+                         "hide-the-parent's-note half of this check did not "
+                         "run — only the folding below was tested")
         else:
             if switch.is_checked():
                 fails.append("the reading-mode switch starts on; a parent should see everything")

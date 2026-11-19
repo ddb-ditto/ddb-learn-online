@@ -21,7 +21,6 @@ import { getCollection } from "astro:content";
 import Base from "../../../../layouts/Base.astro";
 import Breadcrumbs from "../../../../components/Breadcrumbs.astro";
 import FrenchAudio from "../../../../components/FrenchAudio.astro";
-import Note from "../../../../components/Note.astro";
 import { buildPool } from "../../../../lib/runqueue";
 
 const packs = (await getCollection("frenchPacks")).sort(
@@ -46,22 +45,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
   <FrenchAudio />
 
-  <Note lead={"Why the wrong ones come back"}>
-    <p>A list of exercises is finished when you reach the bottom of it, whether or
-    not you got them right. This one is finished when the bar is full, and the bar
-    only moves when you are right — so anything you miss goes to the back and comes
-    round again later in the same run. That gap, between getting it wrong and being
-    asked it again, is what makes it stick.</p>
-    <p>If you cannot do one, press the button with the box empty — it says
-    <strong>Show me</strong> when there is nothing written — and it will show you the
-    answer and move you on. The card comes back later in the same run, by which time
-    you have read it. Getting stuck on one is worse than being told.</p>
-
-    <p>Two of the cards are <strong>out loud</strong>, and nothing on this page can
-    mark those. Your computer can read French to you but it cannot hear you back,
-    so for those a teacher or a parent has to listen and tell you how it went.
-    They do not count towards the bar either way.</p>
-  </Note>
+  <p class="runhelp">Stuck on one? Press <strong>Show me</strong> — it tells you the
+  answer and brings the card back later.</p>
 
   <div class="exercise run">
     <div class="runprogress" role="progressbar" aria-valuemin="0" aria-valuenow="0"
@@ -76,9 +61,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
   <script type="application/json" id="run-pool" is:inline set:html={JSON.stringify(pool)} />
 
-  <p class="runaside">Nothing you do here is saved anywhere. Every run picks a
-  different set and asks it a different way, so going again is not going again
-  over the same thing.</p>
 
   <footer class="noprint" slot="footer">
     <span>Year 7 French · one at a time</span>

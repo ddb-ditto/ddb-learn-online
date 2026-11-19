@@ -1083,13 +1083,17 @@ with sync_playwright() as pw:
                 }""")
                 notes.append(f"speaker: button {shape['bw']:.0f}x{shape['bh']:.0f}, "
                              f"glyph {shape['gw']:.0f}x{shape['gh']:.0f}")
-                if shape["gw"] < 6 or shape["gh"] < 6:
+                # The floor is the size it is drawn at, less a little. It was
+                # raised when the icons were made bigger; a glyph that shrinks
+                # back to the old 11px is a regression, not a style choice.
+                if shape["gw"] < 13 or shape["gh"] < 13:
                     fails.append(f"the speaker's glyph renders at "
                                  f"{shape['gw']:.0f}x{shape['gh']:.0f} — there is a button "
                                  f"on the page with nothing visible in it")
-                if shape["bw"] < 10 or shape["bh"] < 10:
+                # A child presses this on a phone. 20px is already mean.
+                if shape["bw"] < 20 or shape["bh"] < 18:
                     fails.append(f"the speaker renders at {shape['bw']:.0f}x"
-                                 f"{shape['bh']:.0f}, too small to press")
+                                 f"{shape['bh']:.0f}, too small a target to press")
                 # And it must not be the browser's default button, which is what
                 # it falls back to when its own rules are missing.
                 if shape["border"] not in ("0px", "0"):
@@ -1243,6 +1247,43 @@ with sync_playwright() as pw:
                 elif flat(said[-1]["text"]) != shown:
                     fails.append(f"the card spoke {flat(said[-1]['text'])!r}, "
                                  f"not the face {shown!r}")
+
+            # No card prints markup at its reader.
+            #
+            # A vocabulary card's back used to be built as
+            # `"What's your name? — or <em>Comment t'appelles-tu ?</em>"`, and
+            # every face is written through `esc()` — correctly, since escaping
+            # by default is right. So the deck showed the tags, literally, on
+            # the card. The markup was in the data; it belongs in the renderer.
+            #
+            # Two halves, because either alone passes: the data must carry no
+            # tags, and the drawn face must show none.
+            for pack in ("countries", "name-and-age", "where-i-live"):
+                sp_page.goto(f"{ROOT}/french/year-7/packs/{pack}/cards/")
+                sp_page.wait_for_timeout(700)
+                deck = sp_page.evaluate(
+                    """() => JSON.parse(document.getElementById('cards-data').textContent)""")
+                tagged = [c for c in deck
+                          if any("<" in str(c.get(k) or "") for k in ("f", "m", "alt", "s"))]
+                if tagged:
+                    fails.append(f"{pack}: {len(tagged)} card(s) carry HTML in their data, "
+                                 f"e.g. {str(tagged[0])[:70]}")
+                shown = sp_page.evaluate("""() => {
+                    const f = document.getElementById('face');
+                    return f ? f.innerText : '';
+                }""")
+                if "<" in shown:
+                    fails.append(f"{pack}: a card face is showing markup — {shown[:60]!r}")
+            # And the face that carries an alternative renders it as emphasis.
+            sp_page.goto(f"{ROOT}/french/year-7/packs/name-and-age/cards/")
+            sp_page.wait_for_timeout(800)
+            withalt = sp_page.evaluate(
+                """() => JSON.parse(document.getElementById('cards-data').textContent)
+                        .filter(c => c.alt).length""")
+            notes.append(f"cards offering a second phrasing: {withalt}")
+            if withalt == 0:
+                fails.append("no card carries an alternative phrasing — this check has "
+                             "nothing to assert against")
 
             # The Italian decks carry no `fr`, so their cards stay silent.
             sp_page.goto(f"{ROOT}/units/1/sessions/1-1/cards/")

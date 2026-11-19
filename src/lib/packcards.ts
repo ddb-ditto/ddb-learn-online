@@ -28,7 +28,11 @@ export function cardsFor(p: Pack): Card[] {
       // front it would be two questions on one card.
       cards.push({
         d: p.title, t: "word", f: tight(v.fr),
-        m: v.alt ? `${v.en} — or <em>${tight(v.alt)}</em>` : v.en,
+        m: v.en,
+        // The words, not the markup. `flashcards.ts` adds the emphasis when it
+        // draws the face; putting it here printed the tags, because every face
+        // is written through `esc()` and rightly so.
+        alt: v.alt ? tight(v.alt) : undefined,
         // The back is the English meaning, and where there is a second way of
         // saying it the French sits inside that English sentence — so only the
         // front is read aloud, and the second phrasing is spoken on its own

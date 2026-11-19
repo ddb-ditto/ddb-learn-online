@@ -1230,9 +1230,14 @@ details.note.aside > p:last-child { margin-bottom: 0; }
  * these reads as the content and the French reads as the decoration.
  */
 .sayit {
-  appearance: none; background: none; border: 0; padding: 0 0 0 0.3rem;
-  margin: 0; cursor: pointer; vertical-align: baseline;
-  color: var(--ink-faint); opacity: 0.55;
+  appearance: none; background: none; border: 0;
+  /* Padding rather than a bigger glyph alone: it is a thing a child presses,
+     often on a phone, and a 16px target is a miss waiting to happen. The
+     negative vertical margin keeps the taller button from opening up the
+     line spacing of a word table forty rows long. */
+  padding: 0.2rem 0.25rem 0.2rem 0.35rem;
+  margin: -0.2rem 0; cursor: pointer; vertical-align: baseline;
+  color: var(--ink-faint); opacity: 0.6;
   line-height: 1;
 }
 /* The size is not optional. The inline SVG carries a viewBox and no width or
@@ -1241,7 +1246,7 @@ details.note.aside > p:last-child { margin-bottom: 0; }
    browser's own small grey box with nothing visible inside. That is exactly
    how the speakers shipped for several commits: in the DOM, `display` not
    `none`, and nothing whatsoever to see. */
-.sayit svg { width: 0.82em; height: 0.82em; display: inline-block; vertical-align: -0.04em; }
+.sayit svg { width: 1.1em; height: 1.1em; display: inline-block; vertical-align: -0.17em; }
 .sayit:hover, .sayit:focus-visible { color: var(--accent); opacity: 1; }
 .sayit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 /* On paper it is a button that cannot be pressed. */

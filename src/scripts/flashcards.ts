@@ -33,6 +33,17 @@ export interface Card {
   /** Back: the answer. */
   m: string;
   /**
+   * A second way of saying the same thing, in French, shown under the meaning.
+   *
+   * It is the words alone. It used to be built into `m` as
+   * `"… — or <em>Où habites-tu ?</em>"`, and every face is written with
+   * `esc()`, so the page printed the tags: *Where do you live? — or
+   * <em>Où habites-tu ?</em>*. Escaping was right and the markup was in the
+   * wrong place. The renderer adds the emphasis now; the data says what the
+   * words are.
+   */
+  alt?: string;
+  /**
    * The French on each side, written out — not a flag saying which side it is
    * on, and not something to be cut out of the face at play time.
    *
@@ -112,6 +123,10 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
 
   const esc = (s: string) =>
     s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+
+  /** The back of a card: the meaning, and the other way of saying it. */
+  const backOf = (c: Card): string =>
+    esc(c.m) + (c.alt ? ` — or <em>${esc(c.alt)}</em>` : "");
 
   function drawDecks(): void {
     elDecks.replaceChildren(
@@ -195,7 +210,7 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
     if (!showingBack) {
       elHint.textContent = "Tap, click or press space to turn over";
       elFace.innerHTML = flipped
-        ? `<p class="term q">${esc(card.m)}</p>`
+        ? `<p class="term q">${backOf(card)}</p>`
         : `<p class="term${card.t === "rule" ? " q" : ""}">${esc(card.f)}</p>`;
       // Under English first the front is the English meaning, so there is
       // nothing French on it to read. Only "word" cards ever reverse, and
@@ -211,10 +226,10 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
       elFace.innerHTML = `<div class="answer"><p class="term">${esc(card.f)}</p>${say}</div>`;
       hear(card.fr?.f);
     } else if (card.t === "rule") {
-      elFace.innerHTML = `<div class="answer"><p class="meaning">${esc(card.m)}</p></div>`;
+      elFace.innerHTML = `<div class="answer"><p class="meaning">${backOf(card)}</p></div>`;
       hear(card.fr?.m);
     } else {
-      elFace.innerHTML = `<div class="answer">${say}<p class="meaning">${esc(card.m)}</p></div>`;
+      elFace.innerHTML = `<div class="answer">${say}<p class="meaning">${backOf(card)}</p></div>`;
       // A word card's back is its English meaning. The French is on the side
       // that is no longer showing, and a speaker reads what is on screen.
     }
@@ -295,7 +310,7 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
     render();
   });
 
-  buildPrintSheets(CARDS, esc);
+  buildPrintSheets(CARDS, esc, backOf);
   selectDeck(DECKS[0]!);
 }
 
@@ -304,7 +319,8 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
  * along the 8 solid lines. Backs read correctly because the fold is vertical,
  * so nothing needs rotating.
  */
-function buildPrintSheets(CARDS: Card[], esc: (s: string) => string): void {
+function buildPrintSheets(CARDS: Card[], esc: (s: string) => string,
+                          backOf: (c: Card) => string): void {
   const host = document.getElementById("printsheets");
   if (!host) return;
 
@@ -318,7 +334,7 @@ function buildPrintSheets(CARDS: Card[], esc: (s: string) => string): void {
       const back =
         '<div class="pcell pback">' +
         (c.s ? `<div class="psay">${esc(c.s)}</div>` : "") +
-        `<div class="pmeaning">${esc(c.m)}</div></div>`;
+        `<div class="pmeaning">${backOf(c)}</div></div>`;
       html += `<div class="prow">${front}${back}</div>`;
     }
     html += "</div>";

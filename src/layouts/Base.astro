@@ -103,7 +103,7 @@ const build = (process.env.GITHUB_SHA ?? "local").slice(0, 7);
 <body>
 
 {(heading || mark) && (
-  <header class="masthead">
+  <header class:list={["masthead", mark && "on-dark"]}>
     <div class="masthead-inner">
       {markAttrs && !heading && <h1 class="markhead"><img {...markAttrs} /></h1>}
       {markAttrs && heading && <img {...markAttrs} />}

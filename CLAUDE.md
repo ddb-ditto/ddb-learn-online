@@ -374,6 +374,24 @@ pack, a test or a deck, where it would compete with the material rather than
 introduce it. `Base.astro` takes `logo="site"`, `"italian"` or `"french"`;
 anything else gets none.
 
+**All three front pages are a dark band and the mark, and nothing else.**
+The marks are drawn for a dark ground, and on the light theme's white card
+they sat on nothing. `.masthead.on-dark` is the band — the brand's navy, the
+same value as the manifest's `theme_color` and the drawn favicons' background,
+so the band, the browser tab and the app icon agree. It is `--mark-bg`, defined
+once on `:root` rather than twice, because unlike the themed tokens it is the
+same colour in both themes; that is the whole point of it.
+
+Only a page with a mark gets the band, so a lesson's masthead is still a
+heading on the page's own paper. Turning every masthead dark is the easy way
+to get this wrong, and `check_site.py` visits five unmarked pages to say so.
+
+**The band is full width and is measured wide.** An inset band reads as a box
+round the mark rather than as a header. The content column is 60rem, so on a
+phone an inset band is exactly as wide as the window and the check cannot tell
+the two apart — the first version of it ran at 390px and passed against a band
+deliberately given a `max-width`. It runs at 1280 now.
+
 **The front door has no heading, so its mark carries the h1.** The eyebrow,
 the heading and the standfirst were taken off that page: the mark says the
 site's name better than a line of type, and the two doors say the rest. Two
@@ -385,13 +403,16 @@ becomes the page's accessible name. A front page with no h1 looks perfectly
 fine in the markup and gives anybody arriving by search or by screen reader a
 page with no name.
 
-**The heading under a mark says something the mark does not.** "Which one?"
-sits under the site wordmark and "Italian at home" under the Italian one. The
-French page's heading was "Year 7 French" above a mark reading YEAR 7 FRENCH,
-and its eyebrow said it a third time, so the heading is now "French at school"
-— which is also the true distinction between the two sections, one taught at
-home and one revised for school. `check_site.py` fails if a heading matches
-its mark's alt text.
+**No marked page has a heading any more.** There was a rule here that a
+heading under a mark had to say something the mark did not — "Which one?"
+under the site wordmark, "Italian at home" under the Italian one — enforced by
+a check that failed when a heading matched its mark's alt text. All three
+mastheads are now the mark alone, so that check could never fire again and was
+replaced by the live version of the same intent: a marked masthead has no
+words in it at all. The h1 comes from the mark, as above.
+
+What the words said has not gone: each page's `description`, which is what a
+search engine and a shared link show, still carries it.
 
 **A supplied cut-out is not a cut-out until it has been looked at.** The DDB
 wordmark arrived as a PNG with an alpha channel already set, and the alpha was

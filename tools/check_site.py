@@ -169,33 +169,6 @@ with sync_playwright() as pw:
         # somewhere: a door that 404s is worse than no door.
         page.goto(f"{ROOT}/")
 
-        # The front door carries no heading, no eyebrow and no standfirst: the
-        # mark says the site's name better than a line of type, and the two
-        # doors say the rest. So the mark *is* the h1 here.
-        #
-        # Two things to hold on to. The masthead used to render only when there
-        # was a heading, so taking the words out would have taken the mark with
-        # them — the page would have come back with no branding and nothing
-        # would have said so. And a front page with no h1 at all is the other
-        # easy outcome: the markup looks fine, and anybody arriving by search
-        # or by screen reader gets a page with no name.
-        h1s = page.locator("h1")
-        if h1s.count() != 1:
-            fails.append(f"the front page has {h1s.count()} h1 elements, expected 1")
-        else:
-            named = page.evaluate("""() => {
-                const h = document.querySelector('h1');
-                const img = h.querySelector('img');
-                return (h.textContent.trim() || (img && img.alt) || '').trim();
-            }""")
-            notes.append(f"front page h1 names the site as {named!r}")
-            if not named:
-                fails.append("the front page's h1 has no accessible name — no text and "
-                             "no alt on the mark inside it")
-        if not page.locator(".logomark").is_visible():
-            fails.append("the front door shows no mark — the masthead renders only when "
-                         "something is in it, and the words were taken out")
-
         doors = page.locator(".doors .door")
         notes.append(f"doors: {doors.count()} — {doors.all_inner_texts()!r}"[:120])
         if doors.count() != 2:
@@ -1545,9 +1518,89 @@ with sync_playwright() as pw:
                 fails.append(f"{why} has no alt text")
             mark_reserves_right_space(img, why)
 
+            # The masthead on a marked page is a dark band with the mark on it
+            # and nothing else — no eyebrow, no heading, no standfirst. The
+            # marks are drawn for a dark ground; on the light theme's white
+            # card they sat on nothing.
+            head = page.locator(".masthead")
+            words = (head.inner_text() or "").strip()
+            if words:
+                fails.append(f"{why}: the masthead still carries words — {words[:60]!r}")
+            bg = head.evaluate("e => getComputedStyle(e).backgroundColor")
+            rgb = [int(n) for n in re.findall(r"\d+", bg)[:3]]
+            if not rgb or max(rgb) > 70:
+                fails.append(f"{why}: the masthead is {bg}, which is not a dark band")
+            if "on-dark" not in (head.get_attribute("class") or ""):
+                fails.append(f"{why}: the masthead is not marked as a dark one")
+
+            # And exactly one h1, named by the mark it contains. A front page
+            # with no h1 looks perfectly fine in the markup and gives anybody
+            # arriving by search or by screen reader a page with no name.
+            h1s = page.locator("h1")
+            if h1s.count() != 1:
+                fails.append(f"{why}: {h1s.count()} h1 elements on {path}, expected 1")
+            else:
+                named = page.evaluate("""() => {
+                    const h = document.querySelector('h1');
+                    const i = h.querySelector('img');
+                    return (h.textContent.trim() || (i && i.alt) || '').trim();
+                }""")
+                notes.append(f"{why}: h1 names the page {named!r}")
+                if not named:
+                    fails.append(f"{why}: the h1 has no accessible name — no text and no "
+                                 f"alt on the mark inside it")
+
         page.goto(f"{ROOT}/")
         if page.locator(".logomark.is-italian").count():
             fails.append("the Italian mark is on the front door, branding the site one subject")
+
+        # Full width, not inset: a band that stops at the text column reads as a
+        # box round the mark rather than as a header.
+        #
+        # Measured wide, not at phone width. The content column is 60rem, so an
+        # inset band is the same width as the window on a phone and the check
+        # cannot tell the two apart there — the first version of this ran at
+        # 390px and passed against a band deliberately given `max-width`.
+        wide_ctx = b.new_context(viewport={"width": 1280, "height": 800})
+        wide_page = wide_ctx.new_page()
+        try:
+            for path, _want, _file, why in MARKS:
+                wide_page.goto(f"{ROOT}{path}")
+                wide_page.wait_for_timeout(300)
+                head = wide_page.locator(".masthead")
+                if head.count() == 0:
+                    fails.append(f"{why}: no masthead at 1280px")
+                    continue
+                band = head.bounding_box()["width"]
+                full = wide_page.evaluate("document.documentElement.clientWidth")
+                notes.append(f"{why}: band {band:.0f}px of {full}px at 1280")
+                if abs(band - full) > 1:
+                    fails.append(f"{why}: the band is {band:.0f}px of {full}px wide — "
+                                 f"inset rather than full width")
+        except Exception as why_:
+            fails.append(f"the band-width check crashed: {str(why_).splitlines()[0]}")
+        finally:
+            wide_ctx.close()
+
+        # The dark band belongs to the three front pages. A lesson's masthead
+        # is a heading on the page's own paper, and turning every masthead
+        # dark would be the easy way to get this wrong.
+        for path in ("/units/1/", "/units/1/sessions/2/", "/french/year-7/packs/greetings/",
+                     "/french/year-7/tests/writing/", "/progress/"):
+            got = page.request.get(f"http://127.0.0.1:{httpd.server_address[1]}{BASE}{path}")
+            if got.status != 200:
+                # Saying nothing here is how a typo in this list turns into a
+                # check that quietly stops checking: a page that does not exist
+                # has no masthead, and no masthead passes.
+                fails.append(f"{path} is {got.status} — this check is looking at nothing")
+                continue
+            page.goto(f"{ROOT}{path}")
+            head = page.locator(".masthead")
+            if head.count() == 0:
+                fails.append(f"{path} has no masthead to check")
+                continue
+            if "on-dark" in (head.first.get_attribute("class") or ""):
+                fails.append(f"the dark band is on {path}, which carries no mark")
 
         # The Year 7 mark, measured.
         #
@@ -1573,13 +1626,6 @@ with sync_playwright() as pw:
                 fails.append(f"the French mark renders at {round(box['width'])}px wide")
             if not (fr_mark.get_attribute("alt") or "").strip():
                 fails.append("the French mark has no alt text")
-            # The heading must not simply repeat the mark. Both other marked
-            # pages say something the mark does not — "Which one?" under the
-            # site wordmark, "Italian at home" under the roundel.
-            h1 = (page.locator(".masthead h1").inner_text() or "").strip().lower()
-            alt = (fr_mark.get_attribute("alt") or "").strip().lower()
-            if h1 == alt:
-                fails.append(f"the heading {h1!r} repeats the mark's own words")
 
         # The cut-out: the corners of the served PNG must be transparent, or
         # the mark is a white rectangle on the dark theme.

@@ -31,6 +31,12 @@
   --serif:  "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --sans:   "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
   --measure: 34rem;
+  /* The band behind a mark. Defined once, not twice: it is the same dark in
+     both themes, which is the point — the marks are drawn for a dark ground
+     and a light masthead left them sitting on nothing. It is the brand's navy,
+     the same value as the manifest's theme_color and the drawn favicons'
+     background, so the band, the tab colour and the app icon agree. */
+  --mark-bg: #021229;
 }
 
 /**
@@ -111,6 +117,14 @@ body {
   border-bottom: 3px solid var(--accent);
   background: var(--card);
 }
+/* The three front pages: a dark band, and the mark alone on it.
+   Only those three carry a mark, so this never touches a lesson's masthead,
+   which is still a heading on the page's own paper. */
+.masthead.on-dark {
+  background: var(--mark-bg);
+  border-bottom-color: var(--mark-bg);
+}
+.masthead.on-dark .masthead-inner { padding-top: 1.9rem; padding-bottom: 1.6rem; }
 .masthead-inner {
   max-width: 60rem;
   margin: 0 auto;

@@ -7,7 +7,7 @@
 Run it when either source in `brand/` changes; the results are committed, so
 nothing else needs an image library.
 
-There are three sources and they do different jobs.
+There are four sources and they do different jobs.
 
 `brand/wordmark.png` is the wide mark — "DDB" over "learn online". It is the
 site's own logo and appears on the front page, which is the only page that
@@ -28,9 +28,9 @@ are drawn here instead: one bold D in the brand's yellow on the brand's navy.
 It is the same two colours and the same first letter, which is as much as 16
 pixels can carry.
 
-The Italian course keeps its own mark at `public/logo.png`, used on its own
-contents page. That one says "GCSE Italian" on its face and belongs to the
-course, not the site.
+`brand/italian.png` is the Italian GCSE mark, for that course's contents
+page. It says "Italian GCSE" on its face and belongs to the course, not the
+site. It arrives on the same green card as the other two.
 """
 import pathlib
 import sys
@@ -55,6 +55,10 @@ APPICON = BRAND / "appicon.jpg"
 # out of its white card, because a white rectangle on the dark palette is a
 # glaring square.
 FRENCH = BRAND / "french.png"
+# The GCSE Italian mark, for that course's contents page. It used to be a
+# hand-made roundel committed straight to public/ with no source in here at
+# all, which meant nothing regenerated it and nothing checked it.
+ITALIAN = BRAND / "italian.png"
 
 # Sampled from the artwork rather than guessed, so the drawn favicon and the
 # real icon are the same two colours.
@@ -91,6 +95,12 @@ def quantise(im: Image.Image, colors: int = 128, dither: bool = True) -> Image.I
 
 def transparent(im: Image.Image) -> Image.Image:
     """Cut the flat white from around the mark.
+
+    Nothing calls this at the moment. All three marks now arrive on a green
+    card with an alpha channel of their own, badly set, and go through
+    `dechroma` instead. It is kept because artwork on a white card is the
+    normal case and the next piece may well be one — but it is not in the
+    path, so a change here changes nothing until something calls it again.
 
     Fills inward from the border and stops where the artwork starts. The
     wordmark's own white — the lettering, the crown — is enclosed by dark
@@ -212,7 +222,7 @@ def letter_d(size: int) -> Image.Image:
 
 
 def main() -> int:
-    for src in (WORDMARK, APPICON, FRENCH):
+    for src in (WORDMARK, APPICON, FRENCH, ITALIAN):
         if not src.exists():
             sys.exit(f"No artwork at {src.relative_to(REPO)}")
 
@@ -244,6 +254,14 @@ def main() -> int:
     fr.save(PUBLIC / "logo-french.png", optimize=True)
     kb = (PUBLIC / "logo-french.png").stat().st_size / 1024
     print(f"  {'logo-french.png':22} {fr.size[0]}x{fr.size[1]}  Year 7 French       {kb:.0f} KB")
+
+    # The Italian course's mark, on the same footing as the other two.
+    it = dechroma(Image.open(ITALIAN))
+    it.thumbnail((LOGO_WIDTH * 2, LOGO_WIDTH * 2), Image.LANCZOS)
+    it = quantise(it, colors=64, dither=False)
+    it.save(PUBLIC / "logo.png", optimize=True)
+    kb = (PUBLIC / "logo.png").stat().st_size / 1024
+    print(f"  {'logo.png':22} {it.size[0]}x{it.size[1]}  Italian GCSE        {kb:.0f} KB")
 
     icon = Image.open(APPICON).convert("RGB")
     for name, size in FROM_ICON.items():

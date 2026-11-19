@@ -30,8 +30,7 @@ const { title, eyebrow, heading, standfirst, description, logo } = Astro.props;
 
 const MARKS = {
   site: { src: "logo-site.png", w: 600, h: 355, alt: "DDB Learn online" },
-  italian: { src: "logo.png", w: 150, h: 153,
-             alt: "GCSE Italian — learn, practise, succeed" },
+  italian: { src: "logo.png", w: 600, h: 327, alt: "Italian GCSE" },
   french: { src: "logo-french.png", w: 600, h: 457, alt: "Year 7 French" },
 } as const;
 const mark = logo ? MARKS[logo] : null;

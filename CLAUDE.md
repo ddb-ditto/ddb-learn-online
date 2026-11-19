@@ -345,8 +345,8 @@ There are three marks, and each belongs to one page — the front page of what
 it names, and nothing below it.
 
 `public/logo-site.png` is the DDB wordmark. It is the site's, so it goes on the
-front door. `public/logo.png` is the GCSE Italian roundel, which says so on its
-face, so it stays on `/italian/`. `public/logo-french.png` is the Year 7 French
+front door. `public/logo.png` is the Italian GCSE wordmark, which says so on
+its face, so it stays on `/italian/`. `public/logo-french.png` is the Year 7 French
 wordmark and stays on `/french/year-7/`. None of them goes above a lesson, a
 pack, a test or a deck, where it would compete with the material rather than
 introduce it. `Base.astro` takes `logo="site"`, `"italian"` or `"french"`;
@@ -364,7 +364,7 @@ fine in the markup and gives anybody arriving by search or by screen reader a
 page with no name.
 
 **The heading under a mark says something the mark does not.** "Which one?"
-sits under the site wordmark and "Italian at home" under the roundel. The
+sits under the site wordmark and "Italian at home" under the Italian one. The
 French page's heading was "Year 7 French" above a mark reading YEAR 7 FRENCH,
 and its eyebrow said it a third time, so the heading is now "French at school"
 — which is also the true distinction between the two sections, one taught at
@@ -469,15 +469,23 @@ said a word — no build error, no console message. Anything carrying the base
 path has to be generated.
 `tools/make_icons.py` derives every icon from it and needs Pillow.
 
-It is a circular mark with a ring, three lines of text and a drawing inside it.
-That reads down to about 64px and no further: at 32px only the word "Italian"
-survives and at 16px it is a smear, so the two small favicons are a drawn serif
-I in the logo's own navy on its own cream rather than the logo shrunk. If the
-logo is replaced, look at `favicon-32.png` before assuming the new one scales.
+**All three marks are generated now, and all three go through `dechroma`.**
+The Italian one used to be a circular roundel committed straight to `public/`
+with no source in `brand/` at all, so nothing regenerated it and nothing
+checked it. It is `brand/italian.png` and `make_icons.py` builds it like the
+others.
 
-The file arrived as RGB on white, which renders as a glaring square on the dark
-palette. `make_icons.transparent()` cuts the background by filling inward from
-the border, which stops at the ring and so leaves the cream inside it intact.
+That also emptied the stylesheet's default. `.logomark` was the roundel —
+150px wide and pulled 0.35rem left to take up the air inside its ring — with
+the two wordmarks overriding it. All three are wide wordmarks now, so there
+is one rule and no exceptions. If a roundel ever comes back it needs its own
+class, not a change to the default.
+
+**`transparent()` is still there and is now used by nothing.** It flood-fills
+white inward from the border, which is right for artwork on a white card and
+wrong for these, which arrive on green with an alpha channel that has to be
+ignored. Left in place because the next piece of artwork may well arrive on
+white again.
 
 ## House rules for code
 

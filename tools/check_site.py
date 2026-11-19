@@ -125,6 +125,21 @@ with sync_playwright() as pw:
         def wide() -> int:
             return page.evaluate("document.body.scrollWidth")
 
+        # Every mark, in one place. Each entry is the page it belongs to, the
+        # class that identifies it, the file it serves and how to describe it.
+        #
+        # One list rather than a list per check, because that is how the last
+        # two were missed: the reserved-size check lived inside the site
+        # logo's block and skipped the French mark entirely, and the green
+        # check named two files by hand and skipped the Italian one when it
+        # stopped being a hand-drawn roundel. Add a fourth mark here and every
+        # check below picks it up.
+        MARKS = (
+            ("/", "is-site", "logo-site.png", "the site mark, on the front door"),
+            ("/italian/", "is-italian", "logo.png", "the Italian mark"),
+            ("/french/year-7/", "is-french", "logo-french.png", "the Year 7 French mark"),
+        )
+
         def mark_reserves_right_space(img, what: str) -> None:
             """The width and height attributes against the file's own shape.
 
@@ -205,23 +220,15 @@ with sync_playwright() as pw:
         if wide() > 390:
             fails.append(f"the Italian contents scroll sideways at 390px ({wide()}px)")
 
-        # Two marks, each on the one page it belongs to. The DDB wordmark is
-        # the site's, so it goes on the front door; the GCSE Italian roundel
-        # says so on its face, so it stays on the Italian contents page. Above
-        # a lesson either would compete with the material.
+        # Size, alt text and reserved space are measured for all three marks
+        # together, further down. The one thing that is the site mark's alone:
+        # its alt text must not name a subject, because it stands for a site
+        # that teaches two.
         page.goto(f"{ROOT}/")
         site_mark = page.locator(".logomark.is-site")
-        if site_mark.count() != 1:
-            fails.append(f"the front door has {site_mark.count()} site logos, expected 1")
-        else:
-            box = site_mark.bounding_box()
-            notes.append(f"site logo: {round(box['width'])}x{round(box['height'])}px, "
-                         f"alt {site_mark.get_attribute('alt')!r}")
-            if box["width"] < 120:
-                fails.append(f"the site logo renders at {round(box['width'])}px wide")
-            if "italian" in (site_mark.get_attribute("alt") or "").lower():
-                fails.append("the site logo's alt text still names one subject")
-            mark_reserves_right_space(site_mark, "the site logo")
+        if site_mark.count() == 1 and "italian" in (
+                site_mark.get_attribute("alt") or "").lower():
+            fails.append("the site logo's alt text still names one subject")
 
         # No green anywhere in either wordmark.
         #
@@ -239,7 +246,7 @@ with sync_playwright() as pw:
         # averages the boundary. It reported 424 failures on a correct file,
         # all of them muted olive 90-100 away in RGB from the card's colour.
         # What matters is whether the card itself is still there.
-        for name in ("logo-site.png", "logo-french.png"):
+        for _, _, name, _ in MARKS:
             got = page.request.get(
                 f"http://127.0.0.1:{httpd.server_address[1]}{BASE}/{name}")
             if got.status != 200:
@@ -294,18 +301,6 @@ with sync_playwright() as pw:
                     f"http://127.0.0.1:{httpd.server_address[1]}{ico['src']}")
                 if got.status != 200:
                     fails.append(f"the manifest names {ico['src']}, which is {got.status}")
-
-        page.goto(f"{ROOT}/italian/")
-        mark = page.locator(".logomark")
-        if mark.count() != 1:
-            fails.append(f"the Italian contents page has {mark.count()} logos, expected 1")
-        else:
-            box = mark.bounding_box()
-            notes.append(f"logo: {round(box['width'])}x{round(box['height'])}px")
-            if not (mark.get_attribute("alt") or "").strip():
-                fails.append("the logo has no alt text")
-            if box["width"] < 80:
-                fails.append(f"the logo renders at {round(box['width'])}px wide")
 
         # --- the record sheets -------------------------------------------------
         page.goto(f"{ROOT}/progress/")
@@ -1446,20 +1441,28 @@ with sync_playwright() as pw:
             if page.locator(".logomark").count():
                 fails.append(f"a logo is on {why}, where it competes with the material")
 
-        # And each page carries its own mark and nobody else's.
-        for path, want, why in (
-            ("/", "is-site", "the front door"),
-            ("/italian/", "is-italian", "the Italian contents"),
-            ("/french/year-7/", "is-french", "the Year 7 French front page"),
-        ):
+        # Each page carries its own mark and nobody else's, and each mark is
+        # measured: loaded, wide enough to read, named for a screen reader, and
+        # reserving the right space before it arrives.
+        for path, want, _file, why in MARKS:
             page.goto(f"{ROOT}{path}")
             marks = page.locator(".logomark")
             if marks.count() != 1:
-                fails.append(f"{why} has {marks.count()} marks, expected 1")
+                fails.append(f"{why}: {path} has {marks.count()} marks, expected 1")
                 continue
-            got = marks.first.get_attribute("class") or ""
+            img = marks.first
+            got = img.get_attribute("class") or ""
             if want not in got:
-                fails.append(f"{why} carries {got!r}, not the {want} mark")
+                fails.append(f"{path} carries {got!r}, not {want}")
+                continue
+            box = img.bounding_box()
+            notes.append(f"{why}: {round(box['width'])}x{round(box['height'])}px, "
+                         f"alt {img.get_attribute('alt')!r}")
+            if box["width"] < 120:
+                fails.append(f"{why} renders at {round(box['width'])}px wide")
+            if not (img.get_attribute("alt") or "").strip():
+                fails.append(f"{why} has no alt text")
+            mark_reserves_right_space(img, why)
 
         page.goto(f"{ROOT}/")
         if page.locator(".logomark.is-italian").count():

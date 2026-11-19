@@ -605,12 +605,16 @@ footer a { color: var(--ink-faint); }
 
 /* ---- the mark, on the contents page only -------------------------------- */
 
+/* All three marks are wide wordmarks now, so there is one rule rather than a
+   default plus two exceptions. The default used to be the GCSE Italian
+   roundel — 150px, and pulled 0.35rem left to take up the air inside its ring
+   — which is wrong for a wordmark, and after the roundel was replaced it was
+   a default that applied to nothing. */
 .logomark {
   display: block;
-  width: 150px; height: auto;
-  margin: 0 0 1.1rem -0.35rem;   /* the ring has air in it; pull it back to the text */
+  width: min(300px, 70vw); height: auto;
+  margin: 0 0 1.1rem;
 }
-@media (max-width: 34rem) { .logomark { width: 116px; } }
 @media print { .logomark { display: none; } }
 
 /* ---- breadcrumbs -------------------------------------------------------- */
@@ -1115,11 +1119,7 @@ details.note.aside > p:last-child { margin-bottom: 0; }
   details.note.aside > p { display: block !important; }
 }
 
-/* The two wide marks are wordmarks, not roundels, so they are sized by width.
-   The roundel's -0.35rem pull-back is for the air inside its ring; a wordmark
-   has none, so it sits flush with the text below it. */
-.logomark.is-site,
-.logomark.is-french { width: min(300px, 70vw); height: auto; margin-left: 0; }
+
 
 /* The spellings that catch people out. Only the correct form is shown: seeing
    a misspelling makes it fractionally more familiar, and familiarity is what

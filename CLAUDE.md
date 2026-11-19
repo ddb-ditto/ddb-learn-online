@@ -433,6 +433,22 @@ dependency on a font. Build it from masks: the first attempt painted the bowl
 over the stem and squared the left edge off afterwards, which erased the stem
 and produced something that read as a C.
 
+**The comic wordmark is not an icon, and was tried.** `brand/wordmark.png`
+was offered as a favicon, squared off to 512px. At 32px it is coloured mush
+beside the drawn D — four colours, a halftone texture, an outline and a
+tagline inside 32 pixels — and at 16px there is nothing at all. As a
+home-screen icon it is no better: its content is 432x255, a wide mark on a
+square canvas, so it leaves empty bands top and bottom and its letters come
+out about half the size of `brand/appicon.jpg`'s, which is composed for a
+square. Rendered side by side at 180, 96, 64, 32 and 16 and decided by
+looking. The icons stay as they are.
+
+**The app icons are upscaled and should not be.** `brand/appicon.jpg` is
+272x271, so `icon-512.png` is a 1.88x enlargement of it. 192 and 180 are
+downscales and fine. If a square-composed mark ever arrives at 512px or more
+— letters filling the frame, no tagline — it fixes that and can take every
+size above 64px. The two smallest stay drawn whatever arrives.
+
 **The manifest is generated**, at `src/pages/manifest.webmanifest.ts`. As a
 static file in `public/` it hard-coded the old repository name in `start_url`,
 `scope` and every icon path, so the rename broke the installed app and nothing

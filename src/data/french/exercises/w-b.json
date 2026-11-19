@@ -63,5 +63,9 @@
       ],
       "answer": "Ça va très bien, merci."
     }
+  ],
+  "speak": [
+    "tiles",
+    "answer"
   ]
 }

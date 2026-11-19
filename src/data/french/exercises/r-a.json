@@ -66,5 +66,8 @@
       "prompt": "vingt-quatre",
       "answer": "24"
     }
+  ],
+  "speak": [
+    "prompt"
   ]
 }

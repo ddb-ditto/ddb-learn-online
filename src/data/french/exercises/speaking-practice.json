@@ -5,7 +5,6 @@
   "title": "Say it out loud",
   "intro": "One question at a time, in a random order. Say your answer aloud <strong>before</strong> you reveal the model — reading it first is not practice.",
   "shuffle": true,
-  "speakLang": "fr-FR",
   "items": [
     {
       "prompt": "Comment tu t'appelles ?",
@@ -37,5 +36,9 @@
       "en": "I'm 12. My birthday is 15 March.",
       "enPrompt": "How old are you?"
     }
+  ],
+  "speak": [
+    "prompt",
+    "answer"
   ]
 }

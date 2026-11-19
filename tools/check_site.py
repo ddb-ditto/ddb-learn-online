@@ -699,6 +699,9 @@ with sync_playwright() as pw:
                                         ["Google français", "fr-FR", False]],       False),
         ]
         is_fr = lambda lang: lang.lower().replace("_", "-").startswith("fr")
+        # French puts a no-break space before "!" and "?" on screen; what is
+        # spoken normalises it, so every comparison flattens both sides.
+        flat = lambda t: t.replace(" ", " ").replace(" ", " ").strip()
 
         for label, voices, late in VOICE_CASES:
             ctx = b.new_context(viewport={"width": 390, "height": 844})
@@ -714,7 +717,10 @@ with sync_playwright() as pw:
                     continue
 
                 french = [v[0] for v in voices if is_fr(v[1])]
-                btn = vp.locator(".exercise .exbtn.quiet")
+                # The speaker on the question of the speaking practice. It is
+                # a glyph now, not a button reading "Hear it" — see the
+                # speaker rules in CLAUDE.md.
+                btn = vp.locator("#ex-speaking-practice .exq .sayit")
                 shown = btn.count() > 0 and btn.first.is_visible()
 
                 if not french:
@@ -722,23 +728,31 @@ with sync_playwright() as pw:
                     # any class setting `display` beats [hidden], so measure it.
                     if shown:
                         disp = btn.first.evaluate("e => getComputedStyle(e).display")
-                        fails.append(f"voices [{label}]: Hear it is offered with no French "
+                        fails.append(f"voices [{label}]: a speaker is offered with no French "
                                      f"voice (display: {disp}) — it reads English or nothing")
+                    # And none of the others on the page either: a pack marks
+                    # every French word, so a leak here is fifty speakers.
+                    everywhere = vp.evaluate(
+                        """() => Array.from(document.querySelectorAll('.sayit'))
+                             .filter(b => getComputedStyle(b).display !== 'none').length""")
+                    if everywhere:
+                        fails.append(f"voices [{label}]: {everywhere} speaker(s) shown on the "
+                                     f"page with no French voice installed")
                     picker = vp.locator(".exercise .exvoice")
                     if picker.count() and picker.first.is_visible():
                         fails.append(f"voices [{label}]: a voice picker with no French voice")
                     continue
 
                 if not shown:
-                    fails.append(f"voices [{label}]: no Hear it button though the device "
-                                 f"has {french}")
+                    fails.append(f"voices [{label}]: no speaker on the question though the "
+                                 f"device has {french}")
                     continue                       # a finding, not an exception
 
                 btn.first.click()
                 vp.wait_for_timeout(150)
                 spoken = vp.evaluate("window.__spoken || []")
                 if not spoken:
-                    fails.append(f"voices [{label}]: Hear it was pressed and said nothing")
+                    fails.append(f"voices [{label}]: the speaker was pressed and said nothing")
                     continue
                 u = spoken[-1]
                 want = "Thomas" if "Thomas" in french else french[0]
@@ -750,7 +764,6 @@ with sync_playwright() as pw:
                 if u["rate"] != 0.9:
                     fails.append(f"voices [{label}]: rate is {u['rate']!r}, not 0.9 — "
                                  f"the default pace is too quick to copy")
-                flat = lambda t: t.replace(" ", " ").replace(" ", " ").strip()
                 on_card = vp.locator("#ex-speaking-practice .exq").inner_text()
                 if flat(u["text"]) != flat(on_card):
                     fails.append(f"voices [{label}]: spoke {flat(u['text'])!r} while the "
@@ -795,6 +808,188 @@ with sync_playwright() as pw:
             finally:
                 ctx.close()
         notes.append(f"voice cases driven: {len(VOICE_CASES)}")
+
+        # --- a speaker beside every bit of French, and beside nothing else ----
+        #
+        # `lang="fr"` in the markup is what puts a speaker on something, so
+        # these check the two directions of that: every French thing has one,
+        # and nothing that is not French has one. The second half is the one
+        # that matters. A speaker on the pronunciation column would read "koo
+        # koo" as though it were a French word, and a speaker on the prompts of
+        # *Spot the mistake* or *Put the punctuation back* would read a
+        # misspelling aloud — where the misspelling is silent, so it would
+        # read the correct sentence and teach nothing while looking helpful.
+        ctx = b.new_context(viewport={"width": 390, "height": 900})
+        sp_page = ctx.new_page()
+        try:
+            sp_page.add_init_script(
+                f"({VOICE_STUB})({json.dumps([['Thomas', 'fr-FR']])}, false)")
+
+            def spoke(p):
+                return p.evaluate("window.__spoken || []")
+
+            # A pack's word table: French terms speak, the respelling and the
+            # English gloss do not.
+            sp_page.goto(f"{ROOT}/french/year-7/packs/greetings/")
+            sp_page.wait_for_timeout(1800)
+            terms = sp_page.locator("table.words td.term")
+            on_terms = sp_page.locator("table.words td.term .sayit")
+            notes.append(f"word-table speakers: {on_terms.count()} on {terms.count()} terms")
+            if terms.count() == 0:
+                fails.append("no French terms found on the greetings pack")
+            elif on_terms.count() != terms.count():
+                fails.append(f"{on_terms.count()} speakers on {terms.count()} French terms")
+            # The English meaning, on this same page.
+            n = sp_page.locator("table.words td.gloss .sayit").count()
+            if n:
+                fails.append(f"{n} speaker(s) on the English meaning, which is not French")
+            if on_terms.count():
+                on_terms.first.click()
+                sp_page.wait_for_timeout(120)
+                said = spoke(sp_page)
+                want = flat(terms.first.inner_text())
+                if not said:
+                    fails.append("a word-table speaker was pressed and said nothing")
+                elif flat(said[-1]["text"]) != want:
+                    fails.append(f"the word table spoke {flat(said[-1]['text'])!r}, "
+                                 f"not the term {want!r}")
+
+            # The pronunciation column — "ko-koo", "ah", "bay". That is English
+            # spelling describing a French sound; read as French it is noise.
+            # It lives on one pack only, so the count of cells is asserted
+            # first: checking "no speakers on .say" against a page that has no
+            # .say cells passes for the wrong reason, and the first version of
+            # this check did exactly that on the greetings pack.
+            sp_page.goto(f"{ROOT}/french/year-7/packs/speaking-answers/")
+            sp_page.wait_for_timeout(1800)
+            says = sp_page.locator("table.words td.say")
+            notes.append(f"pronunciation cells to check: {says.count()}")
+            if says.count() == 0:
+                fails.append("no pronunciation column found to check — this check has "
+                             "nothing to assert against and is passing vacuously")
+            else:
+                n = sp_page.locator("table.words td.say .sayit").count()
+                if n:
+                    fails.append(f"{n} speaker(s) on the pronunciation respelling, which "
+                                 f"is English describing a French sound")
+
+            # Nothing in the Italian course speaks: it carries no lang="fr",
+            # and the teacher is the model there.
+            for url in ("/units/1/", "/italian/"):
+                sp_page.goto(f"{ROOT}{url}")
+                sp_page.wait_for_timeout(900)
+                n = sp_page.locator(".sayit").count()
+                if n:
+                    fails.append(f"{n} speaker(s) on {url}, which is Italian")
+
+            # The misspelling exercises: the prompt is French written wrong on
+            # purpose and must stay silent; the marked answer may speak.
+            sp_page.goto(f"{ROOT}/french/year-7/packs/tricky-spellings/")
+            sp_page.wait_for_timeout(1800)
+            for eid in ("ex-w-e", "ex-w-d"):
+                box = sp_page.locator(f"#{eid}")
+                if box.count() == 0:
+                    continue                       # that pack does not carry it
+                n = box.locator(".exprompt .sayit").count()
+                if n:
+                    fails.append(f"{eid}: {n} speaker(s) on a prompt that is "
+                                 f"deliberately misspelled French")
+                items = sp_page.evaluate(
+                    f"""() => JSON.parse(
+                        document.querySelector('#{eid} .ex-data').textContent).items""")
+                box.locator(".exinput").fill("deliberately not the answer")
+                box.get_by_text("Check").click()
+                sp_page.wait_for_timeout(150)
+                on_answer = box.locator(".exresult .fr .sayit")
+                if on_answer.count() != 1:
+                    fails.append(f"{eid}: the marked answer has {on_answer.count()} "
+                                 f"speakers, expected 1")
+                else:
+                    on_answer.first.click()
+                    sp_page.wait_for_timeout(120)
+                    said = spoke(sp_page)
+                    answers = [flat(i["answer"]) for i in items]
+                    if not said:
+                        fails.append(f"{eid}: the answer's speaker said nothing")
+                    elif flat(said[-1]["text"]) not in answers:
+                        fails.append(f"{eid}: spoke {flat(said[-1]['text'])!r}, which is "
+                                     f"not one of the correct answers")
+
+            # The reading pack: the French passage has to be on the page at all
+            # (it was shipped for months as JSON that nothing rendered, so the
+            # exercise asked him to find words in a text he could not see), and
+            # the gap-fill must not read the passage aloud before it is filled.
+            sp_page.goto(f"{ROOT}/french/year-7/packs/reading-skills/")
+            sp_page.wait_for_timeout(1800)
+            re_box = sp_page.locator("#ex-r-e")
+            if re_box.count() == 0:
+                fails.append("the unseen-text exercise is not on the reading pack")
+            else:
+                shown = re_box.inner_text()
+                passage = sp_page.evaluate(
+                    """() => JSON.parse(
+                        document.querySelector('#ex-r-e .ex-data').textContent).text""")
+                opening = " ".join((passage or "").split()[:5])
+                if opening and opening not in " ".join(shown.split()):
+                    fails.append("the unseen-text exercise does not show its passage — "
+                                 "it asks for words from a text that is not on the page")
+                if re_box.locator(".extext .sayit").count() != 1:
+                    fails.append(f"the passage has "
+                                 f"{re_box.locator('.extext .sayit').count()} speakers, "
+                                 f"expected 1")
+
+            gap = sp_page.locator("#ex-r-b")
+            if gap.count():
+                if gap.locator(".expassage .sayit").count():
+                    fails.append("the gap-fill offers to read the whole passage before the "
+                                 "gaps are filled — that is the answers, read aloud")
+                bank = gap.locator(".exbank .extile")
+                on_bank = gap.locator(".exbank .extile .sayit")
+                if bank.count() and on_bank.count() != bank.count():
+                    fails.append(f"{on_bank.count()} speakers on {bank.count()} bank words")
+                gap.get_by_text("Check").click()
+                sp_page.wait_for_timeout(150)
+                if gap.locator(".expassage .sayit").count() != 1:
+                    fails.append("after Check the gap-fill still will not read the "
+                                 "completed passage")
+
+            # The flashcards. The French side speaks; a side that is a digit,
+            # an English meaning or an English respelling of a sound does not.
+            sp_page.goto(f"{ROOT}/french/year-7/packs/countries/cards/")
+            sp_page.wait_for_timeout(1800)
+            cards = sp_page.evaluate(
+                """() => JSON.parse(document.getElementById('cards-data').textContent)""")
+            notes.append(f"french cards: {len(cards)}, "
+                         f"declaring French: {sum(1 for c in cards if c.get('fr'))}")
+            if not any(c.get("fr") for c in cards):
+                fails.append("no French card declares which side is French")
+            if any(c.get("fr", {}).get("m") and " — " in (c["fr"]["m"]) for c in cards):
+                fails.append("a card's spoken back still carries the English gloss")
+            face = sp_page.locator("#face")
+            if face.locator(".sayit").count() != 1:
+                fails.append(f"the card front has {face.locator('.sayit').count()} "
+                             f"speakers, expected 1")
+            else:
+                face.locator(".sayit").first.click()
+                sp_page.wait_for_timeout(120)
+                said = spoke(sp_page)
+                shown = flat(face.locator(".term").inner_text())
+                if not said:
+                    fails.append("the flashcard speaker said nothing")
+                elif flat(said[-1]["text"]) != shown:
+                    fails.append(f"the card spoke {flat(said[-1]['text'])!r}, "
+                                 f"not the face {shown!r}")
+
+            # The Italian decks carry no `fr`, so their cards stay silent.
+            sp_page.goto(f"{ROOT}/units/1/sessions/1-1/cards/")
+            sp_page.wait_for_timeout(1500)
+            if sp_page.locator(".sayit").count():
+                fails.append(f"{sp_page.locator('.sayit').count()} speaker(s) on an "
+                             f"Italian deck")
+        except Exception as why:
+            fails.append(f"the speaker checks crashed: {str(why).splitlines()[0]}")
+        finally:
+            ctx.close()
 
         page.goto(f"{ROOT}/french/year-7/packs/greetings/")
         wd = page.locator("#ex-w-d")

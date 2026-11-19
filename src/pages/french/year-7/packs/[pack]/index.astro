@@ -69,7 +69,7 @@ const cardCount = cardCountFor(p);
   {p.vocab && (
     <>
       <Section kicker="The words">Learn these</Section>
-      <WordTable pairs words={p.vocab.map((v) => ({
+      <WordTable pairs lang="fr" words={p.vocab.map((v) => ({
         term: tight(v.fr) + (v.alt ? `<span class="alt">or ${tight(v.alt)}</span>` : ""),
         gloss: v.en,
       }))} />
@@ -134,7 +134,7 @@ const cardCount = cardCountFor(p);
   {p.sounds && (
     <>
       <Section kicker="Say it right">The sounds that catch people out</Section>
-      <WordTable words={p.sounds.map((s) => ({
+      <WordTable lang="fr" words={p.sounds.map((s) => ({
         term: s.fr, say: `“${s.say}”`, gloss: s.why,
       }))} />
     </>
@@ -199,4 +199,5 @@ const cardCount = cardCountFor(p);
 
 <script>
   import "../../../../../scripts/exercises";
+  import "../../../../../scripts/sayfrench";
 </script>

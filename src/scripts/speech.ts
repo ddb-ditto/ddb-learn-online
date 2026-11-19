@@ -125,3 +125,102 @@ export function speak(text: string, voice: SpeechSynthesisVoice): void {
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
 }
+
+/* -------------------------------------------------------------- the speakers */
+
+/**
+ * One wait, shared.
+ *
+ * A pack page can carry fifty French words, each with its own speaker. Each
+ * one calling `whenVoicesReady` would attach fifty `voiceschanged` listeners
+ * and set fifty timers for the same answer, so the wait happens once and
+ * everybody is told.
+ */
+let waiting: (() => void)[] | null = [];
+
+export function onVoicesReady(fn: () => void): void {
+  if (waiting === null) { fn(); return; }        // already settled
+  waiting.push(fn);
+  if (waiting.length > 1) return;                // somebody is already waiting
+  whenVoicesReady(() => {
+    const queue = waiting!;
+    waiting = null;
+    for (const f of queue) f();
+  });
+}
+
+/**
+ * The voice everything on the page speaks with, re-read each time so that
+ * choosing one in the picker changes every speaker at once rather than only
+ * the exercise the picker happens to sit in.
+ */
+export const currentVoice = (): SpeechSynthesisVoice | null => chosenVoice(frenchVoices());
+
+/**
+ * A speaker, drawn rather than written.
+ *
+ * It replaces a button reading "♪ Hear it". That wording was fine beside one
+ * question and wrong everywhere else: the point is to hear *this* word, and a
+ * sentence of English instruction beside each of fifty French words is noise
+ * in a section whose reading switch exists precisely to remove noise. So the
+ * label is for screen readers and the sighted reader gets a glyph.
+ *
+ * Inline SVG rather than 🔊, which is a different drawing on every platform,
+ * is coloured whatever the vendor chose, and cannot be dimmed to sit quietly
+ * beside the word it belongs to.
+ *
+ * `text` is read at the moment of the press, not when the button is made, so
+ * a speaker attached to something that changes — the card on screen, the
+ * answer just revealed — says what is there now.
+ */
+const GLYPH = `<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+<path d="M8.6 2.3 4.9 5.2H2.4v5.6h2.5l3.7 2.9z" fill="currentColor"/>
+<path d="M11 5.8a3.1 3.1 0 0 1 0 4.4" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linecap="round"/>
+<path d="M12.9 3.7a5.6 5.6 0 0 1 0 8.6" fill="none" stroke="currentColor"
+      stroke-width="1.4" stroke-linecap="round"/></svg>`;
+
+export function speaker(text: () => string, what?: string): HTMLButtonElement {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "sayit";
+  b.innerHTML = GLYPH;
+  // A page of these needs each one to say what it reads, or a screen reader
+  // gets fifty buttons all called "Hear it".
+  b.setAttribute("aria-label", what ? `Hear “${what}” in French` : "Hear it in French");
+  // Hidden until there is a French voice to say it with, and hidden for good
+  // if there is not. Same rule as the button it replaces: silence beats an
+  // English accent.
+  b.hidden = true;
+  onVoicesReady(() => {
+    const voice = currentVoice();
+    if (!voice) return;
+    b.hidden = false;
+  });
+  b.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();                         // never turn the card over
+    const voice = currentVoice();
+    const say = text().trim();
+    if (voice && say) speak(say, voice);
+  });
+  return b;
+}
+
+/**
+ * Strip what is on the page for the eye but not for the ear.
+ *
+ * Pack text carries `<em>` and `<strong>`; the reading-practice answers join
+ * their words with a middle dot, which a synthesiser either names or stumbles
+ * over. The flag on a country is decoration. None of it is French.
+ */
+export function spoken(html: string): string {
+  const box = document.createElement("div");
+  box.innerHTML = html;
+  for (const n of box.querySelectorAll("[aria-hidden='true'], .flag, .sayit")) n.remove();
+  return (box.textContent ?? "")
+    .replace(/[·•]/g, ", ")
+    .replace(/ | /g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}

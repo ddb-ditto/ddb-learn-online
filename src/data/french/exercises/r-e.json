@@ -26,5 +26,9 @@
       "question": "What does <em>Chaque année</em> mean?",
       "answer": "Every year"
     }
+  ],
+  "speak": [
+    "text",
+    "answer"
   ]
 }

@@ -16,14 +16,26 @@
  */
 import { NEAR_ENOUGH, diff, isCorrect, pick, shuffled, similarity } from "./marking";
 import {
-  chosenVoice, frenchVoices, needsNetwork, remember,
-  speak as speak_, whenVoicesReady,
+  chosenVoice, frenchVoices, needsNetwork, onVoicesReady, remember,
+  speak as speak_, speaker, spoken,
 } from "./speech";
 
 type Part = "speaking" | "reading" | "writing";
 
-interface Base { id: string; part: Part; title: string; intro?: string; shuffle: boolean; ask?: number; }
-interface PromptEx extends Base { kind: "prompt"; speakLang?: string; items: { prompt: string; enPrompt?: string; answer: string; en?: string }[]; }
+/**
+ * `speak` names the fields of this exercise that hold French worth hearing.
+ * See the schema for why it is declared rather than detected — two exercises
+ * prompt with French that is wrong on purpose.
+ */
+type Speakable =
+  | "prompt" | "question" | "answer" | "text" | "bank" | "tiles"
+  | "statement" | "because" | "q" | "options";
+
+interface Base {
+  id: string; part: Part; title: string; intro?: string;
+  shuffle: boolean; ask?: number; speak: Speakable[];
+}
+interface PromptEx extends Base { kind: "prompt"; items: { prompt: string; enPrompt?: string; answer: string; en?: string }[]; }
 interface RevealEx extends Base { kind: "reveal"; text?: string; items: { prompt?: string; question?: string; answer: string }[]; }
 interface GapEx extends Base { kind: "gapfill"; bank: string[]; text: (string | { gap: string })[]; }
 interface TrueFalseEx extends Base { kind: "truefalse"; text?: string; items: { statement: string; answer: boolean; because?: string }[]; }
@@ -66,6 +78,32 @@ const button = (label: string, cls = "exbtn"): HTMLButtonElement => {
 /** A score line that appears once, at the end, and says nothing clever. */
 const verdict = (got: number, total: number): string =>
   `${got} out of ${total}` + (got === total ? " — all of them." : "");
+
+/**
+ * Put a speaker on something, if this exercise says that field is French.
+ *
+ * The element's own text is what gets spoken, read at the press rather than
+ * now, so a speaker attached to a node that is later rewritten — the question
+ * on screen, the answer just marked — says what it currently shows. `spoken`
+ * strips the markup, the flags and the middle dots the data uses to separate
+ * words, none of which are French.
+ *
+ * Two rules hold everywhere this is used, and the browser checks both:
+ *
+ *   - Nothing speaks a field the exercise has not declared. The declaration
+ *     exists because *Spot the mistake* and *Put the punctuation back* prompt
+ *     with French that is deliberately wrong.
+ *   - Nothing speaks an answer before he has committed to one. Audio is a
+ *     back door onto the answer otherwise: the whole design keeps answers
+ *     covered until there is an attempt to compare them with, and a speaker
+ *     that reads the covered answer aloud would undo that quietly.
+ */
+function withSpeaker(ex: Base, field: Speakable, node: HTMLElement): HTMLElement {
+  if (!ex.speak.includes(field)) return node;
+  const text = () => spoken(node.innerHTML);
+  node.appendChild(speaker(text, spoken(node.innerHTML).slice(0, 40)));
+  return node;
+}
 
 /**
  * The bar under a one-at-a-time exercise: back, where you are, forward.
@@ -131,7 +169,6 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
 
   const stage = el("div", "exstage");
   const q = say(stage, "p", "exq", "");
-  const speak = button("♪ Hear it", "exbtn quiet");
   const reveal = button("Show the model answer");
   const answer = el("div", "exanswer");
   answer.hidden = true;
@@ -145,6 +182,9 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
   const show = () => {
     const it = items[i]!;
     q.innerHTML = tight(it.prompt);
+    // The question carries its own speaker, so hearing it is a press on the
+    // question rather than a separate button labelled in English.
+    withSpeaker(ex, "prompt", q);
     answer.innerHTML = "";
 
     // Both halves: what was asked, and what to say. The French question is at
@@ -152,11 +192,11 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     // means gets nothing from the answer alone. The two blocks are tinted
     // differently so a glance tells you which half you are looking at.
     const asked = el("div", "exblock asked");
-    say(asked, "p", "fr", it.prompt);
+    withSpeaker(ex, "prompt", say(asked, "p", "fr", it.prompt));
     if (it.enPrompt) say(asked, "p", "en", it.enPrompt);
 
     const said = el("div", "exblock said");
-    say(said, "p", "fr", it.answer);
+    withSpeaker(ex, "answer", say(said, "p", "fr", it.answer));
     if (it.en) say(said, "p", "en", it.en);
 
     answer.append(asked, said);
@@ -170,43 +210,31 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
     reveal.hidden = true;
   });
 
-  // A device with no French voice does not get the button, rather than one
-  // that reads the French in an English accent or does nothing at all. Both
-  // of those were live before: `"speechSynthesis" in window` is true in every
-  // modern browser whether or not a single French voice is installed.
-  //
-  // The list arrives late in Chrome, so the button starts hidden and appears
-  // if and when a French voice turns up — never the other way round, which
-  // would mean a button that works and then vanishes.
-  speak.hidden = true;
-  if (ex.speakLang !== undefined) {
-    whenVoicesReady(() => {
+  // The picker lives here because this is the exercise built around listening,
+  // but it sets the voice for every speaker on the page. Only rendered where
+  // the device has more than one French voice, which on most phones means not
+  // at all.
+  if (ex.speak.length) {
+    onVoicesReady(() => {
       const voices = frenchVoices();
-      if (!voices.length) return;
-
+      if (voices.length < 2) return;
       let voice = chosenVoice(voices)!;
-      speak.hidden = false;
-      speak.addEventListener("click", () => speak_(items[i]!.prompt, voice));
-
-      // The picker only exists where there is a choice to make. Most phones
-      // carry one French voice, so most of the time this is not rendered at
-      // all rather than rendered with a single option.
-      if (voices.length > 1) {
-        const pick = el("select", "exvoice");
-        pick.setAttribute("aria-label", "Which voice reads the French");
-        for (const v of voices) {
-          const o = el("option", undefined, v.name + (needsNetwork(v) ? " (needs wi-fi)" : ""));
-          o.value = v.name;
-          if (v.name === voice.name) o.selected = true;
-          pick.appendChild(o);
-        }
-        pick.addEventListener("change", () => {
-          voice = voices.find((v) => v.name === pick.value) ?? voice;
-          remember(voice.name);
-          speak_(items[i]!.prompt, voice);
-        });
-        voiceRow.appendChild(pick);
+      const pick = el("select", "exvoice");
+      pick.setAttribute("aria-label", "Which voice reads the French");
+      for (const v of voices) {
+        const o = el("option", undefined, v.name + (needsNetwork(v) ? " (needs wi-fi)" : ""));
+        o.value = v.name;
+        if (v.name === voice.name) o.selected = true;
+        pick.appendChild(o);
       }
+      pick.addEventListener("change", () => {
+        voice = voices.find((v) => v.name === pick.value) ?? voice;
+        remember(voice.name);
+        // Say something in it, so choosing is also hearing. Every other
+        // speaker on the page re-reads the choice on its next press.
+        speak_(items[i]!.prompt, voice);
+      });
+      voiceRow.appendChild(pick);
     });
   }
 
@@ -219,7 +247,7 @@ function runPrompt(ex: PromptEx, root: HTMLElement): void {
   });
 
   const row = el("div", "exrow");
-  row.append(speak, reveal);
+  row.append(reveal);
   stage.append(row, answer, voiceRow);
   root.append(stage, step.nav);
   show();
@@ -232,12 +260,18 @@ function runReveal(ex: RevealEx, root: HTMLElement): void {
   const items = ex.shuffle ? shuffled(ex.items) : ex.items.slice();
   const list = el("ol", "exreveal");
 
+  if (ex.text) withSpeaker(ex, "text", say(root, "p", "extext fr", ex.text));
+
   for (const it of items) {
     const li = el("li");
-    if (it.prompt) say(li, "p", "fr", it.prompt);
-    if (it.question) say(li, "p", "exq", it.question);
+    if (it.prompt) withSpeaker(ex, "prompt", say(li, "p", "fr", it.prompt));
+    if (it.question) withSpeaker(ex, "question", say(li, "p", "exq", it.question));
     const a = el("p", "exanswer");
     a.innerHTML = tight(it.answer);
+    // The speaker goes on after the text, so `spoken()` reads the answer and
+    // not the glyph. It is inside the hidden answer, so it cannot be pressed
+    // — and therefore cannot leak the answer — until Show has been pressed.
+    withSpeaker(ex, "answer", a);
     a.hidden = true;
     const b = button("Show");
     b.addEventListener("click", () => {
@@ -262,7 +296,9 @@ function runReveal(ex: RevealEx, root: HTMLElement): void {
 
 function runGap(ex: GapEx, root: HTMLElement): void {
   const bank = el("div", "exbank");
-  for (const w of shuffled(ex.bank)) bank.appendChild(el("span", "extile", tight(w)));
+  for (const w of shuffled(ex.bank)) {
+    bank.appendChild(withSpeaker(ex, "bank", el("span", "extile", tight(w))));
+  }
 
   const para = el("p", "extext");
   const gaps: { input: HTMLInputElement; answer: string }[] = [];
@@ -284,6 +320,8 @@ function runGap(ex: GapEx, root: HTMLElement): void {
 
   const check = button("Check");
   const result = el("p", "exresult");
+  /** Holds the whole-passage speaker, once there is a filled passage to read. */
+  const passage = el("p", "expassage");
   check.addEventListener("click", () => {
     let got = 0;
     for (const g of gaps) {
@@ -295,15 +333,28 @@ function runGap(ex: GapEx, root: HTMLElement): void {
     }
     result.textContent = verdict(got, gaps.length) +
       (got === gaps.length ? "" : " The right words are in the gaps now.");
+    // The whole passage, now that every gap holds the right word — and only
+    // now. A speaker on it beforehand would read the answers out before he
+    // had filled anything in, which is the covered-answer rule the rest of
+    // this file is built on, broken by sound instead of sight.
+    if (ex.speak.includes("text") && !passage.hasChildNodes()) {
+      const whole = ex.text
+        .map((piece) => (typeof piece === "string" ? piece : piece.gap))
+        .join("");
+      passage.append(
+        el("span", "exlabel", "Hear the whole thing"),
+        speaker(() => spoken(whole), "the passage"),
+      );
+    }
   });
 
-  root.append(bank, para, check, result);
+  root.append(bank, para, check, result, passage);
 }
 
 /* ---------------------------------------------------------------- true/false */
 
 function runTrueFalse(ex: TrueFalseEx, root: HTMLElement): void {
-  if (ex.text) say(root, "p", "extext fr", ex.text);
+  if (ex.text) withSpeaker(ex, "text", say(root, "p", "extext fr", ex.text));
 
   const list = el("ol", "extf");
   const rows = ex.items.map((it) => {
@@ -379,6 +430,7 @@ function runChoice(ex: ChoiceEx, root: HTMLElement): void {
     const it = items[i]!;
     const picked = chose[i];
     q.innerHTML = tight(it.q);
+    withSpeaker(ex, "q", q);
     options.innerHTML = "";
 
     it.options.forEach((label, n) => {
@@ -478,6 +530,14 @@ function runType(ex: TypeEx, root: HTMLElement): void {
       result.innerHTML = right(i)
         ? "Correct."
         : `<span class="exlabel">The answer is</span> <span class="fr">${answerWith(said, it.answer)}</span>`;
+      // A speaker on the answer, but only now it has been marked — before
+      // that there is nothing on screen to attach it to, which is the point.
+      // It reads `it.answer` rather than the span, because the span carries
+      // <mark> round the letters he missed and the marks are not French.
+      const fr = result.querySelector<HTMLElement>(".fr");
+      if (fr && ex.speak.includes("answer")) {
+        fr.appendChild(speaker(() => spoken(tight(it.answer)), spoken(it.answer)));
+      }
     }
     if (allDone()) {
       result.innerHTML += `<span class="exfinal">Finished — ${verdict(score(), items.length)}</span>`;
@@ -569,7 +629,15 @@ function runOrder(ex: OrderEx, root: HTMLElement): void {
           draw();
         });
       }
-      pool.appendChild(t);
+      // One tile is one word, so hearing it gives nothing away about the
+      // order — which is the thing being asked.
+      if (ex.speak.includes("tiles")) {
+        const s = speaker(() => spoken(word), spoken(word));
+        s.classList.add("ontile");
+        pool.append(t, s);
+      } else {
+        pool.appendChild(t);
+      }
     }
     check.disabled = left.length > 0;
   };
@@ -594,6 +662,12 @@ function runOrder(ex: OrderEx, root: HTMLElement): void {
           ? `Correct. <span class="fr">${tight(it.answer)}</span>`
           : `<span class="exlabel">Not quite. It is</span> <span class="fr">${tight(it.answer)}</span>`)
       : "";
+    if (done) {
+      const fr = result.querySelector<HTMLElement>(".fr");
+      if (fr && ex.speak.includes("answer")) {
+        fr.appendChild(speaker(() => spoken(tight(it.answer)), spoken(it.answer)));
+      }
+    }
     if (allDone()) {
       result.innerHTML += `<span class="exfinal">Finished — ${verdict(score(), items.length)}</span>`;
     }

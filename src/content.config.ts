@@ -253,6 +253,24 @@ const exerciseBase = {
   shuffle: z.boolean().default(false),
   /** Ask this many of the items, picked at random. All of them if absent. */
   ask: z.number().int().positive().optional(),
+  /**
+   * Which of this exercise's fields hold French that may be spoken aloud.
+   *
+   * Declared rather than worked out, because "is this French?" is not a
+   * question the code can answer and two exercises turn on it being wrong on
+   * purpose: *Spot the mistake* prompts with misspelled French and *Put the
+   * punctuation back* prompts with the punctuation stripped out. Read either
+   * aloud and the synthesiser says the correct sentence — the misspelling is
+   * silent — so the audio would teach nothing and imply the spoken form was
+   * what was being tested. The culture quiz is English prose that quotes the
+   * odd French term, which is no better.
+   *
+   * An absent or empty list means nothing in this exercise is spoken.
+   */
+  speak: z.array(z.enum([
+    "prompt", "question", "answer", "text", "bank", "tiles", "statement",
+    "because", "q", "options",
+  ])).default([]),
 };
 
 const frenchExercises = defineCollection({
@@ -262,7 +280,6 @@ const frenchExercises = defineCollection({
        room can hear whether it was right. */
     z.object({
       ...exerciseBase, kind: z.literal("prompt"),
-      speakLang: z.string().optional(),
       items: z.array(z.object({
         prompt: z.string(),
         /**

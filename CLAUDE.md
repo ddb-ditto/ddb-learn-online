@@ -289,6 +289,39 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
 
   If pre-recorded audio is ever added, this becomes the fallback rather than
   the main event, and a missing clip is what it falls back to.
+- **`lang="fr"` is what makes something speakable, and that is the whole
+  rule.** A speaker appears beside every element the markup declares as
+  French — `sayfrench.ts` walks `[lang="fr"]` — so there is no list of
+  selectors to keep in step with the templates, and the Italian course is
+  excluded for free because nothing in it carries that attribute. Marking
+  something `lang="fr"` that is not French will make it speak, which is the
+  trade for not keeping a list: `check_site.py` counts the speakers per page
+  so a jump shows up. The pronunciation column, the alphabet's respellings and
+  the English glosses are deliberately unmarked — "ko-koo" and "bay" are
+  English spelling describing a French sound, and a French voice reading them
+  teaches the error the column exists to prevent.
+- **Audio never reads French that is wrong on purpose.** *Spot the mistake*
+  prompts with a misspelling and *Put the punctuation back* prompts with the
+  punctuation stripped out. Spoken, both are **identical to the correct
+  sentence** — the final *-s* of *appelles* is silent — so the audio teaches
+  nothing and implies the spoken form is what is being marked. Exercises name
+  their French fields in `speak`; it is a declaration because "is this
+  French?" is not a question the code can answer. Same reasoning as
+  `packcards.ts` not making flashcards out of misspellings.
+- **Audio never reaches an answer before he has committed to one.** The
+  covered-answer rule is the spine of the exercises, and a speaker on a
+  hidden answer would undo it by sound instead of sight. The gap-fill will
+  not read the passage until Check has been pressed, because the filled
+  passage *is* the answers; `type` and `order` attach their speaker when the
+  answer is marked, not when it is built.
+- **A revealed answer is green only where nothing is being marked.** The
+  three unmarked reveals print their answer in the green block, like the
+  model answer in the speaking practice: one colour, one meaning, "this is
+  the right one". They used to print it in `var(--accent)`, which is this
+  section's colour for *wrong*. Everything that marks — `type`, `order`,
+  `gapfill`, `truefalse`, the quiz — shows its answer **because he got it
+  wrong**, so green there would put the "you were right" colour on a failed
+  attempt beside a red input in the same exercise. Those stay neutral.
 
 ## House rules for content
 
@@ -406,6 +439,25 @@ the border, which stops at the ring and so leaves the cream inside it intact.
   case it was written for had a single voice, so no picker rendered and the
   check was dead code — it passed against a build with the warning removed.
   Proving an assertion against its bug catches this and nothing else does.
+- **"None of X" passes for free on a page with no X.** "No speaker on the
+  pronunciation column" was asserted against the greetings pack, which has no
+  pronunciation column — only the speaking-answers pack does. It passed with
+  both of its guards deliberately removed. Any check of the form *none of
+  these are wrong* has to assert first that there was something to be wrong:
+  count the cells, fail if the count is zero, and say that the check is
+  passing vacuously.
+- **A guard worth having twice is a guard that needs both halves removed to
+  prove the check.** That same column is kept silent by the template not
+  marking it and by `sayfrench.ts` refusing `.say` outright. Removing either
+  one alone leaves the other holding, and the check correctly stays green —
+  which looks exactly like a dead assertion. Remove both to prove it fires,
+  then put both back.
+- **A runner can quietly ignore a field the schema allows.** `runReveal` never
+  rendered `ex.text`, so *A text you have not been taught* shipped asking the
+  reader to find words in a French passage that was in the page as JSON and
+  never on the screen. Nothing failed: the data was valid, the exercise
+  rendered, the questions appeared. If the schema offers a field, something
+  has to assert that the page shows it.
 - **Always name the encoding.** `read_text()` and `write_text()` without
   `encoding="utf-8"` are how the decks came to say *cittÃ* and *â* instead of
   *città* and an em dash — text already in UTF-8, decoded as Latin-1 and

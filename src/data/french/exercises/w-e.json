@@ -37,5 +37,8 @@
       "prompt": "J'ai dix huit ans.",
       "answer": "J'ai dix-huit ans."
     }
+  ],
+  "speak": [
+    "answer"
   ]
 }

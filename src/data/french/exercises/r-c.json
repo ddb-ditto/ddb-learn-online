@@ -38,5 +38,8 @@
       "answer": false,
       "because": "<em>il fait chaud</em> — it's hot"
     }
+  ],
+  "speak": [
+    "text"
   ]
 }

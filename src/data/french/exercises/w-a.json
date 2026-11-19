@@ -257,5 +257,8 @@
       "prompt": "in Austria",
       "answer": "en Autriche"
     }
+  ],
+  "speak": [
+    "answer"
   ]
 }

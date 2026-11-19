@@ -32,7 +32,26 @@ export interface Card {
   s?: string;
   /** Back: the answer. */
   m: string;
+  /**
+   * The French on each side, written out — not a flag saying which side it is
+   * on, and not something to be cut out of the face at play time.
+   *
+   * Which side holds the French cannot be worked out from a card: the
+   * vocabulary decks put it on the front, the "saying in" deck on the back
+   * ("in Italy" → *en Italie*), the numbers deck has a digit on its back and
+   * the alphabet deck has an English respelling of a sound on its. And where
+   * a face mixes the two — the five answers put *Je m'appelle Sam* and its
+   * English translation on one back, separated by a dash — only part of it is
+   * French. So `packcards.ts` names the words, per deck.
+   *
+   * A missing side is a side that stays silent. A missing `fr` altogether is
+   * every Italian deck: those are drilled with the teacher in the room, who
+   * is the model.
+   */
+  fr?: { f?: string; m?: string };
 }
+
+import { speaker } from "./speech";
 
 const data = document.getElementById("cards-data");
 const off = document.getElementById("no-reverse");
@@ -178,6 +197,10 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
       elFace.innerHTML = flipped
         ? `<p class="term q">${esc(card.m)}</p>`
         : `<p class="term${card.t === "rule" ? " q" : ""}">${esc(card.f)}</p>`;
+      // Under English first the front is the English meaning, so there is
+      // nothing French on it to read. Only "word" cards ever reverse, and
+      // their backs are English, so this is the whole of that case.
+      if (!flipped) hear(card.fr?.f);
       return;
     }
 
@@ -186,11 +209,29 @@ function start(CARDS: Card[], NO_REVERSE: string[], PRACTISE: boolean,
       : "Arrows for the next card";
     if (flipped) {
       elFace.innerHTML = `<div class="answer"><p class="term">${esc(card.f)}</p>${say}</div>`;
+      hear(card.fr?.f);
     } else if (card.t === "rule") {
       elFace.innerHTML = `<div class="answer"><p class="meaning">${esc(card.m)}</p></div>`;
+      hear(card.fr?.m);
     } else {
       elFace.innerHTML = `<div class="answer">${say}<p class="meaning">${esc(card.m)}</p></div>`;
+      // A word card's back is its English meaning. The French is on the side
+      // that is no longer showing, and a speaker reads what is on screen.
     }
+  }
+
+  /**
+   * Put a speaker on the face, if the side now showing has French on it.
+   *
+   * Called after the face is written, because the face is built with
+   * innerHTML and anything appended first would be thrown away. The Italian
+   * decks carry no `fr` at all, so nothing here runs for them.
+   */
+  function hear(text: string | undefined): void {
+    if (!text) return;
+    const line = elFace.querySelector<HTMLElement>(".term, .meaning");
+    if (!line) return;
+    line.appendChild(speaker(() => text, text));
   }
 
   /**

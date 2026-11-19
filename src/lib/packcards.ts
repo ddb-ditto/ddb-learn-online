@@ -29,6 +29,11 @@ export function cardsFor(p: Pack): Card[] {
       cards.push({
         d: p.title, t: "word", f: tight(v.fr),
         m: v.alt ? `${v.en} — or <em>${tight(v.alt)}</em>` : v.en,
+        // The back is the English meaning, and where there is a second way of
+        // saying it the French sits inside that English sentence — so only the
+        // front is read aloud, and the second phrasing is spoken on its own
+        // card in the pack's word table.
+        fr: { f: tight(v.fr) },
       });
     }
   }
@@ -44,10 +49,17 @@ export function cardsFor(p: Pack): Card[] {
       cards.push({
         d: "The country", t: "word", f: c.fr,
         m: c.flag ? `${c.flag}  ${c.en}` : c.en,
+        fr: { f: c.fr },
       });
     }
     for (const c of p.countries) {
-      cards.push({ d: "Saying “in”", t: "rule", f: `in ${c.en}`, m: c.in });
+      // The one deck whose French is on the back: the front asks in English
+      // ("in Italy") and the French is the answer. A side flag alone would
+      // have had a French voice read "in Italy" aloud.
+      cards.push({
+        d: "Saying “in”", t: "rule", f: `in ${c.en}`, m: c.in,
+        fr: { m: `${c.in} ${c.fr}` },
+      });
     }
   }
 
@@ -55,12 +67,16 @@ export function cardsFor(p: Pack): Card[] {
     // French on the front, the digit on the back — and reversible, because
     // writing the number down from a digit is what the writing test wants.
     for (const [n, word] of p.numbers) {
-      cards.push({ d: "Numbers", t: "word", f: word, m: String(n) });
+      cards.push({ d: "Numbers", t: "word", f: word, m: String(n), fr: { f: word } });
     }
   }
 
   if (p.alphabet) {
     for (const [letter, sound] of p.alphabet) {
+      // Neither side is read aloud. The front is a bare letter, which a
+      // synthesiser says as a letter name of its own choosing, and the back is
+      // an English respelling of the French name — "ah", "bay". Speaking
+      // either would teach the sound this deck exists to correct.
       cards.push({ d: "The alphabet", t: "rule", f: letter, m: `“${sound}”` });
     }
   }
@@ -69,13 +85,25 @@ export function cardsFor(p: Pack): Card[] {
     // A rule card, never reversed: the question leads to the answer and going
     // back the other way is not a thing anybody has to do.
     for (const a of p.answers) {
-      cards.push({ d: "The five answers", t: "rule", f: tight(a.q), m: `${tight(a.a)} — ${a.en}` });
+      // Both sides are French, and the back carries the English gloss after a
+      // dash. What is spoken is named outright rather than cut out of the
+      // back at play time, so nothing depends on the dash staying put.
+      cards.push({
+        d: "The five answers", t: "rule", f: tight(a.q),
+        m: `${tight(a.a)} — ${a.en}`,
+        fr: { f: a.q, m: a.a },
+      });
     }
   }
 
   if (p.sounds) {
     for (const s of p.sounds) {
-      cards.push({ d: "Saying it", t: "rule", f: s.fr, m: `“${s.say}” — ${s.why}` });
+      // The back is an English respelling and the reason for it, so the front
+      // alone speaks.
+      cards.push({
+        d: "Saying it", t: "rule", f: s.fr, m: `“${s.say}” — ${s.why}`,
+        fr: { f: s.fr },
+      });
     }
   }
 

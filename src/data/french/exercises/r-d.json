@@ -20,5 +20,8 @@
       "question": "How old? Where would he like to live?",
       "answer": "14; Japan"
     }
+  ],
+  "speak": [
+    "prompt"
   ]
 }

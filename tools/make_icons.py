@@ -15,8 +15,9 @@ belongs to the whole site rather than to one subject. A PNG rather than a
 JPEG because it arrives with an alpha channel; see `dechroma` for why that
 alpha is not to be trusted.
 
-`brand/french.jpg` is the Year 7 French wordmark, for that section's front
-page. It arrives on white and is flooded out from the border.
+`brand/french.png` is the Year 7 French wordmark, for that section's front
+page. Like the site wordmark it arrives with an alpha channel that cannot be
+trusted, so it is keyed rather than flooded.
 
 `brand/appicon.jpg` is the square mark, drawn as an app icon and used as one at
 512, 192 and 180 pixels.
@@ -53,7 +54,7 @@ APPICON = BRAND / "appicon.jpg"
 # the roundel belongs to /italian/. Same treatment as the site wordmark: cut
 # out of its white card, because a white rectangle on the dark palette is a
 # glaring square.
-FRENCH = BRAND / "french.jpg"
+FRENCH = BRAND / "french.png"
 
 # Sampled from the artwork rather than guessed, so the drawn favicon and the
 # real icon are the same two colours.
@@ -234,12 +235,12 @@ def main() -> int:
     kb = (PUBLIC / "logo-site.png").stat().st_size / 1024
     print(f"  {'logo-site.png':22} {mark.size[0]}x{mark.size[1]}  wordmark, cut out   {kb:.0f} KB")
 
-    # The French section's mark, cut out the same way. Its white lettering —
-    # the word YEAR — is enclosed by the dark outline, so the flood never
-    # reaches it and the letters survive the cut.
-    fr = transparent(Image.open(FRENCH))
+    # The French section's mark. Like the site wordmark it arrives already cut
+    # out and already wrong — binary alpha with patches of the green card left
+    # opaque — so it is keyed rather than flooded.
+    fr = dechroma(Image.open(FRENCH))
     fr.thumbnail((LOGO_WIDTH * 2, LOGO_WIDTH * 2), Image.LANCZOS)
-    fr = quantise(fr, colors=48, dither=False)
+    fr = quantise(fr, colors=64, dither=False)
     fr.save(PUBLIC / "logo-french.png", optimize=True)
     kb = (PUBLIC / "logo-french.png").stat().st_size / 1024
     print(f"  {'logo-french.png':22} {fr.size[0]}x{fr.size[1]}  Year 7 French       {kb:.0f} KB")

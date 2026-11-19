@@ -125,6 +125,30 @@ with sync_playwright() as pw:
         def wide() -> int:
             return page.evaluate("document.body.scrollWidth")
 
+        def mark_reserves_right_space(img, what: str) -> None:
+            """The width and height attributes against the file's own shape.
+
+            Comparing the *rendered* box proves nothing: the stylesheet sets
+            height:auto, so once the image has loaded the box takes the file's
+            ratio whatever the attributes say. What the attributes decide is
+            the space held before it loads, so a stale pair makes the page
+            jump — and only on the first, uncached visit, which is the one
+            visit nobody tests.
+
+            Every mark needs this, not just the one it was first written for.
+            It lived inside the site logo's block, so replacing the French
+            artwork with one of a different shape sailed through.
+            """
+            nat = img.evaluate("e => [e.naturalWidth, e.naturalHeight, e.complete]")
+            if not nat[2] or nat[0] == 0:
+                fails.append(f"{what} did not load — the box is its width and height "
+                             f"attributes, not the image")
+                return
+            attr = img.evaluate("e => [+e.getAttribute('width'), +e.getAttribute('height')]")
+            if attr[0] and attr[1] and abs(attr[0] / attr[1] - nat[0] / nat[1]) > 0.02:
+                fails.append(f"{what} reserves {attr[0]}x{attr[1]} for a file that is "
+                             f"{nat[0]}x{nat[1]} — the page will jump as it loads")
+
         # --- the front door ----------------------------------------------------
         # Two choices and nothing else. Both have to be here and both have to go
         # somewhere: a door that 404s is worse than no door.
@@ -197,25 +221,7 @@ with sync_playwright() as pw:
                 fails.append(f"the site logo renders at {round(box['width'])}px wide")
             if "italian" in (site_mark.get_attribute("alt") or "").lower():
                 fails.append("the site logo's alt text still names one subject")
-            nat = site_mark.evaluate("e => [e.naturalWidth, e.naturalHeight, e.complete]")
-            if not nat[2] or nat[0] == 0:
-                fails.append("the site logo did not load — the box is its width and "
-                             "height attributes, not the image")
-            else:
-                # The width and height attributes against the file's own
-                # shape. Comparing the *rendered* box would prove nothing:
-                # the stylesheet sets height:auto, so once the image has
-                # loaded the box takes the file's ratio whatever the
-                # attributes say. What the attributes decide is the space
-                # reserved *before* it loads, so a stale pair means the page
-                # jumps — and jumps only on the first, uncached visit, which
-                # is the one visit nobody tests.
-                attr = site_mark.evaluate(
-                    "e => [+e.getAttribute('width'), +e.getAttribute('height')]")
-                if attr[0] and attr[1] and abs(attr[0] / attr[1] - nat[0] / nat[1]) > 0.02:
-                    fails.append(f"the site logo reserves {attr[0]}x{attr[1]} for a file "
-                                 f"that is {nat[0]}x{nat[1]} — the page will jump as it "
-                                 f"loads")
+            mark_reserves_right_space(site_mark, "the site logo")
 
         # No green anywhere in either wordmark.
         #
@@ -1478,9 +1484,7 @@ with sync_playwright() as pw:
                 "e => [e.naturalWidth, e.naturalHeight, e.complete]")
             notes.append(f"french logo: {round(box['width'])}x{round(box['height'])}px "
                          f"from {nat[0]}x{nat[1]}, alt {fr_mark.get_attribute('alt')!r}")
-            if not nat[2] or nat[0] == 0:
-                fails.append("the French mark did not load — the box is the width and "
-                             "height attributes, not the image")
+            mark_reserves_right_space(fr_mark, "the French mark")
             if box["width"] < 120:
                 fails.append(f"the French mark renders at {round(box['width'])}px wide")
             if not (fr_mark.get_attribute("alt") or "").strip():

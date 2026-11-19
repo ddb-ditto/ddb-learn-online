@@ -405,6 +405,19 @@ measured against a plain `thumbnail` and found byte-for-byte identical, so it
 was taken back out. A guard that prevents nothing, with a comment saying it
 prevents something, is worse than no guard.
 
+**Both wordmarks are keyed, not flooded.** The French mark arrived on white
+to begin with and was flooded out from the border; its replacement arrives on
+the same green card as the DDB one, with the same bad binary alpha, so both
+now go through `dechroma`. `brand/french.png` and `brand/wordmark.png`, both
+PNG because both carry an alpha channel that cannot be trusted but cannot be
+thrown away either.
+
+**A check written for one mark has to be written for all of them.** The
+reserved-size check lived inside the site logo's block, so replacing the
+French artwork with one of a different shape sailed straight past it. It is
+`mark_reserves_right_space()` now and both marks are put through it. When a
+third mark appears, put it through too.
+
 **A wordmark drawn on white has to have the white cut away**, or it is a
 glaring rectangle on the dark theme — and that is invisible while you work in
 the light one. `make_icons.transparent()` floods inward from the border and

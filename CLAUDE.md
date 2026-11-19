@@ -348,6 +348,29 @@ and so a different shape: ten packs, two test pages, and no units or sessions.
   and never reaching the end, which is why `check_site.py` **plays one
   through** rather than inspecting a card.
 
+  **Every card takes an empty answer, and the button says so.** Pressing
+  Check with nothing written shows what the answer was and moves on; the
+  ordering card is checkable with no tiles down at all. That is not
+  politeness, it follows from the shape of the page: there is a Next and no
+  Back, and Next appears only once a card has been answered, so a card he
+  cannot submit is a card he cannot get past and the run is over for him.
+  The pack pages are right to disable Check until an answer exists — there he
+  can step past a question and come back to it — and this one is right not
+  to, for the same reason.
+
+  A blank is **not** painted red. Not knowing is not the same as getting it
+  wrong, and a red box round an empty field tells him something untrue about
+  himself. It still counts as not-right, so the card comes round again later
+  in the run, by which time he has read the answer.
+
+  The button reads **Show me** while the box is empty and **Check** once
+  something is in it. A way out that nobody can see is no use, and a line of
+  instruction under every input would be noise on fourteen cards; the label
+  is the honest name for what the press will do either way. `check_site.py`
+  plays a run pressing the button and writing nothing, on every card, and
+  fails if any card offers no way on, says the wrong thing before he writes,
+  or moves on without showing the answer.
+
   **It has a Next and no Back, and that is the one place it departs from the
   rule above.** Every other one-at-a-time exercise in this section steps both
   ways, and all four of them shipped without a Back, so the absence of one is

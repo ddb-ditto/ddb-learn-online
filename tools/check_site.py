@@ -1390,6 +1390,79 @@ with sync_playwright() as pw:
         play_a_run([["Thomas", "fr-FR"]], "a French voice")
         play_a_run([], "no French voice")
 
+        # --- a learner who cannot do any of it -----------------------------
+        #
+        # He may not know much of this yet, and the run has a Next and no
+        # Back: Next appears only once a card has been answered. So a card he
+        # cannot submit is a card he cannot get past, and the page is over for
+        # him. Every card must therefore take an empty answer — show him what
+        # it was, and move on.
+        #
+        # Driven by pressing the button and typing nothing at all, on every
+        # card, for a whole run's worth of cards. It cannot *clear* the run
+        # that way, which is correct: nothing is ever right, so the bar never
+        # moves. What it must do is keep going.
+        blank_ctx = b.new_context(viewport={"width": 390, "height": 844})
+        blank = blank_ctx.new_page()
+        try:
+            blank.add_init_script(
+                f"({VOICE_STUB})({json.dumps([['Thomas', 'fr-FR']])}, false)")
+            blank.goto(f"{ROOT}/french/year-7/run/")
+            blank.wait_for_selector(".runcard", timeout=8000)
+            stuck_on = None
+            seen = 0
+            for _ in range(20):
+                card = blank.query_selector(".runcard")
+                kind = card.query_selector(".runkind").inner_text().strip().lower()
+                seen += 1
+                if card.query_selector(".runappraise"):
+                    card.query_selector(".runcheck").click()
+                elif card.query_selector(".runoptions"):
+                    # Four buttons; one of them is always pressable.
+                    card.query_selector(".runoptions .exbtn").click()
+                else:
+                    btn = card.query_selector(".runcheck")
+                    if btn is None:
+                        stuck_on = f"{kind}: no button to press"
+                        break
+                    # The label is the only thing telling him an empty answer
+                    # is allowed, so it has to say so before he writes.
+                    label = btn.inner_text().strip().lower()
+                    if "show" not in label:
+                        stuck_on = (f"{kind}: with nothing written the button "
+                                    f"says {btn.inner_text()!r}, so nothing "
+                                    f"says he may press it")
+                        break
+                    if btn.is_disabled():
+                        stuck_on = (f"{kind}: the button is disabled with "
+                                    f"nothing written — he cannot get past "
+                                    f"this card")
+                        break
+                    btn.click()
+                try:
+                    blank.wait_for_selector(".runnext", timeout=3000)
+                except Exception:
+                    stuck_on = (f"{kind}: pressing it with nothing written "
+                                f"offered no way on")
+                    break
+                # And it must say what the answer was, or the card taught
+                # nothing at all.
+                if not card.query_selector(".exanswer") and \
+                        not card.query_selector(".runoptions .exbtn.right"):
+                    stuck_on = f"{kind}: moved on without showing the answer"
+                    break
+                blank.click(".runnext")
+            if stuck_on:
+                fails.append(f"a learner who writes nothing gets stuck — "
+                             f"{stuck_on}")
+            else:
+                notes.append(f"nothing written: got through {seen} card(s), "
+                             f"each shown its answer")
+        except Exception as why:
+            fails.append(f"the blank-answer run crashed the check: {why}")
+        finally:
+            blank_ctx.close()
+
         # The five card hues have to be five *different* colours, and each has
         # to reach the page. A token that was never defined resolves to the
         # empty string, the rule is dropped, and the label falls back to the

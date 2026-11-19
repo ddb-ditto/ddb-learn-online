@@ -325,6 +325,20 @@ if (stage && fill && tally && data) {
      * the second change, and a drill here should look like a drill there.
      */
 
+    /**
+     * What the Check button says while the answer is still empty.
+     *
+     * Pressing it with nothing written shows the answer and moves on, which
+     * is the way past a card he cannot do. A feature nobody can see is no
+     * use to him, though, and a line of instruction under every input would
+     * be noise on fourteen cards — so the button says which of the two it is
+     * about to do. It is the honest label either way: with the box empty,
+     * Check has nothing to check.
+     */
+    const relabel = (check: HTMLButtonElement, empty: boolean): void => {
+      check.textContent = empty ? "Show me" : "Check";
+    };
+
     /** The button that moves on, added once the question has been answered. */
     const onward = (box: HTMLElement, label = "Next"): void => {
       const b = document.createElement("button");
@@ -364,6 +378,10 @@ if (stage && fill && tally && data) {
      */
     const showAnswer = (box: HTMLElement, typed: string, expected: string,
                         right: boolean): void => {
+      // `typed` is "" when he pressed Check without writing anything, which
+      // is allowed on purpose. similarity("", x) is 0, so this falls through
+      // to printing the answer plainly — which is what an empty box wants
+      // anyway: there is no difference to point at.
       if (right) return reveal(box, expected, "Yes —");
       if (similarity(typed, expected) < NEAR_ENOUGH) {
         // Nowhere near: a diff would come back in fragments with holes in it.
@@ -449,11 +467,19 @@ if (stage && fill && tally && data) {
 
       const submit = (): void => {
         const typed = input.value.trim();
-        if (!typed) return input.focus();
-        const right = isCorrect(typed, q.answer);
+        // An empty box is allowed through. Pressing Check with nothing in it
+        // used to put the cursor back and do nothing else, which left him
+        // facing a card he could not get past: there is no Back here, and
+        // Next does not appear until the card has been answered. A learner
+        // who does not know it yet needs to be shown it and moved on, not
+        // held there.
+        const right = typed !== "" && isCorrect(typed, q.answer);
         input.disabled = true;
         check.remove();
-        input.classList.add(right ? "right" : "wrong");
+        // Not knowing is not the same as getting it wrong, so a blank is not
+        // painted red. It still counts as not-right, so it comes round again
+        // later in the run — by which time he has read the answer.
+        if (typed) input.classList.add(right ? "right" : "wrong");
         showAnswer(box, typed, q.answer, right);
         mark(q, right, again);
         onward(box);
@@ -461,6 +487,8 @@ if (stage && fill && tally && data) {
 
       check.addEventListener("click", submit);
       input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+      input.addEventListener("input", () => relabel(check, !input.value.trim()));
+      relabel(check, true);
       input.focus();
     }
 
@@ -496,9 +524,7 @@ if (stage && fill && tally && data) {
 
       const draw = (): void => {
         line.textContent = placed.join(" ") || " ";
-        // Same rule as the pack pages: nothing to check until every tile is
-        // down, so a half-built sentence cannot be marked wrong.
-        check.disabled = placed.length < q.tiles.length;
+        relabel(check, placed.length === 0);
       };
       // No speaker on the tiles: they are the answer's own words, and hearing
       // them is most of the way to hearing the answer.
@@ -517,12 +543,21 @@ if (stage && fill && tally && data) {
       }
       draw();
 
+      // Checkable at any point, including with no tiles down at all.
+      //
+      // The pack pages disable Check until every tile is placed, and are
+      // right to: there he can step past a question he cannot do and come
+      // back to it. Here he cannot — the run has a Next and no Back, and
+      // Next only appears once the card has been answered — so the same
+      // guard turns "I cannot work this out" into a dead end.
       check.addEventListener("click", () => {
-        if (placed.length < q.tiles.length) return;
-        const right = isCorrect(unmarked(placed.join(" ")), unmarked(q.answer));
+        const right = placed.length === q.tiles.length
+          && isCorrect(unmarked(placed.join(" ")), unmarked(q.answer));
         for (const t of tray.querySelectorAll("button")) t.disabled = true;
         check.remove();
-        line.classList.add(right ? "right" : "wrong");
+        // An unfinished line is not a wrong one: nothing is painted red
+        // unless he actually committed to an order.
+        if (placed.length) line.classList.add(right ? "right" : "wrong");
         reveal(box, q.answer, right ? "Yes —" : "It is");
         mark(q, right, again);
         onward(box);
@@ -636,15 +671,19 @@ if (stage && fill && tally && data) {
       const check = box.querySelector<HTMLButtonElement>(".runcheck")!;
       const submit = (): void => {
         const typed = input.value.trim();
-        if (!typed) return input.focus();
-        const right = isCorrect(typed, q.fr);
+        // Allowed empty, for the same reason as the spelling cards — and
+        // more so here, where the first few goes at a dictation are meant to
+        // be hard and the answer is the thing worth seeing.
+        const right = typed !== "" && isCorrect(typed, q.fr);
         input.disabled = true;
         check.remove();
-        input.classList.add(right ? "right" : "wrong");
+        if (typed) input.classList.add(right ? "right" : "wrong");
         settle(right, typed);
       };
       check.addEventListener("click", submit);
       input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+      input.addEventListener("input", () => relabel(check, !input.value.trim()));
+      relabel(check, true);
       input.focus();
     }
 

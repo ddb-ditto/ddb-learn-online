@@ -428,7 +428,7 @@ where he was weakest. Pack 10 now has no cards; its drilling is the exercises.
 `check_french.py` holds the line: a wrong spelling may appear in those two
 drills and nowhere else.
 
-## Two marks, one site
+## Two marks, one site — and a third place the smaller one appears
 
 The site has its own logo now — the DDB wordmark — and it goes on the front
 door, which is the only page belonging to the whole site rather than to one
@@ -437,6 +437,19 @@ it says "GCSE Italian" on its face and that is still true there.
 
 Keeping both was not indecision. One brands a site that teaches two things; the
 other brands one of them.
+
+Neither appears above a lesson or a pack, where a logo competes with the
+material — but that left every page a child actually works on with no mark at
+all. So the breadcrumb bar carries one, small, at its left: the drawn D rather
+than the graffiti tile, because at twenty pixels the tile is a coloured smudge
+and the D is the only version that reads. It is also a link home, which the bar
+had no equivalent of.
+
+The app icon was **not** recut from the newer artwork, having been tried and
+compared. The existing tile was drawn as a square and fills it; a square cut
+from a wide wordmark leaves two thirds of the height empty, shrinks the
+letters, and catches the edge of the script line. It was worse at every size,
+and visibly so at thirty-two pixels.
 
 ## Three colour settings, not two
 

@@ -620,9 +620,19 @@ footer a { color: var(--ink-faint); }
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
 }
-.crumbs ol {
-  list-style: none; margin: 0 auto; padding: 0.55rem 1.5rem;
+/* The row carries the centring now, so the mark and the crumbs move together
+   and the mark cannot end up pinned to the window's edge. */
+.crumbrow {
+  margin: 0 auto; padding: 0.5rem 1.5rem;
   max-width: 46rem;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.crumbmark { flex: none; display: flex; align-items: center; }
+.crumbmark img { width: 20px; height: 20px; border-radius: 4px; display: block; }
+.crumbmark:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 5px; }
+
+.crumbs ol {
+  list-style: none; margin: 0; padding: 0;
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0;
   font-family: var(--sans); font-size: 0.78rem;
 }
@@ -636,7 +646,8 @@ footer a { color: var(--ink-faint); }
 .crumbs [aria-current="page"] { color: var(--ink-faint); }
 
 @media (max-width: 34rem) {
-  .crumbs ol { padding: 0.5rem 1.1rem; font-size: 0.74rem; }
+  .crumbrow { padding: 0.45rem 1.1rem; gap: 0.5rem; }
+  .crumbs ol { font-size: 0.74rem; }
 }
 
 /* ---- the deck link at the top of a session ------------------------------- */

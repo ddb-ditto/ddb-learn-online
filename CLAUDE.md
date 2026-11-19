@@ -289,6 +289,14 @@ face, so it stays on `/italian/`. Neither goes above a lesson, where it would
 compete with the material rather than introduce it. `Base.astro` takes
 `logo="site"` or `logo="italian"`; anything else gets none.
 
+A third place carries the mark: the breadcrumb bar, as the drawn D at 20px.
+It is the only branding on a lesson or a pack, where the wordmark would
+compete with the material. It goes *inside* the centred `.crumbrow`, not
+before it — the row is narrower than the body and has its own centring, so a
+mark outside it pins itself to the window's edge and drags the crumbs out of
+line. `check_site.py` measures the row's centring and the mark's position at
+two widths.
+
 The artwork both are cut from lives in `brand/`, outside `public/` because it
 is a source rather than something the site serves. `tools/make_icons.py`
 regenerates everything from it and needs Pillow.

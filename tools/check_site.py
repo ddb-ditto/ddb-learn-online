@@ -255,6 +255,31 @@ with sync_playwright() as pw:
             if got != expected:
                 fails.append(f"{path} trail is {got!r}, expected {expected!r}")
         notes.append(f"breadcrumb trails checked on 10 pages, last: {got!r}")
+        # The site's mark in the breadcrumb bar — the one piece of branding on a
+        # page that is not the front door. It lives inside the centred row: put it
+        # before the row and it pins itself to the window's edge and drags the
+        # crumbs out of line, which is what the first attempt did.
+        for width in (1100, 390):
+            page.set_viewport_size({"width": width, "height": 700})
+            page.goto(f"{ROOT}/french/year-7/packs/greetings/")
+            row = page.locator(".crumbrow")
+            mark = page.locator(".crumbmark")
+            if mark.count() == 0:
+                fails.append("no site mark in the breadcrumb bar")
+                break
+            rb, mb = row.bounding_box(), mark.bounding_box()
+            off_centre = abs(rb["x"] - (width - rb["width"] - rb["x"]))
+            notes.append(f"crumb row at {width}px: x={round(rb['x'])} "
+                         f"w={round(rb['width'])}, off-centre by {round(off_centre)}px")
+            if off_centre > 1:
+                fails.append(f"the breadcrumb row is off-centre at {width}px by "
+                             f"{round(off_centre)}px — the mark is outside it")
+            if mb["x"] < rb["x"] - 1:
+                fails.append(f"the mark sits left of the crumb row at {width}px")
+            if page.evaluate("document.body.scrollWidth") > width:
+                fails.append(f"the breadcrumb bar scrolls sideways at {width}px")
+        page.set_viewport_size({"width": 390, "height": 844})
+
 
         page.goto(f"{ROOT}/units/1/sessions/2/")
         page.evaluate("window.scrollTo(0, 1400)")

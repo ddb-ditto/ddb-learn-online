@@ -5,20 +5,37 @@
  * It sticks to the top of the window so it is still there four screens into a
  * session — the pages are long, and a link that only exists in the footer is
  * not navigation. The last crumb is the current page and is not a link.
+ *
+ * The mark at its left is the site's, in the only form that survives twenty
+ * pixels: the drawn D, not the graffiti tile, which at that size is a
+ * coloured smudge. It is the one piece of branding on a lesson or a pack,
+ * where the full wordmark would compete with the material.
+ *
+ * It sits *inside* the centred row rather than before it. The row has its own
+ * width — narrower than the body — and a mark outside it pins itself to the
+ * window's edge and drags the crumbs out of line with it. That is what the
+ * first attempt did.
  */
 export interface Crumb { label: string; href?: string; }
 
 interface Props { trail: Crumb[]; }
 const { trail } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 <nav class="crumbs noprint" aria-label="Breadcrumb">
-  <ol>
-    {trail.map((c) => (
-      <li>
-        {c.href
-          ? <a href={c.href}>{c.label}</a>
-          : <span aria-current="page">{c.label}</span>}
-      </li>
-    ))}
-  </ol>
+  <div class="crumbrow">
+    <a class="crumbmark" href={`${base}/`} aria-label="DDB Learn online — home">
+      {/* Decorative: the "Home" crumb beside it already says where this goes. */}
+      <img src={`${base}/favicon-32.png`} width="32" height="32" alt="" />
+    </a>
+    <ol>
+      {trail.map((c) => (
+        <li>
+          {c.href
+            ? <a href={c.href}>{c.label}</a>
+            : <span aria-current="page">{c.label}</span>}
+        </li>
+      ))}
+    </ol>
+  </div>
 </nav>

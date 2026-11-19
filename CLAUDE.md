@@ -871,6 +871,20 @@ working feature is broken. It has already happened once.
 
 Push to `main`. The workflow checks, builds and deploys.
 
+**Give the live link every time something is deployed.** Not "it is live" —
+the URL, clickable, in the reply, so it can be opened without going looking
+for it. The page that was just changed, and the front door with it when the
+change is wide. Asked for directly, and easy to let slide once the work
+itself feels finished.
+
+Work it out rather than storing it, for the same reason the base path is
+never written down: a GitHub project page is served from
+`https://<owner>.github.io/<repo>/`, and `git remote -v` plus the repository's
+*current* name give both halves. The repository has already been renamed once
+and the old remote URL still redirects, so a URL copied from an earlier
+session or from the remote can be stale while everything still appears to
+work. Checking it returns 200 before posting it costs one request.
+
 **The base path follows the repository's name and is never written down.** A
 GitHub project page is served from `/<repo>/`, so `astro.config.mjs` reads it
 from `GITHUB_REPOSITORY` (falling back to the checkout directory, overridable
